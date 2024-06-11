@@ -2,7 +2,13 @@
 source ../script/loggedin
 
 if($?rcpid) then
-
+	unsetenv clientid
+	unsetenv clientsecret
+	unsetenv ID
+	sqlwrite notsco tester ID="$TESTER"
+	echo Location: /control.cgi
+	echo ""
+	exit 0
 endif
 
 echo Content-Type: text/html
