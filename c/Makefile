@@ -1,4 +1,4 @@
-all:	../bin/notscotx ../bin/notscorx ../login/envcgi
+all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql
 
 SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
