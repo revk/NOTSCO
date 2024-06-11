@@ -5,7 +5,7 @@ echo Content-Type: text/html
 echo ""
 
 xmlsql -d notsco head.html - tail.html << 'END'
-<h1>One Touch Swicthing test platform</h1>
+<h1>One Touch Switching test platform</h1>
 <p>This is your main control pages, allowing you to configure settings and responses, send messages, and see logs.</p>
 <ul>
 <li><a href="/gettingstarted.cgi">Getting Started</a></li>
