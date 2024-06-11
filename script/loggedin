@@ -1,7 +1,15 @@
 set path=($path ../xmlsql ../SQLlib)
-
+if(! $?COOKIE_NOTSCO) goto fail
+setenv TESTER `sql notsco 'SELECT ID FROM tester WHERE clientid="$COOKIE_NOTSCO"'`
+if("$TESTER" == "") goto fail
+echo "Set-Cookie: NOTSCO=$COOKIE_NOTSCO; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Domain=$HTTP_HOST; Path=/"
+exit 0
 
 fail:
+echo "Content-type: text/plain"
+echo ""
+printenv
+
 echo "Location: /"
 echo ""
 kill 0
