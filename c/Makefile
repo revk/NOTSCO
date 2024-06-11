@@ -6,6 +6,9 @@ SQLLIB=$(shell mariadb_config --libs)
 CCOPTS=${SQLINC} -I. -I/usr/local/ssl/include -D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
 OPTS=-L/usr/local/ssl/lib ../AJL/ajl.o ../SQLlib/sqllib.o ${SQLLIB} ${CCOPTS}
 
+sql:
+	mysqldump -d notsco > ../notsco.sql
+
 pull:
 	git pull
 	git submodule update --recursive
