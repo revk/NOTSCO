@@ -1,0 +1,7 @@
+set path=($path ../xmlsql ../SQLlib)
+
+
+fail:
+echo "Location: /"
+echo ""
+kill 0

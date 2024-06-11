@@ -35,3 +35,6 @@ update:
 
 ../SQLlib/sqllib.o: ../SQLlib/sqllib.c
 	make -C ../SQLlib
+
+../xmlsql/xmlsql: ../xmlsql/xmlsql.c
+	make -C ../xmlsql

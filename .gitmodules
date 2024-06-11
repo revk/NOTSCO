@@ -7,3 +7,6 @@
 [submodule "SQLlib"]
 	path = SQLlib
 	url = https://github.com/revk/SQLlib
+[submodule "xmlsql"]
+	path = xmlsql
+	url = https://github.com/revk/xmlsql
