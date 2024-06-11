@@ -6,7 +6,7 @@ echo ""
 
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>One Touch Switching test platform</h1>
-<sql table=tester ID=$TESTER>
+<sql table=tester WHERE="ID=$TESTER">
 <if company not company=''><h2><output name=company></h2></if>
 <p>This is your main control page, allowing you to configure settings and responses, send messages, and see logs.</p>
 <ul>

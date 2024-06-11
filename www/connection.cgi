@@ -16,7 +16,7 @@ echo ""
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Connection and authentication</h1>
 <p>The simulator uses OAUTH2 and https. If you need other authentication please raise an issue, and we will look in to that.</p>
-<sql table=tester ID=$TESTER>
+<sql table=tester where="ID=$TESTER">
 <form method=post>
 <table border=1>
 <tr><td colspan=4><b>Your details</b></td></tr>
