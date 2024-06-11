@@ -26,7 +26,7 @@ Keep this link to allow you access when needed.
 If you did not request this, please disregard this email.
 
 -- 
-NOSTCO Admin
+NOTSCO Admin
 END
 echo "Content-Type: text/plain"
 echo "Refresh: 5;URL=/"
