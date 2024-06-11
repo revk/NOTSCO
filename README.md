@@ -1,5 +1,5 @@
 # One Touch Switching test platform
-This site provides a test environment for One Touch Switching development. It allows messages to be send and received as if to/from another CP, setting up the response to a match request, and even sending deliberately invalid messages to test error checking.
+This site (<a href="https://notsco.co.uk">www.notsco.co.uk</a>) provides a test environment for One Touch Switching development. It allows messages to be send and received as if to/from another CP, setting up the response to a match request, and even sending deliberately invalid messages to test error checking.
 
 ## Why would someone use this?
 
