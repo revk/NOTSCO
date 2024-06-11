@@ -1,0 +1,6 @@
+[submodule "AJL"]
+	path = AJL
+	url = https://github.com/revk/AJL
+[submodule "login"]
+	path = login
+	url = https://github.com/revk/login
