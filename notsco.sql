@@ -25,16 +25,24 @@ DROP TABLE IF EXISTS `tester`;
 CREATE TABLE `tester` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `email` tinytext NOT NULL,
+  `company` tinytext DEFAULT NULL,
   `clientid` char(20) NOT NULL,
   `clientsecret` tinytext NOT NULL,
   `rcpid` char(4) DEFAULT NULL,
   `tokenhost` tinytext DEFAULT NULL,
-  `tokenapi` tinytext DEFAULT NULL,
+  `apihost` tinytext DEFAULT NULL,
   `farclientid` tinytext DEFAULT NULL,
   `farclientsecret` tinytext DEFAULT NULL,
+  `matchresponse` enum('None','Found','Found+','Error') DEFAULT NULL,
+  `matcherror` int(4) NOT NULL DEFAULT 0,
+  `ontref` tinytext DEFAULT NULL,
+  `ontport` int(11) NOT NULL DEFAULT 0,
+  `dn` varchar(20) DEFAULT NULL,
+  `partialdn` varchar(2) DEFAULT NULL,
+  `alid` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -46,4 +54,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-11 15:35:24
+-- Dump completed on 2024-06-11 16:32:38
