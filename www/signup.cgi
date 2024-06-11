@@ -7,7 +7,7 @@ if(! $?email) then
 endif
 setenv TESTER `sql notsco 'SELECT ID FROM tester WHERE email="$email"'`
 if("$TESTER" == "") then
-	setenv TESTER `sql -i notsco 'INSERT INTO tester SET ID=0,email="$email",clientid=hex(random_bytes(10)),clientsecret=TO_BASE64(random_bytes(32))'`
+	setenv TESTER `sql -i notsco 'INSERT INTO tester SET ID=0,email="$email",clientid=hex(random_bytes(10)),clientsecret=hex(random_bytes(32))'`
 endif
 setenv CLIENTID `sql notsco 'SELECT clientid FROM tester WHERE ID="$TESTER"'`
 /usr/sbin/sendmail -B8BITMIME -f "info@$HTTP_HOST" "$email" << END

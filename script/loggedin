@@ -6,10 +6,6 @@ echo "Set-Cookie: NOTSCO=$COOKIE_NOTSCO; HttpOnly; Secure; SameSite=Strict; Max-
 exit 0
 
 fail:
-echo "Content-type: text/plain"
-echo ""
-printenv
-
 echo "Location: /"
 echo ""
 kill 0
