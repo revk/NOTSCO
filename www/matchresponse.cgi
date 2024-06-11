@@ -15,6 +15,7 @@ echo Content-Type: text/html
 echo ""
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Set next Match Request response</h1>
+<p>Any match request received will generate a reply using these details.</p>
 <sql table=tester ID=$TESTER>
 <form method=post>
 <table border=1>
