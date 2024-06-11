@@ -4,7 +4,7 @@ SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
 
 CCOPTS=${SQLINC} -I. -I/usr/local/ssl/include -D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
-OPTS=-L/usr/local/ssl/lib ${SQLLIB} ${CCOPTS}
+OPTS=-L/usr/local/ssl/lib ${SQLLIB} ${CCOPTS} ../AJL/ajl.o
 
 pull:
 	git pull

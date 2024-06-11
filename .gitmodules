@@ -4,3 +4,6 @@
 [submodule "login"]
 	path = login
 	url = https://github.com/revk/login
+[submodule "SQLlib"]
+	path = SQLlib
+	url = https://github.com/revk/SQLlib
