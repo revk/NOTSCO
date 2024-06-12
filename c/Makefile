@@ -3,8 +3,8 @@ all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql
 SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
 
-CCOPTS=${SQLINC} -I. -I/usr/local/ssl/include -D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
-OPTS=-L/usr/local/ssl/lib ../AJL/ajl.o ../SQLlib/sqllib.o ${SQLLIB} ${CCOPTS}
+CCOPTS=${SQLINC} -I. -I/usr/local/ssl/include -I ../AJL -D_GNU_SOURCE -I../SQLlib/ --std=gnu99 -g -Wall -funsigned-char -lpopt
+OPTS=-L/usr/local/ssl/lib ../AJL/ajl.o ../AJL/jcgi.o ../SQLlib/sqllib.o ${SQLLIB} ${CCOPTS}
 
 sql:
 	mysqldump -d notsco > ../notsco.sql

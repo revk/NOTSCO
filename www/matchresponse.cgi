@@ -6,7 +6,8 @@ if($?matchresponse) then
         unsetenv clientsecret
         unsetenv ID
         sqlwrite notsco tester ID="$TESTER"
-        echo Location: /control.cgi
+	echo "Status: 303"
+        echo "Location: https://$HTTP_HOST/control.cgi"
         echo ""
         exit 0
 endif
@@ -22,9 +23,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Match response</td><td>
 <select name=matchresponse>
 <option value=None>No response</option>
-<option value=Found>Respond found</option>
-<option value=Found+>Respond found plus alternative switch</option>
-<option value=Error>Respond error</option>
+<option value=Match>Respond with match</option>
+<option value=Match+Alt+>Respond with match and alternatives</option>
+<option value=NoMatch>Respond no Match</option>
+<option value=DeliveryFail>Respond delivery fail</option>
 </select>
 </td></tr>
 <tr><td>Error code</td><td><input name=matcherror size=5 maxlength=4 placeholder=NNNN> (for Respond Error)</td></tr>
@@ -37,6 +39,5 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <input type=submit value="Save">
 </form>
 </sql>
-
 'END'
 

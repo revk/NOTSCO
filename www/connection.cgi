@@ -1,6 +1,17 @@
 #!../login/envcgi /bin/csh -f
 source ../script/loggedin
 
+if($?DELETE) then
+	sql notsco 'DELETE FROM tester WHERE ID=$TESTER'	# cascades
+	setenv CLIENTID `sql notsco 'SELECT clientid FROM tester WHERE ID="$TESTER"'`
+	echo "Set-Cookie: NOTSCO=$CLIENTID; HttpOnly; Secure; SameSite=Strict; Max-Age=0; Domain=$HTTP_HOST; Path=/"
+	echo "Content-Type: text/html"
+	echo "Refresh: 0;URL=/"
+	echo ""
+	echo "Go <a href='/'>here</a>"
+	exit 0
+endif
+
 if($?rcpid) then
 	unsetenv clientid
 	unsetenv clientsecret
@@ -35,6 +46,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Client Secret</td><td colspan=3><tt><input name=farclientsecret size=60 placeholder=Secret></tt></td></tr>
 </table>
 <input type=submit value="Save">
+<input type=submit name=DELETE value="DELETE">
 </form>
 </sql>
 

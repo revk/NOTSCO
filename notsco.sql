@@ -16,6 +16,41 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `auth`
+--
+
+DROP TABLE IF EXISTS `auth`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `auth` (
+  `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tester` int(10) unsigned NOT NULL,
+  `bearer` varchar(32) NOT NULL,
+  `expiry` datetime NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `bearer` (`bearer`),
+  KEY `auth_tester` (`tester`),
+  CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `log`
+--
+
+DROP TABLE IF EXISTS `log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `log` (
+  `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tester` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `log_tester` (`tester`),
+  CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `tester`
 --
 
@@ -33,16 +68,18 @@ CREATE TABLE `tester` (
   `apihost` tinytext DEFAULT NULL,
   `farclientid` tinytext DEFAULT NULL,
   `farclientsecret` tinytext DEFAULT NULL,
-  `matchresponse` enum('None','Found','Found+','Error') DEFAULT NULL,
+  `matchresponse` enum('None','Match','Match+Alt','NoMatch','DeliveryFail') DEFAULT 'Match',
   `matcherror` int(4) NOT NULL DEFAULT 0,
   `ontref` tinytext DEFAULT NULL,
   `ontport` int(11) NOT NULL DEFAULT 0,
   `dn` varchar(20) DEFAULT NULL,
   `partialdn` varchar(2) DEFAULT NULL,
   `alid` varchar(20) DEFAULT NULL,
+  `bearer` tinytext DEFAULT NULL,
+  `expiry` datetime DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -54,4 +91,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-11 16:32:38
+-- Dump completed on 2024-06-12  8:16:50

@@ -7,11 +7,12 @@ if("$TESTER" == "") goto fail
 
 echo "Set-Cookie: NOTSCO=$CLIENTID; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Domain=$HTTP_HOST; Path=/"
 echo "Content-Type: text/html"
-echo "Refresh: 0;URL=/control.cgi"
+echo "Refresh: 0;URL=https://$HTTP_HOST/control.cgi"
 echo ""
 echo "Go <a href='/control.cgi'>here</a>"
 exit 0
 
 fail:
-echo "Location: /"
+echo "Status: 303"
+echo "Location: https://$HTTP_HOST/"
 echo ""

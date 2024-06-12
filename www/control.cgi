@@ -11,13 +11,11 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <p>This is your main control page, allowing you to configure settings and responses, send messages, and see logs.</p>
 <ul>
 <li><a href="/gettingstarted.cgi">Getting Started</a></li>
-<li><a href="/connection.cgi">Connection and authentication</a> <if rcpid not rcpid=''>(<output name=rcpid>)</if></li>
-<if apihost not apihost=''>
+<li><a href="/connection.cgi">Connection and authentication</a><if rcpid not rcpid=''> (<output name=rcpid>)</if><if not apihost or apihost=''> <b>NOT SET UP</b></if></li>
 <li><a href="/matchresponse.cgi">Set up next match response</a> (<output name=matchresponse>)</li>
 <li><a href="/sendmatch.cgi">Send a match request</a></li>
 <li><a href="/sendorder.cgi">Send order/update/trigger/cancel</a></li>
 <li><a href="/sendbad.cgi">Send bad messages</a></li>
-</if>
 </ul>
 <if not apihost or apihost=''><p>You need to set up your connection/authentication details before you can send messages.</p></if>
 <if not rcpid or rcpid=''><p>You have not set an RCPID yet.</p></if>

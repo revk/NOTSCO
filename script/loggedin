@@ -6,6 +6,7 @@ echo "Set-Cookie: NOTSCO=$COOKIE_NOTSCO; HttpOnly; Secure; SameSite=Strict; Max-
 exit 0
 
 fail:
-echo "Location: /"
+echo "Status: 303"
+echo "Location: https://$HTTP_HOST/"
 echo ""
 kill 0
