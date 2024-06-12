@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,6 +47,7 @@ CREATE TABLE `directory` (
   `company` tinytext DEFAULT NULL,
   `sales` tinytext DEFAULT NULL,
   `support` tinytext DEFAULT NULL,
+  `active` enum('N','Y') NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`rcpid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -60,12 +61,42 @@ DROP TABLE IF EXISTS `log`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `log` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `tester` int(10) unsigned NOT NULL,
+  `tester` int(10) unsigned DEFAULT NULL,
   `ts` datetime NOT NULL DEFAULT curtime(),
+  `description` tinytext DEFAULT NULL,
+  `status` int(3) unsigned DEFAULT NULL,
+  `ip` varchar(39) DEFAULT NULL,
+  `rx` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`rx`)),
+  `rxerror` text DEFAULT NULL,
+  `tx` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tx`)),
+  `txerror` text DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `sor`
+--
+
+DROP TABLE IF EXISTS `sor`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sor` (
+  `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tester` int(10) unsigned DEFAULT NULL,
+  `sor` uuid NOT NULL,
+  `issuedby` enum('US','THEM') DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
+  `triggered` datetime DEFAULT NULL,
+  `cancelled` datetime DEFAULT NULL,
+  `dated` date DEFAULT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `sor_tester` (`tester`),
+  KEY `sor` (`sor`),
+  CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -96,9 +127,10 @@ CREATE TABLE `tester` (
   `alid` varchar(20) DEFAULT NULL,
   `bearer` tinytext DEFAULT NULL,
   `expiry` datetime DEFAULT NULL,
+  `delay` int(3) unsigned NOT NULL DEFAULT 5,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -110,4 +142,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-12  9:40:15
+-- Dump completed on 2024-06-12 10:46:27
