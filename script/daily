@@ -1,0 +1,3 @@
+#!/bin/csh -f
+set path=($path ../xmlsql ../SQLlib)
+sql notsco 'DELETE FROM auth WHERE expiry<NOW()' 'DELETE FROM log WHERE ts<curdate()'

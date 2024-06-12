@@ -30,35 +30,57 @@ totscoerror (j_t tx, FILE * txe, int res, int ecode, int code, const char *text,
    return res;
 }
 
-void
+int
 token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 {
-   // Check headers
-
+   // Check header
+   const char *method = j_get (cgi, "info.request_method");
+   if (!method)
+      fprintf (rxe, "No method?!\n");
+   else if (strcasecmp (method, "POST"))
+      fprintf (rxe, "Expecting POST (is %s)\n", method);
+   const char *ct = j_get (cgi, "header.Content-Type");
+   if (!ct)
+      fprintf (rxe, "No Content-Type\n");
+   else if (strcmp (ct, "application/x-www-form-urlencoded"))
+      fprintf (rxe, "Expected Content-Type: application/x-www-form-urlencoded (is %s)\n", ct);
    j_t rx = j_find (cgi, "formdata");
-
-               j_store_string(tx, "access_token", "TODO");
-            j_store_string(tx, "token_type", "bearer");
-            j_store_string(tx, "scope", "default");
-            j_store_int(tx, "expires_in", 3600);
+   const char *gt = j_get (rx, "grant_type");
+   if (!gt)
+      fprintf (rxe, "No grant_type\n");
+   else if (strcmp (gt, "client_credentials"))
+      fprintf (rxe, "Expected grant_type=client_credentials (is %s)\n", gt);
+   int secs = 3600;
+   sql_safe_query_f (sqlp, "INSERT INTO `auth` SET `tester`=%d,`bearer`=to_base64(random_bytes(45)),`expiry`=%#T", tester,
+                     time (0) + secs);
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `auth` WHERE `ID`=%d", sql_insert_id (sqlp));
+   if (sql_fetch_row (res))
+      j_store_string (tx, "access_token", sql_colz (res, "bearer"));
+   else
+      fprintf (rxe, "Failed to allocate token\n");
+   sql_free_result (res);
+   j_store_string (tx, "token_type", "bearer");
+   j_store_string (tx, "scope", "default");
+   j_store_int (tx, "expires_in", 3600);
+   return 200;
 }
 
-void
+int
 directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 {
    // Check headers
 
    j_t rx = j_find (cgi, "formdata");
-
+   return 200;
 }
 
-void
+int
 letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 {
    // Check headers
 
    j_t rx = j_find (cgi, "formdata");
-
+   return 200;
 }
 
 int
@@ -77,9 +99,7 @@ main (int argc, const char *argv[])
    FILE *rxe = open_memstream (&rxerror, &rxlen);
    int status = 200;
    int tester = 0;
-
    j_t tx = j_create ();
-
    void fail (const char *e, int s)
    {                            // Simple failure
       if (!e)
@@ -136,7 +156,7 @@ main (int argc, const char *argv[])
             if (!c)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             else if (!strcmp (script, "/oauth2/token"))
-               token (&sql, tester, cgi, rxe, tx, txe);
+               status = token (&sql, tester, cgi, rxe, tx, txe);
             else
                fail ("Incorrect path for token", 500);
          }
@@ -152,15 +172,14 @@ main (int argc, const char *argv[])
             {
                tester = atoi (sql_colz (res, "ID"));
                // TODO expiry?
-
             }
             sql_free_result (res);
             if (!tester)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             else if (!strcmp (script, "/directory/v1/entry"))
-               directory (&sql, tester, cgi, rxe, tx, txe);
+               status = directory (&sql, tester, cgi, rxe, tx, txe);
             else if (!strcmp (script, "/letterbox/v1/post"))
-               letterbox (&sql, tester, cgi, rxe, tx, txe);
+               status = letterbox (&sql, tester, cgi, rxe, tx, txe);
             else
                fail ("Incorrect path for API", 500);
          }
@@ -172,14 +191,20 @@ main (int argc, const char *argv[])
    fclose (txe);
    fclose (rxe);
    // TODO
-
    // Return
    printf ("Status: %d\r\n", status);
    printf ("Content-Type: application/json\r\n");
    printf ("\r\n");
    j_err (j_write (tx, stdout));
-   j_err (j_write_pretty (cgi, stderr));        // TODO debug
-   j_err (j_write_pretty (tx, stderr)); // TODO debug
+   if (sqldebug)
+   {
+      if (rxerror && *rxerror)
+         fprintf (stderr, "Rx errors:\n%s", rxerror);
+      j_err (j_write_pretty (cgi, stderr));
+      if (txerror && *txerror)
+         fprintf (stderr, "Tx errors:\n%s", txerror);
+      j_err (j_write_pretty (tx, stderr));
+   }
    free (txerror);
    free (rxerror);
    j_delete (&tx);

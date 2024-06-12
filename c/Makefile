@@ -19,11 +19,11 @@ update:
 	-git commit -a -m "Library update"
 	-git push
 
-../bin/notscotx:	notscotx.c ../lib/notscolib.o ../AJL/ajl.o ../SQLlib/sqllib.o
+../bin/notscotx:	notscotx.c ../lib/notscolib.o ../AJL/ajl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
 	cc -fPIC -O -o $@.new $< ${OPTS} ${SQLLIB}
 	mv -f $@.new $@
 
-../bin/notscorx:	notscorx.c ../lib/notscolib.o ../AJL/ajl.o ../SQLlib/sqllib.o
+../bin/notscorx:	notscorx.c ../lib/notscolib.o ../AJL/ajl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
 	cc -fPIC -O -o $@.new $< ${OPTS} ${SQLLIB}
 	mv -f $@.new $@
 
@@ -34,6 +34,9 @@ update:
 	make -C ../login
 
 ../AJL/ajl.o: ../AJL/ajl.c
+	make -C ../AJL
+
+../AJL/jcgi.o: ../AJL/jcgi.c
 	make -C ../AJL
 
 ../SQLlib/sqllib.o: ../SQLlib/sqllib.c
