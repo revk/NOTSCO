@@ -283,7 +283,6 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             t = NULL;
          if (!t)
             status = notscoerror (tx, rxe, txe, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
-         warnx ("Routing %s", routing);
          j_t payload = j_find (rx, routing);
          if (!payload)
             status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing payload");
@@ -293,7 +292,6 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             {
                if (strstr (routing, "Request"))
                {                // Request handling, 
-                  warnx ("Request");
                   if (!fork ())
                   {
                      if (!sqldebug)
@@ -303,7 +301,6 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                         close (2);
                         setpgid (0, 0);
                      }
-                     warnx ("Reply after %d", delay);
                      if (delay)
                         sleep (delay);
                      SQL sql;
