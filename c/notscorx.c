@@ -91,6 +91,7 @@ main (int argc, const char *argv[])
    sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
    sql_transaction (&sql);
    // Errors
+   const char *description = "Received";
    char *txerror = NULL;
    size_t txlen = 0;
    FILE *txe = open_memstream (&txerror, &txlen);
@@ -156,8 +157,10 @@ main (int argc, const char *argv[])
             if (!c)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             else if (!strcmp (script, "/oauth2/token"))
+            {
+               description = "Received OAUTH2 token request";
                status = token (&sql, tester, cgi, rxe, tx, txe);
-            else
+            } else
                fail ("Incorrect path for token", 500);
          }
       } else if (!strncmp (host, "otshub.", 7))
@@ -177,10 +180,14 @@ main (int argc, const char *argv[])
             if (!tester)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             else if (!strcmp (script, "/directory/v1/entry"))
+            {
+               description = "Received directory API request";
                status = directory (&sql, tester, cgi, rxe, tx, txe);
-            else if (!strcmp (script, "/letterbox/v1/post"))
+            } else if (!strcmp (script, "/letterbox/v1/post"))
+            {
+               description = "Received letterbox API post";
                status = letterbox (&sql, tester, cgi, rxe, tx, txe);
-            else
+            } else
                fail ("Incorrect path for API", 500);
          }
       } else
@@ -190,7 +197,14 @@ main (int argc, const char *argv[])
    // Log
    fclose (txe);
    fclose (rxe);
-   // TODO
+   char *rxt = j_write_str (j_find (cgi, "formdata"));
+   char *txt = j_write_str (tx);
+   sql_safe_query_f (&sql,
+                     "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`ip`=%#s,`description`=%#s,`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                     tester, j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt,
+                     *txerror ? txerror : NULL);
+   free (rxt);
+   free (txt);
    // Return
    printf ("Status: %d\r\n", status);
    printf ("Content-Type: application/json\r\n");
