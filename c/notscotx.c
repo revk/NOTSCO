@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <err.h>
+#include <sqllib.h>
+#include <ajl.h>
 #include "notscolib.h"
 
 int debug = 0;

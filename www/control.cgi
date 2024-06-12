@@ -25,11 +25,12 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <hr>
 <h2>Recent messages</h2>
 <table>
-<sql table=log where="tester=$TESTER" order=ts DESC><set found=1>
+<sql table=log where="tester=$TESTER" order=ID DESC><set found=1>
 <tr>
 <td><output name=ts type=%T href="/log.cgi?ID=$ID"></td>
+<td><output name=status></td>
 <td><output name=ip></td>
-<td><output name=description></td>
+<td style='white-space:nowrap;'><output name=description></td>
 <if rxerror><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
 <if txerror><td style='white-space:pre;font-weight:bold;'><output name=txerror></td></if>
 </tr>

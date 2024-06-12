@@ -17,7 +17,8 @@ if($?rcpid) then
 	unsetenv clientsecret
 	unsetenv ID
 	sqlwrite notsco tester ID="$TESTER"
-	echo Location: /control.cgi
+        echo "Status: 303"
+        echo "Location: https://$HTTP_HOST/control.cgi"
 	echo ""
 	exit 0
 endif

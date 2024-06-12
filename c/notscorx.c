@@ -5,6 +5,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <err.h>
 #include <jcgi.h>
@@ -14,19 +15,24 @@
 int debug = 0;
 
 int
-totscoerror (j_t tx, FILE * txe, int res, int ecode, int code, const char *text, const char *message, const char *description)
+notscoerror (j_t tx, FILE * rxe, FILE * txe, int res, int ecode, int code, const char *text, const char *message,
+             const char *description)
 {                               // Direct error to TOTSCO hub
-   fprintf (txe, "Status %d: error %d %s\n", res, ecode ? : code, text ? : message ? : description);
-   if (ecode)
-      j_store_int (tx, "errorCode", ecode);     // spec says integer but examples are a string with numeric content
-   if (text)
-      j_store_string (tx, "errorText", text);
-   if (code)
-      j_store_int (tx, "code", code);   // spec says integer but examples are a string with numeric content
-   if (message)
-      j_store_string (tx, "message", message);
-   if (description)
-      j_store_string (tx, "description", description);  // spec says Description but examples sy descrioptipn
+   fprintf (rxe, "%s %s %s\n", text ? : "", message ? : "", description ? : "");
+   if (j_isnull (tx))
+   {
+      fprintf (txe, "Status %d: error %d %s %s %s\n", res, code ? : ecode ? : res, text ? : "", message ? : "", description ? : "");
+      if (ecode)
+         j_store_int (tx, "errorCode", ecode);  // spec says integer but examples are a string with numeric content
+      if (text)
+         j_store_string (tx, "errorText", text);
+      if (code)
+         j_store_int (tx, "code", code);        // spec says integer but examples are a string with numeric content
+      if (message)
+         j_store_string (tx, "message", message);
+      if (description)
+         j_store_string (tx, "description", description);       // spec says Description but examples sy descrioptipn
+   }
    return res;
 }
 
@@ -114,7 +120,6 @@ directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             j_store_string (r, "type", "URL");
             j_store_string (r, "value", sales);
          }
-
       }
    }
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory`");
@@ -129,13 +134,207 @@ directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    return 200;
 }
 
+void
+residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+{
+   int code = 0;
+
+   if (!code)
+   {                            // TODO
+      j_t t = j_create ();
+      j_t payload = notscoreply (rx, t, "Confirmation");
+
+      notscotx (sqlp, tester, t);
+   }
+
+   if (code)
+      notscofailure (sqlp, tester, rx, code);
+}
+
+void
+residentialSwitchOrderRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+{
+   int code = 0;
+
+   if (code)
+      notscofailure (sqlp, tester, rx, code);
+}
+
+void
+residentialSwitchOrderUpdateRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+{
+   int code = 0;
+
+   if (code)
+      notscofailure (sqlp, tester, rx, code);
+}
+
+void
+residentialSwitchOrderTriggerRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+{
+   int code = 0;
+
+   if (code)
+      notscofailure (sqlp, tester, rx, code);
+}
+
+void
+residentialSwitchOrderCancellationRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+{
+   int code = 0;
+
+   if (code)
+      notscofailure (sqlp, tester, rx, code);
+}
+
+int
+residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
+{
+   return 202;
+}
+
+int
+residentialSwitchMatchFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
+{
+   return 202;
+}
+
 int
 letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
-{
-   // Check headers
-
+{                               // Handle posted message
+   int status = 0;
+   const char *method = j_get (cgi, "info.request_method");
+   if (!method)
+      fprintf (rxe, "No method?!\n");
+   else if (strcasecmp (method, "POST"))
+      fprintf (rxe, "Expecting POST (is %s)\n", method);
+   const char *ct = j_get (cgi, "header.Content-Type");
+   if (!ct)
+      fprintf (rxe, "No Content-Type\n");
+   else if (strcmp (ct, "application/json"))
+      fprintf (rxe, "Expected Content-Type: application/json (is %s)\n", ct);
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
+   sql_fetch_row (res);
+   const char *us = strdupa (sql_colz (res, "rcpid"));
+   int delay = atoi (sql_colz (res, "delay"));
+   sql_free_result (res);
    j_t rx = j_find (cgi, "formdata");
-   return 200;
+   j_t envelope = j_find (rx, "envelope");
+   if (!envelope)
+      status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing envelope");
+   else
+   {                            // Check envelope
+      j_t source = j_find (envelope, "source");
+      if (!source)
+         status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing source");
+      if (strcmp (j_get (source, "type") ? : "", "RCPID"))
+         status = notscoerror (tx, rxe, txe, 400, 9002, 0, "Unknown or invalid source Type.", NULL, NULL);
+      const char *rcpid = j_get (source, "identity");
+      if (!rcpid)
+         status = notscoerror (tx, rxe, txe, 400, 9003, 0, "Unknown or invalid source Id.", NULL, NULL);
+      if (!*us)
+         fprintf (rxe, "We do not have an RCPID set\n");
+      else if (strcmp (rcpid, us))
+         notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Incorrect source RCPID");
+      j_t destination = j_find (envelope, "destination");
+      if (!destination)
+         status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing destination");
+      else if (strcmp (j_get (destination, "type") ? : "", "RCPID"))
+         status = notscoerror (tx, rxe, txe, 400, 9000, 0, "Unknown or invalid destination Type.", NULL, NULL);
+      else
+      {
+         rcpid = j_get (destination, "identity");
+         if (!rcpid || !*rcpid)
+            status = notscoerror (tx, rxe, txe, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
+         else if (*us && !strcmp (rcpid, us))
+            status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Talking to ourselves");
+         else
+         {
+            SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory` WHERE `rcpid`=%#s", rcpid);
+            if (!sql_fetch_row (res))
+               status = notscoerror (tx, rxe, txe, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
+            sql_free_result (res);
+         }
+      }
+      const char *routing = j_get (envelope, "routingID");
+      if (!routing)
+         status = notscoerror (tx, rxe, txe, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
+      else
+      {                         // Check payload
+         const char *t = routing;
+         if (t && !strncmp (t, "residentialSwitch", 17))
+            t += 17;
+         else
+            t = NULL;
+         if (t && !strncmp (t, "Match", 5))
+            t += 5;
+         else if (t && !strncmp (t, "Order", 5))
+         {
+            t += 5;
+            if (!strncmp (t, "Update", 6))
+               t += 6;
+            else if (!strncmp (t, "Trigger", 7))
+               t += 7;
+            else if (!strncmp (t, "Cancellation", 12))
+               t += 12;
+         } else
+            t = NULL;
+         if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
+            t = NULL;
+         if (!t)
+            status = notscoerror (tx, rxe, txe, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
+         warnx ("Routing %s", routing);
+         j_t payload = j_find (rx, routing);
+         if (!payload)
+            status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing payload");
+         else
+         {                      // Handle specific messages
+            if (!status)
+            {
+               if (strstr (routing, "Request"))
+               {                // Request handling, 
+                  warnx ("Request");
+                  if (!fork ())
+                  {
+                     if (!sqldebug)
+                     {
+                        close (0);
+                        close (1);
+                        close (2);
+                        setpgid (0, 0);
+                     }
+                     warnx ("Reply after %d", delay);
+                     if (delay)
+                        sleep (delay);
+                     SQL sql;
+                     sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
+                     sql_transaction (&sql);
+                     if (!strcmp (routing, "residentialSwitchMatchRequest"))
+                        residentialSwitchMatchRequest (&sql, tester, rx, rxe, payload);
+                     else if (!strcmp (routing, "residentialSwitchOrderRequest"))
+                        residentialSwitchOrderRequest (&sql, tester, rx, rxe, payload);
+                     else if (!strcmp (routing, "residentialSwitchOrderUpdateRequest"))
+                        residentialSwitchOrderUpdateRequest (&sql, tester, rx, rxe, payload);
+                     else if (!strcmp (routing, "residentialSwitchOrderTriggerRequest"))
+                        residentialSwitchOrderTriggerRequest (&sql, tester, rx, rxe, payload);
+                     else if (!strcmp (routing, "residentialSwitchOrderCancellationRequest"))
+                        residentialSwitchOrderCancellationRequest (&sql, tester, rx, rxe, payload);
+                     sql_safe_commit (&sql);
+                     sql_close (&sql);
+                     _exit (0);
+                  }
+               } else
+               {                // Response handling
+                  if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
+                     status = residentialSwitchMatchConfirmation (sqlp, tester, rx, rxe, tx, txe, payload);
+                  else if (!strcmp (routing, "residentialSwitchMatchFailure"))
+                     status = residentialSwitchMatchFailure (sqlp, tester, rx, rxe, tx, txe, payload);
+               }
+            }
+         }
+      }
+   }
+   return status ? : 202;
 }
 
 int
@@ -146,7 +345,7 @@ main (int argc, const char *argv[])
    sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
    sql_transaction (&sql);
    // Errors
-   const char *description = "Received";
+   const char *description = "?";
    char *txerror = NULL;
    size_t txlen = 0;
    FILE *txe = open_memstream (&txerror, &txlen);
@@ -160,7 +359,7 @@ main (int argc, const char *argv[])
    {                            // Simple failure
       if (!e)
          return;
-      status = totscoerror (tx, txe, s, 0, 0, e, NULL, NULL);
+      status = notscoerror (tx, rxe, txe, s, 0, 0, e, NULL, NULL);
    }
 
    j_t cgi = j_create ();
@@ -178,12 +377,12 @@ main (int argc, const char *argv[])
          fail ("No script_name", 500);
       else if (!auth || !*auth)
          status =
-            totscoerror (tx, txe, 401, 0, 900902, NULL, "Missing Credentials",
+            notscoerror (tx, rxe, txe, 401, 0, 900902, NULL, "Missing Credentials",
                          "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN'");
       else if (!strncmp (host, "otshub-token.", 13))
       {
          if (strncasecmp (auth, "Basic ", 6))
-            status = totscoerror (tx, txe, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
+            status = notscoerror (tx, rxe, txe, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
          else
          {
             unsigned char *user = NULL,
@@ -210,10 +409,10 @@ main (int argc, const char *argv[])
             }
             free (user);
             if (!c)
-               status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
+               status = notscoerror (tx, rxe, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             if (!strcmp (script, "/oauth2/token"))
             {
-               description = "Received OAUTH2 token request";
+               description = "OAUTH2 token request";
                if (!status)
                   status = token (&sql, tester, cgi, rxe, tx, txe);
             } else
@@ -222,7 +421,7 @@ main (int argc, const char *argv[])
       } else if (!strncmp (host, "otshub.", 7))
       {
          if (strncasecmp (auth, "Bearer ", 7))
-            status = totscoerror (tx, txe, 401, 0, 401, NULL, "Expecting Bearer auth", NULL);
+            status = notscoerror (tx, rxe, txe, 401, 0, 401, NULL, "Expecting Bearer auth", NULL);
          else
          {
             auth += 7;
@@ -237,15 +436,15 @@ main (int argc, const char *argv[])
             }
             sql_free_result (res);
             if (auth)
-               status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
+               status = notscoerror (tx, rxe, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             if (!strcmp (script, "/directory/v1/entry"))
             {
-               description = "Received directory API request";
+               description = "directory API request";
                if (!status)
                   status = directory (&sql, tester, cgi, rxe, tx, txe);
             } else if (!strcmp (script, "/letterbox/v1/post"))
             {
-               description = "Received letterbox API post";
+               description = j_get (cgi, "formdata.envelope.routingID") ? : "letterbox API post";
                if (!status)
                   status = letterbox (&sql, tester, cgi, rxe, tx, txe);
             } else
@@ -263,8 +462,9 @@ main (int argc, const char *argv[])
    char *rxt = j_write_str (j_find (cgi, "formdata"));
    char *txt = j_write_str (tx);
    sql_safe_query_f (&sql,
-                     "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`ip`=%#s,`description`=%#s,`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
+                     "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                     status, j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt,
+                     *txerror ? txerror : NULL);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    free (rxt);
