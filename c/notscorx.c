@@ -173,7 +173,7 @@ main (int argc, const char *argv[])
             SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `auth` WHERE `bearer`=%#s", auth);
             if (sql_fetch_row (res))
             {
-               tester = atoi (sql_colz (res, "ID"));
+               tester = atoi (sql_colz (res, "tester"));
                // TODO expiry?
             }
             sql_free_result (res);
@@ -200,9 +200,10 @@ main (int argc, const char *argv[])
    char *rxt = j_write_str (j_find (cgi, "formdata"));
    char *txt = j_write_str (tx);
    sql_safe_query_f (&sql,
-                     "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`ip`=%#s,`description`=%#s,`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     tester, j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt,
+                     "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`ip`=%#s,`description`=%#s,`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                     j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt,
                      *txerror ? txerror : NULL);
+   if(tester)sql_safe_query_f(&sql,"UPDATE `log` SET `tester`=%d WHERE `ID`=%d",tester,sql_insert_id(&sql));
    free (rxt);
    free (txt);
    // Return
