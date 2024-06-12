@@ -14,5 +14,5 @@ xmlsql head.html - tail.html << 'END'
 <form method=post action=signup.cgi>
 <input name=email autofocus placeholder="Business email address" size=80 type=email><input type=submit value="Send link">
 </form>
-<p>For suggestions and support, raise issues on <a href=="https://github.com/revk/NOTSCO">GitHub</a></p>
+<p>For suggestions and support, raise issues on <a href="https://github.com/revk/NOTSCO">GitHub</a></p>
 'END'

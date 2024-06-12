@@ -32,7 +32,7 @@ totscoerror (j_t tx, FILE * txe, int res, int ecode, int code, const char *text,
 
 int
 token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
-{ // Token request
+{                               // Token request
    const char *method = j_get (cgi, "info.request_method");
    if (!method)
       fprintf (rxe, "No method?!\n");
@@ -66,18 +66,66 @@ token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 
 int
 directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
-{ // Directory request
+{                               // Directory request
    const char *method = j_get (cgi, "info.request_method");
    if (!method)
       fprintf (rxe, "No method?!\n");
    else if (strcasecmp (method, "GET"))
       fprintf (rxe, "Expecting GET (is %s)\n", method);
    j_t rx = j_find (cgi, "formdata");
-   const char *lt=j_get(rx,"listType");
-   if(!lt)fprintf(rxe,"listType not specified\n");
-   else if(strcmp(lt,"RCPID"))fprintf(rxe,"Expected listType=RCPID (is %s)\n",lt);
-   const char *identity=j_get(rx,"identity"); // can be all, or a list (how is it a list?)
+   const char *lt = j_get (rx, "listType");
+   if (!lt)
+      fprintf (rxe, "listType not specified\n");
+   else if (strcmp (lt, "RCPID"))
+      fprintf (rxe, "Expected listType=RCPID (is %s)\n", lt);
+   const char *identity = j_get (rx, "identity");       // can be all, or a list (how is it a list?)
+   if (identity && !strcmp (identity, "all"))
+      identity = NULL;
+   j_t list = j_store_array (tx, "list");
+   list = j_append_object (list);
+   j_store_string (list, "listType", lt);
+   list = j_store_array (list, "identity");
+   void add (const char *rcpid, const char *company, const char *support, const char *sales, int active)
+   {
+      if (identity && !strstr (identity, rcpid))
+         return;
+      j_t e = j_append_object (list);
+      j_store_string (e, "id", rcpid);
+      if (company && *company)
+         j_store_string (e, "name", company);
+      j_t j = j_store_array (e, "processSupport");
+      j = j_append_object (j);
+      j_store_string (j, "process", "OTS");
+      j_store_string (j, "status", active ? "Active" : "Suspend");
+      if (sales || support)
+      {
+         j = j_store_array (e, "resource");
+         if (support)
+         {
+            j_t r = j_append_object (j);
+            j_store_string (r, "name", "customerAssistURL");
+            j_store_string (r, "type", "URL");
+            j_store_string (r, "value", support);
+         }
+         if (sales)
+         {
+            j_t r = j_append_object (j);
+            j_store_string (r, "name", "salesAssistURL");
+            j_store_string (r, "type", "URL");
+            j_store_string (r, "value", sales);
+         }
 
+      }
+   }
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory`");
+   while (sql_fetch_row (res))
+      add (sql_col (res, "rcpid"), sql_col (res, "company"), sql_col (res, "support"), sql_col (res, "sales"),
+           *sql_colz (res, "active") == 'Y');
+   sql_free_result (res);
+   res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
+   if (sql_fetch_row (res))
+      add (sql_col (res, "rcpid"), sql_col (res, "company"), NULL, NULL, 1);
+   sql_free_result (res);
    return 200;
 }
 
@@ -208,9 +256,9 @@ main (int argc, const char *argv[])
    char *txt = j_write_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`ip`=%#s,`description`=%#s,`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt,
-                     *txerror ? txerror : NULL);
-   if(tester)sql_safe_query_f(&sql,"UPDATE `log` SET `tester`=%d WHERE `ID`=%d",tester,sql_insert_id(&sql));
+                     j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
+   if (tester)
+      sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    free (rxt);
    free (txt);
    // Return

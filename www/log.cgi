@@ -14,10 +14,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if ip>
 <tr><td>IP</td><td><output name=ip></td></tr></if>
 <tr><td colspan=2><hr></td></tr>
-<tr><td>Rx</td><td><pre><output name=rx></pre></td></tr></if>
+<tr><td>Rx</td><td><tt><output name=rx></tt></td></tr></if>
 <if rxerror><tr><td>Errors</td><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></tr></if>
 <tr><td colspan=2><hr></td></tr>
-<tr><td>Tx</td><td><pre><output name=tx></pre></td></tr></if>
+<tr><td>Tx</td><td><tt><output name=tx></tt></td></tr></if>
 <if txerror><tr><td>Errors</td><td class='white-space:pre;font-weight:bold;'><output name=txerror></td></tr></if>
 </sql>
 </table>
