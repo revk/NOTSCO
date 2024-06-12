@@ -153,7 +153,7 @@ main (int argc, const char *argv[])
    char *rxerror = NULL;
    size_t rxlen = 0;
    FILE *rxe = open_memstream (&rxerror, &rxlen);
-   int status = 200;
+   int status = 0;
    int tester = 0;
    j_t tx = j_create ();
    void fail (const char *e, int s)
@@ -211,10 +211,11 @@ main (int argc, const char *argv[])
             free (user);
             if (!c)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
-            else if (!strcmp (script, "/oauth2/token"))
+            if (!strcmp (script, "/oauth2/token"))
             {
                description = "Received OAUTH2 token request";
-               status = token (&sql, tester, cgi, rxe, tx, txe);
+               if (!status)
+                  status = token (&sql, tester, cgi, rxe, tx, txe);
             } else
                fail ("Incorrect path for token", 500);
          }
@@ -237,20 +238,24 @@ main (int argc, const char *argv[])
             sql_free_result (res);
             if (auth)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
-            else if (!strcmp (script, "/directory/v1/entry"))
+            if (!strcmp (script, "/directory/v1/entry"))
             {
                description = "Received directory API request";
-               status = directory (&sql, tester, cgi, rxe, tx, txe);
+               if (!status)
+                  status = directory (&sql, tester, cgi, rxe, tx, txe);
             } else if (!strcmp (script, "/letterbox/v1/post"))
             {
                description = "Received letterbox API post";
-               status = letterbox (&sql, tester, cgi, rxe, tx, txe);
+               if (!status)
+                  status = letterbox (&sql, tester, cgi, rxe, tx, txe);
             } else
                fail ("Incorrect path for API", 500);
          }
       } else
          fail ("Unknown Host header", 500);
    }
+   if (!status)
+      fail ("Not processed", 500);
 
    // Log
    fclose (txe);
