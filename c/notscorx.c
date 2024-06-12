@@ -138,15 +138,94 @@ void
 residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
 {
    int code = 0;
-
-   if (!code)
-   {                            // TODO
-      j_t t = j_create ();
-      j_t payload = notscoreply (rx, t, "Confirmation");
-
-      notscotx (sqlp, tester, t);
+   const char *farid = j_get (rx, "envelope.sender.correlationID");
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
+   if (sql_fetch_row (res))
+   {
+      const char *reply = sql_colz (res, "matchresponse");
+      if (!strcmp (reply, "NoMatch"))
+         code = atoi (sql_colz (res, "matcherror"));
+      else if (strcmp (reply, "None"))
+      {
+         if (!code)
+         {                      // TODO
+            j_t t = j_create ();
+            j_t payload = notscoreply (rx, t, "Confirmation");
+            SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
+            if (sql_fetch_row (u))
+               j_store_string (j_find (t, "envelope.source"), "correlationID", sql_col (u, "U"));
+            sql_free_result (u);
+            j_t implications = j_store_array (payload, "implicationsSent");
+            const char *email = sql_colz (res, "email");
+            email = strrchr (email, '@');
+            j_t j = j_append_object (implications);
+            j_store_string (j, "sentMethod", "email");
+            j_store_stringf (j, "sentTo", "x****%s", email);
+            j_store_datetime (j, "sentBy", time (0));
+            j = j_append_object (implications);
+            j_store_string (j, "sentMethod", "1st class post");
+            j_store_datetime (j, "sentBy", time (0));
+            j_t match = j_store_object (payload, "matchResult");
+            void add (int alt)
+            {
+               char *sor = NULL;
+               u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
+               if (sql_fetch_row (u))
+                  sor = strdupa (sql_col (u, "U"));
+               sql_free_result (u);
+               j_store_string (match, "switchOrderReference", sor);
+               j_t services = j_store_array (match, "services");
+               const char *cupid = sql_colz (res, "cupid");
+               const char *no = sql_colz (res, "networkoperator");
+               const char *sn = sql_colz (res, "servicename");
+               const char *dn = sql_colz (res, "dn");
+               const char *partialdn = sql_colz (res, "partialdn");
+               const char *alid = sql_colz (res, "alid");
+               const char *ontref = sql_colz (res, "ontref");
+               const char *ontport = sql_colz (res, "ontport");
+               void add (j_t j,const char *tag, const char *val)
+               {
+                  if (!val || !*val)
+                     return;
+		  j=j_append_object(j);
+                  j_store_string (j, "identifierType", tag);
+                  j_store_string (j, "identifier", val);
+               }
+               if (*alid || *ontref || *ontport)
+               {                // IAS
+		       j_t j=j_append_object(services);
+                  j_store_string (j, "serviceType", "IAS");
+                  j_store_string (j, "switchAction", "ServiceFound");
+		  j=j_store_array(j,"serviceIdentifiers");
+                  add (j,"ONTReference", ontref);
+                  if(atoi(ontport))add (j,"PortNumber", ontport);
+                  add (j,"AccessLineId", alid);
+                  add (j,"ServiceInformation", sn);
+		  add(j,"NetworkOperator",no);
+               }
+               if (*dn || *partialdn)
+               {                // NBICS
+		       j_t j=j_append_object(services);
+                  j_store_string (j, "serviceType", "NBICS");
+                  j_store_string (j, "switchAction", alt?"OptionToCease":"OptionToRetain");
+		  j=j_store_array(j,"serviceIdentifiers");
+		  add(j,"CUPID",cupid);
+		  add(j,"DN",dn);
+		  add(j,"PartialDN",partialdn);
+               }
+	       // TODO SOR table
+            }
+            add (0);
+            if (strchr (reply, '+'))
+            {
+               j_t alt = j_store_array (payload, "alternativeSwitchOrders");
+               match = j_store_object (j_append_object (alt), "matchResult");
+               add (1);
+            }
+            notscotx (sqlp, tester, t);
+         }
+      }
    }
-
    if (code)
       notscofailure (sqlp, tester, rx, code);
 }

@@ -25,12 +25,14 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <select name=matchresponse>
 <option value=None>No response</option>
 <option value=Match>Respond with match</option>
-<option value=Match+Alt+>Respond with match and alternatives</option>
+<option value=Match+Alt>Respond with match and alternatives</option>
 <option value=NoMatch>Respond no Match</option>
 <option value=DeliveryFail>Respond delivery fail</option>
 </select>
 </td></tr>
 <tr><td>Error code</td><td><input name=matcherror size=5 maxlength=4 placeholder=NNNN> (for Respond Error)</td></tr>
+<tr><td>NBICS Network Operator</td><td><input name=networkoperator size=4 maxlength=5 placeholder=ANNN></td></tr>
+<tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder=NNN></td></tr>
 <tr><td>Access Line ID</td><td><input name=alid size=12 placeholder=ALID></td></tr>
 <tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
 <tr><td>ONT port</td><td><input name=ontport size=2 placeholder=N></td></tr>

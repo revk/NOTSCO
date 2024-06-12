@@ -103,7 +103,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
       }
       const char *routing = j_get (tx, "envelope.routingID");
       int try = 0;
-      while (try<5)
+      while (try < 5)
       {
          if (try++)
             sleep (5);
