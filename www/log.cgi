@@ -18,7 +18,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if rxerror><tr><td>Errors</td><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></tr></if>
 <tr><td colspan=2><hr></td></tr>
 <tr><td>Tx</td><td><tt><output name=tx></tt></td></tr></if>
-<if txerror><tr><td>Errors</td><td class='white-space:pre;font-weight:bold;'><output name=txerror></td></tr></if>
+<if txerror><tr><td>Errors</td><td style='white-space:pre;font-weight:bold;'><output name=txerror></td></tr></if>
 </sql>
 </table>
 <sql select="max(ID) AS I" table=log WHERE="tester=$TESTER AND ID<$ID"><if I><p><a href="log.cgi?ID=$I">Previous</a></p></if></sql>
