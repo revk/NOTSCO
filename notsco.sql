@@ -25,12 +25,29 @@ DROP TABLE IF EXISTS `auth`;
 CREATE TABLE `auth` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tester` int(10) unsigned NOT NULL,
-  `bearer` varchar(32) NOT NULL,
+  `bearer` varchar(72) NOT NULL,
   `expiry` datetime NOT NULL,
   PRIMARY KEY (`ID`),
   KEY `bearer` (`bearer`),
   KEY `auth_tester` (`tester`),
+  KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `directory`
+--
+
+DROP TABLE IF EXISTS `directory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `directory` (
+  `rcpid` char(4) NOT NULL,
+  `company` tinytext DEFAULT NULL,
+  `sales` tinytext DEFAULT NULL,
+  `support` tinytext DEFAULT NULL,
+  PRIMARY KEY (`rcpid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -44,8 +61,10 @@ DROP TABLE IF EXISTS `log`;
 CREATE TABLE `log` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tester` int(10) unsigned NOT NULL,
+  `ts` datetime NOT NULL DEFAULT curtime(),
   PRIMARY KEY (`ID`),
   KEY `log_tester` (`tester`),
+  KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -91,4 +110,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-12  8:16:50
+-- Dump completed on 2024-06-12  9:40:15

@@ -20,6 +20,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <sql table=tester where="ID=$TESTER">
 <form method=post>
 <table border=1>
+<tr><td>Response delay</td><td><input name=delay size=4 maxlength=3 placeholder=secs></td></tr>
 <tr><td>Match response</td><td>
 <select name=matchresponse>
 <option value=None>No response</option>
