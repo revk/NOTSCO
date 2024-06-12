@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -74,7 +74,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=563 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -88,6 +88,8 @@ CREATE TABLE `sor` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tester` int(10) unsigned DEFAULT NULL,
   `sor` uuid NOT NULL,
+  `nearid` tinytext DEFAULT NULL,
+  `farid` tinytext DEFAULT NULL,
   `issuedby` enum('US','THEM') DEFAULT NULL,
   `created` datetime DEFAULT NULL,
   `triggered` datetime DEFAULT NULL,
@@ -119,7 +121,7 @@ CREATE TABLE `tester` (
   `farclientid` tinytext DEFAULT NULL,
   `farclientsecret` tinytext DEFAULT NULL,
   `matchresponse` enum('None','Match','Match+Alt','NoMatch','DeliveryFail') DEFAULT 'Match',
-  `matcherror` int(4) NOT NULL DEFAULT 0,
+  `matcherror` int(4) NOT NULL DEFAULT 1000,
   `ontref` tinytext DEFAULT NULL,
   `ontport` int(11) NOT NULL DEFAULT 0,
   `dn` varchar(20) DEFAULT NULL,
@@ -128,9 +130,12 @@ CREATE TABLE `tester` (
   `bearer` tinytext DEFAULT NULL,
   `expiry` datetime DEFAULT NULL,
   `delay` int(3) unsigned NOT NULL DEFAULT 5,
+  `servicename` tinytext DEFAULT '1GB Broadband',
+  `networkoperator` char(4) NOT NULL DEFAULT 'A001',
+  `cupid` char(3) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -142,4 +147,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-12 10:46:27
+-- Dump completed on 2024-06-12 18:37:35

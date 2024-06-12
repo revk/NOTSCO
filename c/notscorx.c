@@ -139,6 +139,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
 {
    int code = 0;
    const char *farid = j_get (rx, "envelope.sender.correlationID");
+   // Santry checking e.g. envelope, etc
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    if (sql_fetch_row (res))
    {
@@ -147,8 +148,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          code = atoi (sql_colz (res, "matcherror"));
       else if (strcmp (reply, "None"))
       {
-         if (!code)
-         {                      // TODO
+	      // TODO much sanity checking on request
             j_t t = j_create ();
             j_t payload = notscoreply (rx, t, "Confirmation");
             SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
@@ -223,7 +223,6 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                add (1);
             }
             notscotx (sqlp, tester, t);
-         }
       }
    }
    if (code)
