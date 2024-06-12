@@ -9,4 +9,3 @@
 #include <ctype.h>
 #include <err.h>
 #include "notscolib.h"
-

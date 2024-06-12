@@ -229,10 +229,13 @@ main (int argc, const char *argv[])
             if (sql_fetch_row (res))
             {
                tester = atoi (sql_colz (res, "tester"));
-               // TODO expiry?
+               if (j_time (sql_colz (res, "expiry")) < time (0))
+                  fprintf (rxe, "Using expired bearer\n");
+               else
+                  auth = NULL;  // OK
             }
             sql_free_result (res);
-            if (!tester)
+            if (auth)
                status = totscoerror (tx, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             else if (!strcmp (script, "/directory/v1/entry"))
             {
