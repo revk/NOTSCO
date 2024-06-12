@@ -32,8 +32,7 @@ totscoerror (j_t tx, FILE * txe, int res, int ecode, int code, const char *text,
 
 int
 token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
-{
-   // Check header
+{ // Token request
    const char *method = j_get (cgi, "info.request_method");
    if (!method)
       fprintf (rxe, "No method?!\n");
@@ -67,10 +66,18 @@ token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 
 int
 directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
-{
-   // Check headers
-
+{ // Directory request
+   const char *method = j_get (cgi, "info.request_method");
+   if (!method)
+      fprintf (rxe, "No method?!\n");
+   else if (strcasecmp (method, "GET"))
+      fprintf (rxe, "Expecting GET (is %s)\n", method);
    j_t rx = j_find (cgi, "formdata");
+   const char *lt=j_get(rx,"listType");
+   if(!lt)fprintf(rxe,"listType not specified\n");
+   else if(strcmp(lt,"RCPID"))fprintf(rxe,"Expected listType=RCPID (is %s)\n",lt);
+   const char *identity=j_get(rx,"identity"); // can be all, or a list (how is it a list?)
+
    return 200;
 }
 
