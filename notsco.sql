@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -74,7 +74,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=563 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=598 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,6 +98,7 @@ CREATE TABLE `sor` (
   PRIMARY KEY (`ID`),
   KEY `sor_tester` (`tester`),
   KEY `sor` (`sor`),
+  KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -133,6 +134,20 @@ CREATE TABLE `tester` (
   `servicename` tinytext DEFAULT '1GB Broadband',
   `networkoperator` char(4) NOT NULL DEFAULT 'A001',
   `cupid` char(3) DEFAULT NULL,
+  `brand` tinytext DEFAULT NULL,
+  `surname` tinytext DEFAULT NULL,
+  `account` tinytext DEFAULT NULL,
+  `urpn` varchar(12) DEFAULT NULL,
+  `address1` tinytext DEFAULT NULL,
+  `address2` tinytext DEFAULT NULL,
+  `address3` tinytext DEFAULT NULL,
+  `address4` tinytext DEFAULT NULL,
+  `address5` tinytext DEFAULT NULL,
+  `posttown` tinytext DEFAULT NULL,
+  `postcode` varchar(8) DEFAULT NULL,
+  `circuit` tinytext DEFAULT NULL,
+  `portdn` varchar(11) DEFAULT NULL,
+  `identifydn` varchar(11) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -147,4 +162,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-12 18:37:35
+-- Dump completed on 2024-06-13  9:41:37
