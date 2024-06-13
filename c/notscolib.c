@@ -565,7 +565,33 @@ syntaxcheck (j_t j, FILE * e)
    }
    if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
    {
+      j_t is = expect_array (e, "OTS§2.2.1", payload, "implicationsSent");
+      if (is)
+      {
+	      //TODO
 
+      }
+      void check (j_t j)
+      { // Check matchResult
+	      //TODO
+
+      }
+      j_t mr = expect_object (e, "OTS§2.2.1", payload, "matchResult");
+      check (mr);
+      if (j_find (payload, "alternativeSwitchOrders"))
+      {
+         j_t as = expect_array (e, "OTS§2.2.1", payload, "alternativeSwitchOrders");
+         for (j_t a = j_first (as); a; a = j_next (a))
+         {
+            if (!j_isobject (a))
+               expected (e, "OTS§2.2.1", as, a, NULL, NULL, "a JSON object");
+            else
+            {
+               j_t mr = expect_object (e, "OTS§2.2.1", a, "matchResult");
+               check (mr);
+            }
+         }
+      }
       return;
    }
    if (strstr (routing, "Request"))

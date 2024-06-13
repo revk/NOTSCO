@@ -133,7 +133,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
 {
    int code = 0;
    const char *farid = j_get (rx, "envelope.sender.correlationID");
-   // Santry checking e.g. envelope, etc
+   // Sanity checking e.g. envelope, etc
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    if (sql_fetch_row (res))
    {
