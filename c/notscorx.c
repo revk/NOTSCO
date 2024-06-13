@@ -273,6 +273,12 @@ residentialSwitchMatchFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t t
 }
 
 int
+messageDeliveryFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
+{
+   return 202;
+}
+
+int
 letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 {                               // Handle posted message
    int status = 0;
@@ -292,6 +298,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    int delay = atoi (sql_colz (res, "delay"));
    sql_free_result (res);
    j_t rx = j_find (cgi, "formdata");
+   syntaxcheck (rx, rxe);
    j_t envelope = j_find (rx, "envelope");
    if (!envelope)
       return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Missing envelope");
@@ -328,25 +335,28 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
       return notscoerror (tx, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
    // Check payload
    const char *t = routing;
-   if (t && !strncmp (t, "residentialSwitch", 17))
-      t += 17;
-   else
-      t = NULL;
-   if (t && !strncmp (t, "Match", 5))
-      t += 5;
-   else if (t && !strncmp (t, "Order", 5))
+   if (strcmp (t, "messageDeliveryFailure"))
    {
-      t += 5;
-      if (!strncmp (t, "Update", 6))
-         t += 6;
-      else if (!strncmp (t, "Trigger", 7))
-         t += 7;
-      else if (!strncmp (t, "Cancellation", 12))
-         t += 12;
-   } else
-      t = NULL;
-   if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
-      t = NULL;
+      if (t && !strncmp (t, "residentialSwitch", 17))
+         t += 17;
+      else
+         t = NULL;
+      if (t && !strncmp (t, "Match", 5))
+         t += 5;
+      else if (t && !strncmp (t, "Order", 5))
+      {
+         t += 5;
+         if (!strncmp (t, "Update", 6))
+            t += 6;
+         else if (!strncmp (t, "Trigger", 7))
+            t += 7;
+         else if (!strncmp (t, "Cancellation", 12))
+            t += 12;
+      } else
+         t = NULL;
+      if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
+         t = NULL;
+   }
    if (!t)
       return notscoerror (tx, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
    j_t payload = j_find (rx, routing);
@@ -370,7 +380,6 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                sleep (delay);
             SQL sql;
             sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
-            sql_transaction (&sql);
             if (!strcmp (routing, "residentialSwitchMatchRequest"))
                residentialSwitchMatchRequest (&sql, tester, rx, rxe, payload);
             else if (!strcmp (routing, "residentialSwitchOrderRequest"))
@@ -381,7 +390,6 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                residentialSwitchOrderTriggerRequest (&sql, tester, rx, rxe, payload);
             else if (!strcmp (routing, "residentialSwitchOrderCancellationRequest"))
                residentialSwitchOrderCancellationRequest (&sql, tester, rx, rxe, payload);
-            sql_safe_commit (&sql);
             sql_close (&sql);
             _exit (0);
          }
@@ -391,6 +399,8 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             status = residentialSwitchMatchConfirmation (sqlp, tester, rx, rxe, tx, txe, payload);
          else if (!strcmp (routing, "residentialSwitchMatchFailure"))
             status = residentialSwitchMatchFailure (sqlp, tester, rx, rxe, tx, txe, payload);
+         else if (!strcmp (routing, "messageDeliveryFailure"))
+            status = messageDeliveryFailure (sqlp, tester, rx, rxe, tx, txe, payload);
       }
    }
    return status ? : 202;
@@ -402,7 +412,6 @@ main (int argc, const char *argv[])
    sqldebug = 1;
    SQL sql;
    sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
-   sql_transaction (&sql);
    // Errors
    const char *description = "?";
    char *txerror = NULL;
@@ -506,6 +515,7 @@ main (int argc, const char *argv[])
                description = j_get (cgi, "formdata.envelope.routingID") ? : "letterbox API post";
                if (!status)
                   status = letterbox (&sql, tester, cgi, rxe, tx, txe);
+               responsecheck (status, tx, txe);
             } else
                fail ("Incorrect path for API", 500);
          }
@@ -514,16 +524,16 @@ main (int argc, const char *argv[])
    }
    if (!status)
       fail ("Not processed", 500);
-
    // Log
    fclose (txe);
    fclose (rxe);
-   char *rxt = j_write_str (j_find (cgi, "formdata"));
-   char *txt = j_write_str (tx);
+   j_t rx = j_find (cgi, "formdata");
+   char *rxt = j_write_pretty_str (rx);
+   char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     status, j_get (cgi, "info.remote_addr"), description, rxt, *rxerror ? rxerror : NULL, txt,
-                     *txerror ? txerror : NULL);
+                     status, j_get (cgi, "info.remote_addr"), description, j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL,
+                     j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    free (rxt);
@@ -546,7 +556,6 @@ main (int argc, const char *argv[])
    free (rxerror);
    j_delete (&tx);
    j_delete (&cgi);
-   sql_safe_commit (&sql);
    sql_close (&sql);
    return 0;
 }

@@ -13,6 +13,23 @@
 #include <ajlcurl.h>
 #include "notscolib.h"
 
+const char *
+isuuid (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   if (strlen (u) != 36)
+      return "Wrong length";
+   for (int i = 0; i < 36; i++)
+      if ((i == 9 || i == 14 || i == 19 || i == 24) && u[i] != '-')
+         return "Expected -";
+      else if (!isxdigit (u[i]))
+         return "Expecting hex character";
+   return NULL;
+}
+
 void
 notscotx (SQL * sqlp, int tester, j_t tx)
 {                               // Send message
@@ -86,10 +103,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             char *rxt = j_write_str (rx);
             char *txt = j_write_str (tx);
             sql_safe_query_f (sqlp,
-                              "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 topen request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                              status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
-            if (tester)
-               sql_safe_query_f (sqlp, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (sqlp));
+                              "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 topen request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                              tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
             free (rxt);
             free (txt);
             j_delete (&rx);
@@ -116,6 +131,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          FILE *rxe = open_memstream (&rxerror, &rxlen);
          char *er = NULL;
          const char *host = sql_col (res, "apihost");
+         syntaxcheck (tx, txe);
          j_t rx = j_create ();
          if (!host || !*host)
             fprintf (txe, "No API host defined");
@@ -126,16 +142,16 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)
                fprintf (rxe, "Failed: %s\n", er);
+            responsecheck (status, rx, rxe);
          }
          fclose (txe);
          fclose (rxe);
-         char *rxt = j_write_str (rx);
-         char *txt = j_write_str (tx);
+         char *rxt = j_write_pretty_str (rx);
+         char *txt = j_write_pretty_str (tx);
          sql_safe_query_f (sqlp,
-                           "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%ld,`description`='Sent %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                           status, routing, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
-         if (tester)
-            sql_safe_query_f (sqlp, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (sqlp));
+                           "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                           tester, status, routing, j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL,
+                           j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
          free (rxt);
          free (txt);
          j_delete (&rx);
@@ -183,104 +199,8 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code)
    {
       switch (code)
       {
-      case 1101:
-         return "Missing or incomplete address";
-      case 1102:
-         return "Name not provided";
-      case 1103:
-         return "Account not found";
-      case 1104:
-         return "Account found but is closed or historic";
-      case 1105:
-         return "Account found but at least one serviceIdentifier not found on the account.";
-      case 1106:
-         return "Address not found";
-      case 1107:
-         return "No customers found with service at that location";
-      case 1108:
-         return "One or more customers found, but no match on surname";
-      case 1109:
-         return "Multiple customers found matching on surname";
-      case 1110:
-         return "Customer found, but they have multiple matching services at the same address.";
-      case 1111:
-         return "A switch is currently in progress";
-      case 1112:
-         return "Data Integrity issue detected by LRCP.";
-      case 1113:
-         return "Account number format not valid for residentialMatchRequest";
-      case 1114:
-         return "Address does not match despite two other strong points of contact, one of which is account number";
-      case 1115:
-         return "Address does not match and no account number is included despite two other strong points of contact";
-      case 1116:
-         return "Service Identifier not found.";
-      case 1117:
-         return "Services not included or invalid";
-      case 1118:
-         return "No DN included as service identifier for an NBICS 'port' or 'identify'";
-      case 1119:
-         return "Account found, but no IAS or NBICS services were found under it";
-      case 1120:
-         return "The requested service was not found against the matched customer / account / subscription";
-      case 1121:
-         return "Name does not match and address is only a close match";
-      case 1122:
-         return "Name does not match, address and service identifier match, but account number is not included";
-      case 1201:
-         return "Invalid or missing switch order reference";
-      case 1202:
-         return "Switch order reference has expired";
-      case 1203:
-         return "Invalid or missing planned switch date";
-      case 1204:
-         return "Switch order has already been completed";
-      case 1205:
-         return "Switch order has already been cancelled";
-      case 1211:
-         return "A switch is currently in progress";
-      case 1212:
-         return "All services requested to be ceased are no longer active";
-      case 1213:
-         return "Switch Order Reference is already in use";
-      case 1214:
-         return "There is an open cease order which is past point of no return and cannot be cancelled.";
-      case 1215:
-         return "There is an open modify order which is past point of no return and cannot be cancelled.";
-      case 1301:
-         return "Invalid or missing switch order reference";
-      case 1302:
-         return "Switch order reference is no longer available";
-      case 1303:
-         return "Invalid or missing planned switch date";
-      case 1304:
-         return "Switch order has already been completed";
-      case 1305:
-         return "Switch order has already been cancelled";
-      case 1306:
-         return "Switch order was never raised";
-      case 1401:
-         return "Invalid or missing switch order reference";
-      case 1402:
-         return "Switch order reference is no longer available";
-      case 1403:
-         return "Invalid or missing activation date";
-      case 1404:
-         return "Switch order has already been completed";
-      case 1405:
-         return "Switch order has already been cancelled";
-      case 1406:
-         return "Switch order was never raised";
-      case 1501:
-         return "Invalid or missing switch order reference";
-      case 1502:
-         return "Switch order reference is no longer available";
-      case 1504:
-         return "Switch order has already been completed";
-      case 1505:
-         return "Switch order has already been cancelled";
-      case 1506:
-         return "Switch order was never raised";
+#define e(c,e) case c:return e;
+#include "notscoerrors.m"
       default:
          return "Unspecified error";
       }
@@ -290,4 +210,200 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code)
    j_store_string (audit, "name", "faultCode");
    j_store_stringf (audit, "value", "%d", code);
    notscotx (sqlp, tester, t);
+}
+
+void
+responsecheck (int status, j_t j, FILE * e)
+{                               // This is the reporting for a response at http level
+   if (status / 100 != 2)
+      fprintf (e, "HTTP response %d\n", status);
+   else if (status != 202)
+      fprintf (e, "API§2.1.8: HTTP response expected is 202, was %d\n", status);
+   if (j_isnull (j))
+      return;
+   if (!j_isobject (j))
+   {
+      fprintf (e, "API§2.1.8: Response is not a JSON object\n");
+      return;
+   }
+   if (status / 100 == 2)
+      fprintf (e, "API§2.1.8: No JSON response is expected for a 2XX response\n");
+   // Check for error
+   j_t v = NULL;
+   if ((v = j_find (j, "errorCode")))
+   {
+      if (!j_isnumber (v))
+         fprintf (e, "API§2.1.8: \"errorCode\" is expected to be an integer\n");
+      fprintf (e, "errorCode %s\n", j_val (v));
+   }
+   if ((v = j_find (j, "errorText")))
+   {
+      if (!j_isstring (v))
+         fprintf (e, "API§2.1.8: \"errorText\" is expected to be an string\n");
+      fprintf (e, "errorText %s\n", j_val (v));
+   }
+   if ((v = j_find (j, "code")))
+   {
+      if (!j_isnumber (v))
+         fprintf (e, "API§2.1.8: \"code\" is expected to be an integer\n");
+      fprintf (e, "code %s\n", j_val (v));
+   }
+   if ((v = j_find (j, "message")))
+   {
+      if (!j_isstring (v))
+         fprintf (e, "API§2.1.8: \"message\" is expected to be an string\n");
+      fprintf (e, "message %s\n", j_val (v));
+   }
+   if ((v = j_find (j, "description")))
+   {
+      if (!j_isstring (v))
+         fprintf (e, "API§2.1.8: \"description\" is expected to be an string\n");
+      fprintf (e, "description %s\n", j_val (v));
+   }
+   if (status / 100 != 2)
+   {
+      if (!j_find (j, "errorCode") && !j_find (j, "code"))
+         fprintf (e, "API§2.1.8: expected \"code\" or \"errorCode\"\n");
+      if (j_find (j, "errorCode") && !j_find (j, "errorText"))
+         fprintf (e, "API§2.1.8: expected \"errorText\" with \"errorCode\"\n");
+      if (j_find (j, "code") && (!j_find (j, "message") || !j_find (j, "description")))
+         fprintf (e, "API§2.1.8: expected \"message\" and \"description\" with \"code\"\n");
+   }
+}
+
+void
+syntaxcheck (j_t j, FILE * e)
+{                               // This is the main syntax checking and reporting for all messages
+   j_t v = NULL;
+   const char *routing = NULL;
+   // Envelope (and audit data)
+   j_t envelope = j_find (j, "envelope");
+   if (!envelope)
+      fprintf (e, "API§2.1.5: \"envelope\" missing\n");
+   else if (!j_isobject (envelope))
+      fprintf (e, "API§2.1.5: \"envelope\" should be JSON object\n");
+   else
+   {                            // Check envelope
+      if (!(v = j_find (envelope, "routingID")))
+         fprintf (e, "API§2.1.5: \"routingID\" missing from \"envelope\"\n");
+      else if (!j_isstring (v))
+         fprintf (e, "API§2.1.5: \"routingID\" should be a string\n");
+      else
+      {
+         routing = j_val (v);
+         const char *t = routing;
+         if (strcmp (t, "messageDeliveryFailure"))
+         {
+            if (t && !strncmp (t, "residentialSwitch", 17))
+               t += 17;
+            else
+               t = NULL;
+            if (t && !strncmp (t, "Match", 5))
+               t += 5;
+            else if (t && !strncmp (t, "Order", 5))
+            {
+               t += 5;
+               if (!strncmp (t, "Update", 6))
+                  t += 6;
+               else if (!strncmp (t, "Trigger", 7))
+                  t += 7;
+               else if (!strncmp (t, "Cancellation", 12))
+                  t += 12;
+            } else
+               t = NULL;
+            if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
+               t = NULL;
+         }
+         if (!t)
+            fprintf (e, "OTS§2.1: Invalid \"routindID\" (%s)\n", routing);
+      }
+   }
+   if (!routing)
+      return;
+   // Payload specific checks
+   j_t payload = j_find (j, routing);
+   if (!payload)
+      fprintf (e, "APIU§2.1.5: Missing \"%s\"\n", routing);
+   if (strstr (routing, "Failure"))
+   {                            // Audit requirements
+      if (!(v = j_find (envelope, "auditData")))
+         fprintf (e, "API§2.1.6: \"auditData\" missing from \"envelope\"\n");
+      else if (!j_isarray (v))
+         fprintf (e, "API§2.1.6: \"auditData\" should be a JSON array\n");
+      else
+      {
+         v = j_first (v);
+         if (!v)
+            fprintf (e, "API§2.1.6: \"auditData\" should contain a entry\n");
+         else if (!j_isobject (v))
+            fprintf (e, "API§2.1.6: \"auditData\" should contain a JSON object entry\n");
+         else
+         {
+            j_t t = NULL;
+            if (!(t = j_find (v, "name")))
+               fprintf (e, "API§2.1.6: \"name\" missing from \"auditData\"\n");
+            else if (!j_isstring (t))
+               fprintf (e, "API§2.1.6: \"name\" in \"auditData\" should be a string\n");
+            else if (strcmp (j_val (t), "faultCode"))
+               fprintf (e, "API§2.1.6: \"name\" in \"auditData\" should be \"faultCode\"\n");
+            if (!(t = j_find (v, "value")))
+               fprintf (e, "API§2.1.6: \"value\" missing from \"auditData\"\n");
+            else if (!j_isstring (t))
+               fprintf (e, "API§2.1.6: \"value\" in \"auditData\" should be a string\n");
+            else if (j_number_ok (j_val (t), NULL))
+               fprintf (e, "API§2.1.6: \"value\" in \"auditData\" should be numeric (%s)\n", j_val (t));
+            else
+            {
+               const char *code = j_get (payload, "faultCode");
+               if (code && strcmp (code, j_val (t)))
+                  fprintf (e, "API§2.1.6: \"value\" in \"auditData\" (%s) does not match \"faultCode\" in payload (%s)\n",
+                           j_val (t), code);
+            }
+            if (j_next (v))
+               fprintf (e, "API§2.1.6: \"auditData\" should contain only one entry\n");
+         }
+      }
+      if (payload)
+      {                         // Failure payload
+         if (!(v = j_find (payload, "faultCode")))
+            fprintf (e, "API§2.1.6: \"faultCode\" missing from \"%s\"\n", routing);
+         else if (!j_isstring (v))
+            fprintf (e, "API§2.1.6: \"faultCode\" in \"%s\" should be a string\n", routing);
+         else if (j_number_ok (j_val (v), NULL))
+            fprintf (e, "API§2.1.6: \"faultCode\" in \"%s\" should be numeric (%s)\n", routing, j_val (v));
+         if (!(v = j_find (payload, "faultText")))
+            fprintf (e, "API§2.1.6: \"faultText\" missing from \"%s\"\n", routing);
+         else if (!j_isstring (v))
+            fprintf (e, "API§2.1.6: \"faultText\" in \"%s\" should be a string\n", routing);
+         if (strcmp (routing, "residentialSwitchMatchFailure") && strcmp (routing, "messageDeliveryFailure"))
+         {
+            if (!(v = j_find (payload, "switchOrderReference")))
+               fprintf (e, "API§2.1.6: \"switchOrderReference\" missing from \"%s\"\n", routing);
+            else if (!j_isstring (v))
+               fprintf (e, "API§2.1.6: \"switchOrderReference\" in \"%s\" should be a string\n", routing);
+            else if (isuuid (j_val (v)))
+               fprintf (e, "API§2.1.6: \"switchOrderReference\" in \"%s\" should be a valid UUID\n", routing);
+         }
+         return;
+      }
+   }
+   if (!payload)
+      return;
+   // Specific payload checks
+   if (!strcmp (routing, "residentialSwitchMatchRequest"))
+   {
+
+      return;
+   }
+   if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
+   {
+
+      return;
+   }
+   if (strstr (routing, "Request"))
+   {                            // Request
+   }
+   if (strstr (routing, "Confirmation"))
+   {                            // Confirmation
+   }
 }
