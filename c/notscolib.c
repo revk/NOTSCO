@@ -13,7 +13,7 @@
 #include <ajlcurl.h>
 #include "notscolib.h"
 
-const char *
+static const char *
 isuuid (const char *u)
 {
    if (!u)
@@ -27,6 +27,78 @@ isuuid (const char *u)
          return "Expected -";
       else if (!isxdigit (u[i]))
          return "Expecting hex character";
+   return NULL;
+}
+
+static const char *
+isdigits (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   while (*u && isdigit (*u))
+      u++;
+   if (*u)
+      return "Non numeric";
+   return NULL;
+}
+
+static const char *
+ispostcode (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   if (strlen (u) > 8)
+      return "Too long";
+   if (strlen (u) < 5)
+      return "Too short";
+   const char *e = u + strlen (u) - 1;
+   if (!isalpha (*e) || !isalpha (e[-1]) || !isdigit (e[-2]))
+      return "Bad inbound";
+   e -= 3;
+   if (e > u && *e == ' ')
+      e--;
+   if (e > u && isalpha (*e))
+      e--;
+   if (e == u || !isdigit (*e))
+      return "Missing digit";
+   e--;
+   if (e > u && isdigit (*e))
+      u--;
+   if (e == u || !isalpha (*e))
+      return "Missing letter";
+   if (e > u && isalpha (*e))
+      e--;
+   if (e > u)
+      return "Extra on start";
+   return NULL;
+}
+
+static const char *
+istelephone (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   if (strlen (u) > 11)
+      return "Too long";
+   if (strlen (u) < 10)
+      return "Too short";
+   if (*u != '0')
+      return "Needs to start 0";
+   u++;
+   if (*u == '0')
+      return "International";
+   if (*u == '4' || *u == '6')
+      return "Not sensible";
+   while (*u && isdigit (*u))
+      u++;
+   if (*u)
+      return "Non numeric";
    return NULL;
 }
 
@@ -181,15 +253,18 @@ notscoreply (j_t rx, j_t tx, const char *type)
       routing = strdup ("messageDeliveryFailure");
    else
       asprintf (&routing, "%.*s%s", (int) (request - routing), routing, type);
+   const char *v = NULL;
    j_t envelope = j_store_object (tx, "envelope");
    j_t source = j_store_object (envelope, "source");
    j_store_string (source, "type", "RCPID");
-   j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity"));
-   j_store_string (source, "correlationID", j_get (rx, "envelope.destination.correlationID"));
+   j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity")); // Note, example is TOTSCO, but surely it should be original destination identity regardless?
+   if ((v = j_get (rx, "envelope.destination.correlationID")))
+      j_store_string (source, "correlationID", v);
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
    j_store_string (destination, "identity", j_get (rx, "envelope.source.identity"));
-   j_store_string (destination, "correlationID", j_get (rx, "envelope.source.correlationID"));
+   if ((v = j_get (rx, "envelope.source.correlationID")))
+      j_store_string (destination, "correlationID", v);
    j_store_string (envelope, "routingID", routing);
    j_t payload = j_store_object (tx, routing);
    free (routing);
@@ -234,18 +309,18 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
    fprintf (e, "%s: ", ref);
    if (tag)
       fprintf (e, "\"%s\"", tag);
-   else
+   else if (v)
       fprintf (e, " entry %d", j_pos (v));
    j_t p = parent;
    while (p)
    {
       j_t up = j_parent (p);
-      if (!strcmp (j_name (up) ? : "", "formdata"))
+      if (up && !strcmp (j_name (up) ? : "", "formdata"))
          up = NULL;
       const char *name = j_name (p);
       if (name)
          fprintf (e, " in \"%s\"", name);
-      else if (j_parent (p))
+      else if (up)
          fprintf (e, " entry %d", j_pos (p));
       p = up;
    }
@@ -265,6 +340,8 @@ expect_object (FILE * e, const char *ref, j_t parent, const char *tag)
    j_t v = j_find (parent, tag);
    if (!v || !j_isobject (v))
       return expected (e, ref, parent, v, tag, NULL, "a JSON object");
+   if (!j_len (v))
+      return expected (e, ref, parent, v, tag, NULL, "a non empty object");
    return v;
 }
 
@@ -274,6 +351,8 @@ expect_array (FILE * e, const char *ref, j_t parent, const char *tag)
    j_t v = j_find (parent, tag);
    if (!v || !j_isarray (v))
       return expected (e, ref, parent, v, tag, NULL, "a JSON array");
+   if (!j_len (v))
+      return expected (e, ref, parent, v, tag, NULL, "a non empty array");
    return v;
 }
 
@@ -299,7 +378,7 @@ void
 responsecheck (int status, j_t j, FILE * e)
 {                               // This is the reporting for a response at http level
    if (status / 100 != 2)
-      fprintf (e, "- HTTP responaedd with status %d\n", status);
+      fprintf (e, "- HTTP responded with status %d\n", status);
    else if (status != 202)
       fprintf (e, "API§2.1.8: HTTP response expected is 202, was %d\n", status);
    if (j_isnull (j))
@@ -340,6 +419,7 @@ syntaxcheck (j_t j, FILE * e)
 {                               // This is the main syntax checking and reporting for all messages
    const char *val = NULL;
    const char *routing = NULL;
+   int df = 0;
    // Envelope (and audit data)
    j_t envelope = expect_object (e, "API§2.1.5", j, "envelope");
    if (envelope)
@@ -347,7 +427,9 @@ syntaxcheck (j_t j, FILE * e)
       if ((routing = expect_string (e, "API§2.1.5", envelope, "routingID", NULL)))
       {
          const char *t = routing;
-         if (strcmp (t, "messageDeliveryFailure"))
+         if (!strcmp (t, "messageDeliveryFailure"))
+            df = 1;
+         else
          {
             if (t && !strncmp (t, "residentialSwitch", 17))
                t += 17;
@@ -378,8 +460,8 @@ syntaxcheck (j_t j, FILE * e)
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && strlen (val) != 4)
             expected (e, "API§2.1.5", v, NULL, "identity", NULL, "a 4 character string");
-         expect_string (e, "API§2.1.5", v, "correlationID", *tag == 's'
-                        || (routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
+         expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr(routing,"Failure"))
+                        || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
       check ("source");
       check ("destination");
@@ -401,10 +483,10 @@ syntaxcheck (j_t j, FILE * e)
             expect_string (e, "API§2.1.6", ad, "name", "faultCode");
             if ((val = expect_string (e, "API§2.1.6", ad, "value", NULL)))
             {
-               if (j_number_ok (val, NULL))
+               if (isdigits (val))
                   expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric");
                else
-                  expect_string (e, "API§2.1.6", payload, "faultCode", val);
+                  expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", val);
             }
             if (j_next (ad))
                expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "only entry in array");
@@ -412,9 +494,8 @@ syntaxcheck (j_t j, FILE * e)
       }
       if (payload)
       {                         // Failure payload
-         int df = !strcmp (routing, "messageDeliveryFailure");
          const char *tag = df ? "code" : "faultCode";
-         if ((val = expect_string (e, "API§2.1.8", payload, tag, NULL)) && j_number_ok (val, NULL))
+         if ((val = expect_string (e, "API§2.1.8", payload, tag, NULL)) && isdigits (val))
             expected (e, "API§2.1.6", payload, NULL, tag, NULL, "numeric");
          tag = df ? "text" : "faultText";
          expect_string (e, "API§2.1.8", payload, tag, NULL);
@@ -440,7 +521,43 @@ syntaxcheck (j_t j, FILE * e)
    // Specific payload checks
    if (!strcmp (routing, "residentialSwitchMatchRequest"))
    {
-
+      expect_string (e, "OTS§2.2", payload, "grcpBrandName", "");
+      expect_string (e, "OTS§2.2", payload, "name", NULL);
+      expect_string (e, "OTS§2.2", payload, "account", "");
+      j_t address = expect_object (e, "OTS§2.2", payload, "address");
+      if (address)
+      {
+         if ((val = expect_string (e, "OTS§2.2", address, "uprn", "")) && (isdigits (val) || strlen (val) > 12))
+            expected (e, "API§2.1.6", address, NULL, "uprn", NULL, "up to 12 digits");
+         const char *posttown = expect_string (e, "OTS§2.2", address, "postTown", NULL);
+         const char *postcode = expect_string (e, "OTS§2.2", address, "postCode", NULL);
+         if (postcode && ispostcode (postcode))
+            expected (e, "API§2.1.6", address, NULL, "postCode", NULL, "valid post code");
+         j_t lines = expect_array (e, "OTS§2.2", address, "addressLines");
+         for (j_t l = j_first (lines); l; l = j_next (l))
+            if (!j_isstring (l))
+               expected (e, "API§2.1.6", lines, l, NULL, NULL, "a JSON string");
+            else if (!*j_val (l))
+               expected (e, "API§2.1.6", lines, l, NULL, NULL, "a non empty JSON string");
+            else if (posttown && !strcasecmp (j_val (l), posttown))
+               expected (e, "API§2.1.6", lines, l, NULL, NULL, "not include post town");
+            else if (postcode && !strcasecmp (j_val (l), postcode))
+               expected (e, "API§2.1.6", lines, l, NULL, NULL, "not include post code");
+      }
+      j_t services = expect_array (e, "OTS§2.2", payload, "services");
+      for (j_t s = j_first (services); s; s = j_next (s))
+      {
+         const char *st = expect_string (e, "OTS§2.2", s, "serviceType", NULL);
+         if (st && strcmp (st, "IAS") && strcmp (st, "NBICS"))
+            expected (e, "API§2.1.6", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"");
+         if ((val = expect_string (e, "OTS§2.2", s, "action", NULL)) && strcmp (val, "cease")
+             && (!strcmp (st, "IAS") || (strcmp (val, "port") && strcmp (val, "identify"))))
+            expected (e, "API§2.1.6", s, NULL, "action", NULL,
+                      !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"idenitfy\"");
+         const char *id = expect_string (e, "OTS§2.2", s, "seviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
+         if (id && !strcmp (st, "NBICS") && !istelephone (id))
+            expected (e, "API§2.1.6", s, NULL, "seviceIdentifier", NULL, "valid telephone number");
+      }
       return;
    }
    if (!strcmp (routing, "residentialSwitchMatchConfirmation"))

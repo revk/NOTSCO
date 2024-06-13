@@ -16,19 +16,21 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <table border=1>
 <tr><td colspan=2><output name=description></td></tr>
 <tr>
-<if ip><td>Rx</td></if>
-<td>Tx</td>
-<if not ip><td>Rx</td></if>
+<if rx ip><td>Rx</td></if>
+<if tx><td>Tx</td></if>
+<if rx not ip><td>Rx</td></if>
 </tr>
+<if txerror or rxerror>
 <tr>
-<if ip><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
-<td style='white-space:pre;font-weight:bold;'><output name=txerror></td>
-<if not ip><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
+<if rx ip><td valign=top style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
+<if tx><td valign=top style='white-space:pre;font-weight:bold;'><output name=txerror></td></if>
+<if rx not ip><td valign=top style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
 </tr>
+</if>
 <tr>
-<if ip><td><pre><output name=rx></pre></td></if>
-<td><pre><output name=tx></pre></td>
-<if not ip><td><pre><output name=rx></pre></td></if>
+<if rx ip><td valign=top><pre><output name=rx></pre></td></if>
+<if tx><td valign=top><pre><output name=tx></pre></td></if>
+<if rx not ip><td valign=top><pre><output name=rx></pre></td></if>
 </table>
 </sql>
 <sql select="max(ID) AS I" table=log WHERE="tester=$TESTER AND ID<$ID"><if I><p><a href="log.cgi?ID=$I">Previous</a></p></if></sql>

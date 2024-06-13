@@ -15,7 +15,7 @@
 int debug = 0;
 
 static j_t
-makemessage (SQL_RES * res, j_t tx, const char *routing)
+makemessage (SQL_RES * res, j_t tx, const char *routing,const char *sid,const char *did)
 {
    const char *v = NULL;
    j_t envelope = j_store_object (tx, "envelope");
@@ -23,20 +23,24 @@ makemessage (SQL_RES * res, j_t tx, const char *routing)
    j_store_string (source, "type", "RCPID");
    if ((v = sql_colz (res, "fromrcpid")) && *v)
       j_store_string (source, "identity", v);
-   //j_store_string (source, "correlationID", j_get (rx, "envelope.destination.correlationID"));
+   if(sid)j_store_string (source, "correlationID", sid);
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
    if ((v = sql_colz (res, "rcpid")) && *v)
       j_store_string (destination, "identity", v);
-   //j_store_string (destination, "correlationID", j_get (rx, "envelope.source.correlationID"));
+   if(did)j_store_string (destination, "correlationID", did);
    j_store_string (envelope, "routingID", routing);
    return j_store_object (tx, routing);
 }
 
 void
-residentialSwitchMatchRequest (SQL_RES * res, j_t tx)
+residentialSwitchMatchRequest (SQL*sqlp,SQL_RES * res, j_t tx)
 {
-   j_t payload = makemessage (res, tx, "residentialSwitchMatchRequest");
+	char *sid=NULL;
+SQL_RES *u=sql_safe_query_store_f(sqlp,"SELECT UUID() AS `U`");
+if(sql_fetch_row(u))sid=strdupa(sql_colz(u,"U"));
+sql_free_result(u);
+   j_t payload = makemessage (res, tx, "residentialSwitchMatchRequest",sid,NULL);
 }
 
 int
@@ -87,7 +91,7 @@ main (int argc, const char *argv[])
    {
       j_t tx = j_create ();
       if (!strcmp (send, "residentialSwitchMatchRequest"))
-         residentialSwitchMatchRequest (res, tx);
+         residentialSwitchMatchRequest (&sql,res, tx);
 
       notscotx (&sql, tester, tx);
    }
