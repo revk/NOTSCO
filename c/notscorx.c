@@ -140,9 +140,10 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
       const char *reply = sql_colz (res, "matchresponse");
       if (!strcmp (reply, "NoMatch"))
          code = atoi (sql_colz (res, "matcherror"));
+      else if (!strcmp (reply, "DeliveryFail"))
+         code = -atoi (sql_colz (res, "matcherror"));
       else if (strcmp (reply, "None"))
       {
-         // TODO much sanity checking on request
          j_t t = j_create ();
          j_t payload = notscoreply (rx, t, "Confirmation");
          SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");

@@ -173,7 +173,10 @@ notscoreply (j_t rx, j_t tx, const char *type)
    char *request = strstr (routing, "Request");
    if (!request)
       errx (1, "Not a Request: %s", routing);
-   asprintf (&routing, "%.*s%s", (int) (request - routing), routing, type);
+   if (!type)
+      routing = strdup ("messageDeliveryFailure");
+   else
+      asprintf (&routing, "%.*s%s", (int) (request - routing), routing, type);
    j_t envelope = j_store_object (tx, "envelope");
    j_t source = j_store_object (envelope, "source");
    j_store_string (source, "type", "RCPID");
@@ -192,12 +195,15 @@ notscoreply (j_t rx, j_t tx, const char *type)
 void
 notscofailure (SQL * sqlp, int tester, j_t rx, int code)
 {                               // Fault code return message to other RCP
+   int n = code;
+   if (n < 0)
+      n = 0 - n;
    j_t t = j_create ();
-   j_t payload = notscoreply (rx, t, "Failure");
-   j_store_stringf (payload, "faultCode", "%d", code);
+   j_t payload = notscoreply (rx, t, code < 0 ? NULL : "Failure");
+   j_store_stringf (payload, code < 0 ? "code" : "faultCode", "%d", n);
    const char *msg (void)
    {
-      switch (code)
+      switch (n)
       {
 #define e(c,e) case c:return e;
 #include "notscoerrors.m"
@@ -205,10 +211,12 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code)
          return "Unspecified error";
       }
    }
-   j_store_string (payload, "faultText", msg ());
+   j_store_string (payload, code < 0 ? "text" : "faultText", msg ());
+   if (code < 0)
+      j_store_string (payload, "severity", "failure");
    j_t audit = j_append_object (j_store_array (j_find (t, "envelope"), "auditData"));
    j_store_string (audit, "name", "faultCode");
-   j_store_stringf (audit, "value", "%d", code);
+   j_store_stringf (audit, "value", "%d", n);
    notscotx (sqlp, tester, t);
 }
 
@@ -365,24 +373,42 @@ syntaxcheck (j_t j, FILE * e)
       }
       if (payload)
       {                         // Failure payload
-         if (!(v = j_find (payload, "faultCode")))
-            fprintf (e, "API§2.1.6: \"faultCode\" missing from \"%s\"\n", routing);
+         int df = !strcmp (routing, "messageDeliveryFailure");
+         const char *tag = df ? "code" : "faultCode";
+         if (!(v = j_find (payload, tag)))
+            fprintf (e, "API§2.1.8: \"%s\" missing from \"%s\"\n", tag, routing);
          else if (!j_isstring (v))
-            fprintf (e, "API§2.1.6: \"faultCode\" in \"%s\" should be a string\n", routing);
+            fprintf (e, "API§2.1.8: \"%s\" in \"%s\" should be a string\n", tag, routing);
          else if (j_number_ok (j_val (v), NULL))
-            fprintf (e, "API§2.1.6: \"faultCode\" in \"%s\" should be numeric (%s)\n", routing, j_val (v));
-         if (!(v = j_find (payload, "faultText")))
-            fprintf (e, "API§2.1.6: \"faultText\" missing from \"%s\"\n", routing);
+            fprintf (e, "API§2.1.8: \"%s\" in \"%s\" should be numeric (%s)\n", tag, routing, j_val (v));
+         tag = df ? "text" : "faultText";
+         if (!(v = j_find (payload, tag)))
+            fprintf (e, "API§2.1.8: \"%s\" missing from \"%s\"\n", tag, routing);
          else if (!j_isstring (v))
-            fprintf (e, "API§2.1.6: \"faultText\" in \"%s\" should be a string\n", routing);
-         if (strcmp (routing, "residentialSwitchMatchFailure") && strcmp (routing, "messageDeliveryFailure"))
+            fprintf (e, "API§2.1.8: \"%s\" in \"%s\" should be a string\n", tag, routing);
+         if (df)
          {
-            if (!(v = j_find (payload, "switchOrderReference")))
-               fprintf (e, "API§2.1.6: \"switchOrderReference\" missing from \"%s\"\n", routing);
+            if (!(v = j_find (payload, "severity")))
+               fprintf (e, "API§2.1.8: \"severity\" missing from \"%s\"\n", routing);
             else if (!j_isstring (v))
-               fprintf (e, "API§2.1.6: \"switchOrderReference\" in \"%s\" should be a string\n", routing);
+               fprintf (e, "API§2.1.8: \"severity\" in \"%s\" should be a string\n", routing);
+            else if (strcmp (j_val (v), "failure"))
+               fprintf (e, "API§2.1.8: \"severity\" in \"%s\" should be a \"failure\"\n", routing);
+         } else if (strcmp (routing, "residentialSwitchMatchFailure"))
+         {
+            const char *ref = "2.3.2";
+            if (!strcmp (routing, "residentialSwitchOrderUpdateFailure"))
+               ref = "2.4.2";
+            else if (!strcmp (routing, "residentialSwitchOrderTriggerFailure"))
+               ref = "2.5.2";
+            else if (!strcmp (routing, "residentialSwitchOrderCancellationFailure"))
+               ref = "2.6.2";
+            if (!(v = j_find (payload, "switchOrderReference")))
+               fprintf (e, "OTS§%s\"switchOrderReference\" missing from \"%s\"\n", ref, routing);
+            else if (!j_isstring (v))
+               fprintf (e, "OTS§%s\"switchOrderReference\" in \"%s\" should be a string\n", ref, routing);
             else if (isuuid (j_val (v)))
-               fprintf (e, "API§2.1.6: \"switchOrderReference\" in \"%s\" should be a valid UUID\n", routing);
+               fprintf (e, "OTS§%s\"switchOrderReference\" in \"%s\" should be a valid UUID\n", ref, routing);
          }
          return;
       }

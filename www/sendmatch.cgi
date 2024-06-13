@@ -1,7 +1,7 @@
 #!../login/envcgi /bin/csh -f
 source ../script/loggedin
 
-if($?matchresponse) then
+if($?brand) then
         unsetenv clientid
         unsetenv clientsecret
         unsetenv ID
