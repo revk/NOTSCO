@@ -15,24 +15,18 @@
 int debug = 0;
 
 int
-notscoerror (j_t tx, FILE * rxe, FILE * txe, int res, int ecode, int code, const char *text, const char *message,
-             const char *description)
+notscoerror (j_t tx, int res, int ecode, int code, const char *text, const char *message, const char *description)
 {                               // Direct error to TOTSCO hub
-   fprintf (rxe, "%s %s %s\n", text ? : "", message ? : "", description ? : "");
-   if (j_isnull (tx))
-   {
-      fprintf (txe, "Status %d: error %d %s %s %s\n", res, code ? : ecode ? : res, text ? : "", message ? : "", description ? : "");
-      if (ecode)
-         j_store_int (tx, "errorCode", ecode);  // spec says integer but examples are a string with numeric content
-      if (text)
-         j_store_string (tx, "errorText", text);
-      if (code)
-         j_store_int (tx, "code", code);        // spec says integer but examples are a string with numeric content
-      if (message)
-         j_store_string (tx, "message", message);
-      if (description)
-         j_store_string (tx, "description", description);       // spec says Description but examples sy descrioptipn
-   }
+   if (ecode)
+      j_store_int (tx, "errorCode", ecode);     // spec says integer but examples are a string with numeric content
+   if (text)
+      j_store_string (tx, "errorText", text);
+   if (code)
+      j_store_int (tx, "code", code);   // spec says integer but examples are a string with numeric content
+   if (message)
+      j_store_string (tx, "message", message);
+   if (description)
+      j_store_string (tx, "description", description);  // spec says Description but examples sy descrioptipn
    return res;
 }
 
@@ -148,81 +142,82 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          code = atoi (sql_colz (res, "matcherror"));
       else if (strcmp (reply, "None"))
       {
-	      // TODO much sanity checking on request
-            j_t t = j_create ();
-            j_t payload = notscoreply (rx, t, "Confirmation");
-            SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
+         // TODO much sanity checking on request
+         j_t t = j_create ();
+         j_t payload = notscoreply (rx, t, "Confirmation");
+         SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
+         if (sql_fetch_row (u))
+            j_store_string (j_find (t, "envelope.source"), "correlationID", sql_col (u, "U"));
+         sql_free_result (u);
+         j_t implications = j_store_array (payload, "implicationsSent");
+         const char *email = sql_colz (res, "email");
+         email = strrchr (email, '@');
+         j_t j = j_append_object (implications);
+         j_store_string (j, "sentMethod", "email");
+         j_store_stringf (j, "sentTo", "x****%s", email);
+         j_store_datetime (j, "sentBy", time (0));
+         j = j_append_object (implications);
+         j_store_string (j, "sentMethod", "1st class post");
+         j_store_datetime (j, "sentBy", time (0));
+         j_t match = j_store_object (payload, "matchResult");
+         void add (int alt)
+         {
+            char *sor = NULL;
+            u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
             if (sql_fetch_row (u))
-               j_store_string (j_find (t, "envelope.source"), "correlationID", sql_col (u, "U"));
+               sor = strdupa (sql_col (u, "U"));
             sql_free_result (u);
-            j_t implications = j_store_array (payload, "implicationsSent");
-            const char *email = sql_colz (res, "email");
-            email = strrchr (email, '@');
-            j_t j = j_append_object (implications);
-            j_store_string (j, "sentMethod", "email");
-            j_store_stringf (j, "sentTo", "x****%s", email);
-            j_store_datetime (j, "sentBy", time (0));
-            j = j_append_object (implications);
-            j_store_string (j, "sentMethod", "1st class post");
-            j_store_datetime (j, "sentBy", time (0));
-            j_t match = j_store_object (payload, "matchResult");
-            void add (int alt)
+            j_store_string (match, "switchOrderReference", sor);
+            j_t services = j_store_array (match, "services");
+            const char *cupid = sql_colz (res, "cupid");
+            const char *no = sql_colz (res, "networkoperator");
+            const char *sn = sql_colz (res, "servicename");
+            const char *dn = sql_colz (res, "dn");
+            const char *partialdn = sql_colz (res, "partialdn");
+            const char *alid = sql_colz (res, "alid");
+            const char *ontref = sql_colz (res, "ontref");
+            const char *ontport = sql_colz (res, "ontport");
+            void add (j_t j, const char *tag, const char *val)
             {
-               char *sor = NULL;
-               u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
-               if (sql_fetch_row (u))
-                  sor = strdupa (sql_col (u, "U"));
-               sql_free_result (u);
-               j_store_string (match, "switchOrderReference", sor);
-               j_t services = j_store_array (match, "services");
-               const char *cupid = sql_colz (res, "cupid");
-               const char *no = sql_colz (res, "networkoperator");
-               const char *sn = sql_colz (res, "servicename");
-               const char *dn = sql_colz (res, "dn");
-               const char *partialdn = sql_colz (res, "partialdn");
-               const char *alid = sql_colz (res, "alid");
-               const char *ontref = sql_colz (res, "ontref");
-               const char *ontport = sql_colz (res, "ontport");
-               void add (j_t j,const char *tag, const char *val)
-               {
-                  if (!val || !*val)
-                     return;
-		  j=j_append_object(j);
-                  j_store_string (j, "identifierType", tag);
-                  j_store_string (j, "identifier", val);
-               }
-               if (*alid || *ontref || *ontport)
-               {                // IAS
-		       j_t j=j_append_object(services);
-                  j_store_string (j, "serviceType", "IAS");
-                  j_store_string (j, "switchAction", "ServiceFound");
-		  j=j_store_array(j,"serviceIdentifiers");
-                  add (j,"ONTReference", ontref);
-                  if(atoi(ontport))add (j,"PortNumber", ontport);
-                  add (j,"AccessLineId", alid);
-                  add (j,"ServiceInformation", sn);
-		  add(j,"NetworkOperator",no);
-               }
-               if (*dn || *partialdn)
-               {                // NBICS
-		       j_t j=j_append_object(services);
-                  j_store_string (j, "serviceType", "NBICS");
-                  j_store_string (j, "switchAction", alt?"OptionToCease":"OptionToRetain");
-		  j=j_store_array(j,"serviceIdentifiers");
-		  add(j,"CUPID",cupid);
-		  add(j,"DN",dn);
-		  add(j,"PartialDN",partialdn);
-               }
-	       // TODO SOR table
+               if (!val || !*val)
+                  return;
+               j = j_append_object (j);
+               j_store_string (j, "identifierType", tag);
+               j_store_string (j, "identifier", val);
             }
-            add (0);
-            if (strchr (reply, '+'))
-            {
-               j_t alt = j_store_array (payload, "alternativeSwitchOrders");
-               match = j_store_object (j_append_object (alt), "matchResult");
-               add (1);
+            if (*alid || *ontref || *ontport)
+            {                   // IAS
+               j_t j = j_append_object (services);
+               j_store_string (j, "serviceType", "IAS");
+               j_store_string (j, "switchAction", "ServiceFound");
+               j = j_store_array (j, "serviceIdentifiers");
+               add (j, "ONTReference", ontref);
+               if (atoi (ontport))
+                  add (j, "PortNumber", ontport);
+               add (j, "AccessLineId", alid);
+               add (j, "ServiceInformation", sn);
+               add (j, "NetworkOperator", no);
             }
-            notscotx (sqlp, tester, t);
+            if (*dn || *partialdn)
+            {                   // NBICS
+               j_t j = j_append_object (services);
+               j_store_string (j, "serviceType", "NBICS");
+               j_store_string (j, "switchAction", alt ? "OptionToCease" : "OptionToRetain");
+               j = j_store_array (j, "serviceIdentifiers");
+               add (j, "CUPID", cupid);
+               add (j, "DN", dn);
+               add (j, "PartialDN", partialdn);
+            }
+            // TODO SOR table
+         }
+         add (0);
+         if (strchr (reply, '+'))
+         {
+            j_t alt = j_store_array (payload, "alternativeSwitchOrders");
+            match = j_store_object (j_append_object (alt), "matchResult");
+            add (1);
+         }
+         notscotx (sqlp, tester, t);
       }
    }
    if (code)
@@ -299,114 +294,103 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    j_t rx = j_find (cgi, "formdata");
    j_t envelope = j_find (rx, "envelope");
    if (!envelope)
-      status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing envelope");
+      return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Missing envelope");
+   j_t source = j_find (envelope, "source");
+   if (!source)
+      return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Missing source");
+   if (strcmp (j_get (source, "type") ? : "", "RCPID"))
+      return notscoerror (tx, 400, 9002, 0, "Unknown or invalid source Type.", NULL, NULL);
+   const char *rcpid = j_get (source, "identity");
+   if (!rcpid)
+      return notscoerror (tx, 400, 9003, 0, "Unknown or invalid source Id.", NULL, NULL);
+   if (!*us)
+      fprintf (rxe, "We do not have an RCPID set\n");
+   else if (strcmp (rcpid, us))
+      return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Incorrect source RCPID");
+   j_t destination = j_find (envelope, "destination");
+   if (!destination)
+      return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Missing destination");
+   if (strcmp (j_get (destination, "type") ? : "", "RCPID"))
+      return notscoerror (tx, 400, 9000, 0, "Unknown or invalid destination Type.", NULL, NULL);
+   rcpid = j_get (destination, "identity");
+   if (!rcpid || !*rcpid)
+      return notscoerror (tx, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
+   if (*us && !strcmp (rcpid, us))
+      return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Talking to ourselves");
+   res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory` WHERE `rcpid`=%#s", rcpid);
+   if (!sql_fetch_row (res))
+      status = notscoerror (tx, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
+   sql_free_result (res);
+   if (status)
+      return status;
+   const char *routing = j_get (envelope, "routingID");
+   if (!routing)
+      return notscoerror (tx, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
+   // Check payload
+   const char *t = routing;
+   if (t && !strncmp (t, "residentialSwitch", 17))
+      t += 17;
    else
-   {                            // Check envelope
-      j_t source = j_find (envelope, "source");
-      if (!source)
-         status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing source");
-      if (strcmp (j_get (source, "type") ? : "", "RCPID"))
-         status = notscoerror (tx, rxe, txe, 400, 9002, 0, "Unknown or invalid source Type.", NULL, NULL);
-      const char *rcpid = j_get (source, "identity");
-      if (!rcpid)
-         status = notscoerror (tx, rxe, txe, 400, 9003, 0, "Unknown or invalid source Id.", NULL, NULL);
-      if (!*us)
-         fprintf (rxe, "We do not have an RCPID set\n");
-      else if (strcmp (rcpid, us))
-         notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Incorrect source RCPID");
-      j_t destination = j_find (envelope, "destination");
-      if (!destination)
-         status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing destination");
-      else if (strcmp (j_get (destination, "type") ? : "", "RCPID"))
-         status = notscoerror (tx, rxe, txe, 400, 9000, 0, "Unknown or invalid destination Type.", NULL, NULL);
-      else
-      {
-         rcpid = j_get (destination, "identity");
-         if (!rcpid || !*rcpid)
-            status = notscoerror (tx, rxe, txe, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
-         else if (*us && !strcmp (rcpid, us))
-            status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Talking to ourselves");
-         else
+      t = NULL;
+   if (t && !strncmp (t, "Match", 5))
+      t += 5;
+   else if (t && !strncmp (t, "Order", 5))
+   {
+      t += 5;
+      if (!strncmp (t, "Update", 6))
+         t += 6;
+      else if (!strncmp (t, "Trigger", 7))
+         t += 7;
+      else if (!strncmp (t, "Cancellation", 12))
+         t += 12;
+   } else
+      t = NULL;
+   if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
+      t = NULL;
+   if (!t)
+      return notscoerror (tx, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
+   j_t payload = j_find (rx, routing);
+   if (!payload)
+      return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Missing payload");
+   // Handle specific messages
+   if (!status)
+   {
+      if (strstr (routing, "Request"))
+      {                         // Request handling, send reply
+         if (!fork ())
          {
-            SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory` WHERE `rcpid`=%#s", rcpid);
-            if (!sql_fetch_row (res))
-               status = notscoerror (tx, rxe, txe, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
-            sql_free_result (res);
-         }
-      }
-      const char *routing = j_get (envelope, "routingID");
-      if (!routing)
-         status = notscoerror (tx, rxe, txe, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
-      else
-      {                         // Check payload
-         const char *t = routing;
-         if (t && !strncmp (t, "residentialSwitch", 17))
-            t += 17;
-         else
-            t = NULL;
-         if (t && !strncmp (t, "Match", 5))
-            t += 5;
-         else if (t && !strncmp (t, "Order", 5))
-         {
-            t += 5;
-            if (!strncmp (t, "Update", 6))
-               t += 6;
-            else if (!strncmp (t, "Trigger", 7))
-               t += 7;
-            else if (!strncmp (t, "Cancellation", 12))
-               t += 12;
-         } else
-            t = NULL;
-         if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
-            t = NULL;
-         if (!t)
-            status = notscoerror (tx, rxe, txe, 400, 9012, 0, "Unknown of invalid routing ID.", NULL, NULL);
-         j_t payload = j_find (rx, routing);
-         if (!payload)
-            status = notscoerror (tx, rxe, txe, 400, 0, 400, NULL, "Bad Request", "Missing payload");
-         else
-         {                      // Handle specific messages
-            if (!status)
+            if (!sqldebug)
             {
-               if (strstr (routing, "Request"))
-               {                // Request handling, 
-                  if (!fork ())
-                  {
-                     if (!sqldebug)
-                     {
-                        close (0);
-                        close (1);
-                        close (2);
-                        setpgid (0, 0);
-                     }
-                     if (delay)
-                        sleep (delay);
-                     SQL sql;
-                     sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
-                     sql_transaction (&sql);
-                     if (!strcmp (routing, "residentialSwitchMatchRequest"))
-                        residentialSwitchMatchRequest (&sql, tester, rx, rxe, payload);
-                     else if (!strcmp (routing, "residentialSwitchOrderRequest"))
-                        residentialSwitchOrderRequest (&sql, tester, rx, rxe, payload);
-                     else if (!strcmp (routing, "residentialSwitchOrderUpdateRequest"))
-                        residentialSwitchOrderUpdateRequest (&sql, tester, rx, rxe, payload);
-                     else if (!strcmp (routing, "residentialSwitchOrderTriggerRequest"))
-                        residentialSwitchOrderTriggerRequest (&sql, tester, rx, rxe, payload);
-                     else if (!strcmp (routing, "residentialSwitchOrderCancellationRequest"))
-                        residentialSwitchOrderCancellationRequest (&sql, tester, rx, rxe, payload);
-                     sql_safe_commit (&sql);
-                     sql_close (&sql);
-                     _exit (0);
-                  }
-               } else
-               {                // Response handling
-                  if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
-                     status = residentialSwitchMatchConfirmation (sqlp, tester, rx, rxe, tx, txe, payload);
-                  else if (!strcmp (routing, "residentialSwitchMatchFailure"))
-                     status = residentialSwitchMatchFailure (sqlp, tester, rx, rxe, tx, txe, payload);
-               }
+               close (0);
+               close (1);
+               close (2);
+               setpgid (0, 0);
             }
+            if (delay)
+               sleep (delay);
+            SQL sql;
+            sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
+            sql_transaction (&sql);
+            if (!strcmp (routing, "residentialSwitchMatchRequest"))
+               residentialSwitchMatchRequest (&sql, tester, rx, rxe, payload);
+            else if (!strcmp (routing, "residentialSwitchOrderRequest"))
+               residentialSwitchOrderRequest (&sql, tester, rx, rxe, payload);
+            else if (!strcmp (routing, "residentialSwitchOrderUpdateRequest"))
+               residentialSwitchOrderUpdateRequest (&sql, tester, rx, rxe, payload);
+            else if (!strcmp (routing, "residentialSwitchOrderTriggerRequest"))
+               residentialSwitchOrderTriggerRequest (&sql, tester, rx, rxe, payload);
+            else if (!strcmp (routing, "residentialSwitchOrderCancellationRequest"))
+               residentialSwitchOrderCancellationRequest (&sql, tester, rx, rxe, payload);
+            sql_safe_commit (&sql);
+            sql_close (&sql);
+            _exit (0);
          }
+      } else
+      {                         // Response handling
+         if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
+            status = residentialSwitchMatchConfirmation (sqlp, tester, rx, rxe, tx, txe, payload);
+         else if (!strcmp (routing, "residentialSwitchMatchFailure"))
+            status = residentialSwitchMatchFailure (sqlp, tester, rx, rxe, tx, txe, payload);
       }
    }
    return status ? : 202;
@@ -434,7 +418,7 @@ main (int argc, const char *argv[])
    {                            // Simple failure
       if (!e)
          return;
-      status = notscoerror (tx, rxe, txe, s, 0, 0, e, NULL, NULL);
+      status = notscoerror (tx, s, 0, 0, e, NULL, NULL);
    }
 
    j_t cgi = j_create ();
@@ -452,12 +436,12 @@ main (int argc, const char *argv[])
          fail ("No script_name", 500);
       else if (!auth || !*auth)
          status =
-            notscoerror (tx, rxe, txe, 401, 0, 900902, NULL, "Missing Credentials",
+            notscoerror (tx, 401, 0, 900902, NULL, "Missing Credentials",
                          "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN'");
       else if (!strncmp (host, "otshub-token.", 13))
       {
          if (strncasecmp (auth, "Basic ", 6))
-            status = notscoerror (tx, rxe, txe, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
+            status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
          else
          {
             unsigned char *user = NULL,
@@ -484,7 +468,7 @@ main (int argc, const char *argv[])
             }
             free (user);
             if (!c)
-               status = notscoerror (tx, rxe, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
+               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             if (!strcmp (script, "/oauth2/token"))
             {
                description = "OAUTH2 token request";
@@ -496,7 +480,7 @@ main (int argc, const char *argv[])
       } else if (!strncmp (host, "otshub.", 7))
       {
          if (strncasecmp (auth, "Bearer ", 7))
-            status = notscoerror (tx, rxe, txe, 401, 0, 401, NULL, "Expecting Bearer auth", NULL);
+            status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Bearer auth", NULL);
          else
          {
             auth += 7;
@@ -511,7 +495,7 @@ main (int argc, const char *argv[])
             }
             sql_free_result (res);
             if (auth)
-               status = notscoerror (tx, rxe, txe, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
+               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
             if (!strcmp (script, "/directory/v1/entry"))
             {
                description = "directory API request";
