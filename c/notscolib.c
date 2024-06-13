@@ -206,10 +206,16 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          char *er = NULL;
          const char *host = sql_col (res, "apihost");
          syntaxcheck (tx, txe);
-         j_t rx = j_create ();
          if (!host || !*host)
             fprintf (txe, "No API host defined");
-         else
+         fclose (txe);
+         char *txt = j_write_pretty_str (tx);
+         sql_safe_query_f (sqlp,
+                           "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s",
+                           tester, routing, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
+         int id = sql_insert_id (sqlp);
+         j_t rx = j_create ();
+         if (host && *host)
          {
             // Send message
             er = j_curl_send (curl, tx, rx, bearer, "https://%s/letterbox/v1/post", host);
@@ -218,14 +224,10 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                fprintf (rxe, "Failed: %s\n", er);
             responsecheck (status, rx, rxe);
          }
-         fclose (txe);
          fclose (rxe);
          char *rxt = j_write_pretty_str (rx);
-         char *txt = j_write_pretty_str (tx);
-         sql_safe_query_f (sqlp,
-                           "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                           tester, status, routing, j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL,
-                           j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
+         sql_safe_query_f (sqlp, "UPDATE `log` SET `status`=%ld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%d", status,
+                           j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);
          free (txt);
          j_delete (&rx);
@@ -329,7 +331,7 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
    if (v && val && *val && strcmp (j_val (v), val))
       fprintf (e, " is expected to be \"%s\" but is \"%s\"", val, j_val (v));
    else if (v && type)
-      fprintf (e, " is expected to be a %s", type);
+      fprintf (e, " is expected to be %s", type);
    fprintf (e, ".\n");
    return NULL;
 }
@@ -568,12 +570,12 @@ syntaxcheck (j_t j, FILE * e)
       j_t is = expect_array (e, "OTS§2.2.1", payload, "implicationsSent");
       if (is)
       {
-	      //TODO
+         //TODO
 
       }
       void check (j_t j)
-      { // Check matchResult
-	      //TODO
+      {                         // Check matchResult
+         //TODO
 
       }
       j_t mr = expect_object (e, "OTS§2.2.1", payload, "matchResult");

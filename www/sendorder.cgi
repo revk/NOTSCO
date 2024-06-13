@@ -6,5 +6,6 @@ echo ""
 
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Send order/update/tigger/cease</h1>
+<p>Coming soon</p>
 
 'END'

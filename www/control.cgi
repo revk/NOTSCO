@@ -23,7 +23,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not farclientid or farclientid=''><p>You have not set a Client ID yet.</p></if>
 <if not farclientsecret or farclientsecret=''><p>You have not set a Client Secret yet.</p></if>
 <hr>
-<h2>Recent messages</h2>
+<h2>Today's messages</h2>
 <table>
 <sql table=log where="tester=$TESTER" order=ID DESC><set found=1>
 <tr>
