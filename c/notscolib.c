@@ -321,7 +321,7 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
       if (name)
          fprintf (e, " in \"%s\"", name);
       else if (up)
-         fprintf (e, " entry %d", j_pos (p));
+         fprintf (e, " in entry %d", j_pos (p));
       p = up;
    }
    if (!v)
@@ -557,9 +557,9 @@ syntaxcheck (j_t j, FILE * e)
              && (!strcmp (st, "IAS") || (strcmp (val, "port") && strcmp (val, "identify"))))
             expected (e, "API§2.1.6", s, NULL, "action", NULL,
                       !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"idenitfy\"");
-         const char *id = expect_string (e, "OTS§2.2", s, "seviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
-         if (id && !strcmp (st, "NBICS") && !istelephone (id))
-            expected (e, "API§2.1.6", s, NULL, "seviceIdentifier", NULL, "valid telephone number");
+         const char *id = expect_string (e, "OTS§2.2", s, "serviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
+         if (id && !strcmp (st, "NBICS") && istelephone (id))
+            expected (e, "API§2.1.6", s, NULL, "serviceIdentifier", NULL, "valid telephone number");
       }
       return;
    }

@@ -52,8 +52,8 @@ residentialSwitchMatchRequest (SQL * sqlp, SQL_RES * res, j_t tx)
    if (*(val = sql_colz (res, "account")))
       j_store_string (payload, "account", val);
    j_t address = j_store_object (payload, "address");
-   if (*(val = sql_colz (res, "urpn")))
-      j_store_string (address, "urpn", val);
+   if (*(val = sql_colz (res, "uprn")))
+      j_store_string (address, "uprn", val);
    j_t lines = j_store_array (address, "addressLines");
    if (*(val = sql_colz (res, "address1")))
       j_append_string (lines, val);
