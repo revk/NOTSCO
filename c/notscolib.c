@@ -220,6 +220,77 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code)
    notscotx (sqlp, tester, t);
 }
 
+// Tools for syntax checking
+
+static void *
+expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const char *val, const char *type)
+{                               // Report expected and return NULL
+   if (!v && tag)
+      v = j_find (parent, tag);
+   fprintf (e, "%s: ", ref);
+   if (tag)
+      fprintf (e, "\"%s\"", tag);
+   else
+      fprintf (e, " entry %d", j_pos (v));
+   j_t p = parent;
+   while (p)
+   {
+      j_t up = j_parent (p);
+      if (!strcmp (j_name (up) ? : "", "formdata"))
+         up = NULL;
+      const char *name = j_name (p);
+      if (name)
+         fprintf (e, " in \"%s\"", name);
+      else if (j_parent (p))
+         fprintf (e, " entry %d", j_pos (p));
+      p = up;
+   }
+   if (!v)
+      fprintf (e, " is missing");
+   if (v && val && *val && strcmp (j_val (v), val))
+      fprintf (e, " is expected to be \"%s\" but is \"%s\"", val, j_val (v));
+   else if (v && type)
+      fprintf (e, " is expected to be a %s", type);
+   fprintf (e, ".\n");
+   return NULL;
+}
+
+static j_t
+expect_object (FILE * e, const char *ref, j_t parent, const char *tag)
+{                               // Return object if it is as expected
+   j_t v = j_find (parent, tag);
+   if (!v || !j_isobject (v))
+      return expected (e, ref, parent, v, tag, NULL, "a JSON object");
+   return v;
+}
+
+static j_t
+expect_array (FILE * e, const char *ref, j_t parent, const char *tag)
+{                               // Return array if it is as expected
+   j_t v = j_find (parent, tag);
+   if (!v || !j_isarray (v))
+      return expected (e, ref, parent, v, tag, NULL, "a JSON array");
+   return v;
+}
+
+static const char *
+expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const char *val)
+{                               // Return string if as expected, if val="" then allow missing, if val non null expects to match val
+   j_t v = j_find (parent, tag);
+   if ((!v && (!val || *val)) || (v && !j_isstring (v)) || (v && val && *val && strcmp (j_val (v), val)))
+      return expected (e, ref, parent, v, tag, val, "a JSON string");
+   return j_val (v);
+}
+
+static const char *
+expect_number (FILE * e, const char *ref, j_t parent, const char *tag, const char *val)
+{                               // Return string if as expected, if val="" then allow missing, if val non null expects to match val
+   j_t v = j_find (parent, tag);
+   if ((!v && (!val || *val)) || (v && !j_isnumber (v)) || (v && val && *val && strcmp (j_val (v), val)))
+      return expected (e, ref, parent, v, tag, val, "a JSON number");
+   return j_val (v);
+}
+
 void
 responsecheck (int status, j_t j, FILE * e)
 {                               // This is the reporting for a response at http level
@@ -237,37 +308,17 @@ responsecheck (int status, j_t j, FILE * e)
    if (status / 100 == 2)
       fprintf (e, "API§2.1.8: No JSON response is expected for a 2XX response\n");
    // Check for error
-   j_t v = NULL;
-   if ((v = j_find (j, "errorCode")))
-   {
-      if (!j_isnumber (v))
-         fprintf (e, "API§2.1.8: \"errorCode\" is expected to be an integer\n");
-      fprintf (e, "errorCode %s\n", j_val (v));
-   }
-   if ((v = j_find (j, "errorText")))
-   {
-      if (!j_isstring (v))
-         fprintf (e, "API§2.1.8: \"errorText\" is expected to be an string\n");
-      fprintf (e, "errorText %s\n", j_val (v));
-   }
-   if ((v = j_find (j, "code")))
-   {
-      if (!j_isnumber (v))
-         fprintf (e, "API§2.1.8: \"code\" is expected to be an integer\n");
-      fprintf (e, "code %s\n", j_val (v));
-   }
-   if ((v = j_find (j, "message")))
-   {
-      if (!j_isstring (v))
-         fprintf (e, "API§2.1.8: \"message\" is expected to be an string\n");
-      fprintf (e, "message %s\n", j_val (v));
-   }
-   if ((v = j_find (j, "description")))
-   {
-      if (!j_isstring (v))
-         fprintf (e, "API§2.1.8: \"description\" is expected to be an string\n");
-      fprintf (e, "description %s\n", j_val (v));
-   }
+   const char *val = NULL;
+   if ((val = expect_number (e, "API§2.1.8", j, "errorCode", "")))
+      fprintf (e, "errorCode %s\n", val);
+   if ((val = expect_string (e, "API§2.1.8", j, "errorText", "")))
+      fprintf (e, "errorText %s\n", val);
+   if ((val = expect_number (e, "API§2.1.8", j, "code", "")))
+      fprintf (e, "code %s\n", val);
+   if ((val = expect_string (e, "API§2.1.8", j, "message", "")))
+      fprintf (e, "message %s\n", val);
+   if ((val = expect_string (e, "API§2.1.8", j, "description", "")))
+      fprintf (e, "description %s\n", val);
    if (status / 100 != 2)
    {
       if (!j_find (j, "errorCode") && !j_find (j, "code"))
@@ -279,26 +330,18 @@ responsecheck (int status, j_t j, FILE * e)
    }
 }
 
+
 void
 syntaxcheck (j_t j, FILE * e)
 {                               // This is the main syntax checking and reporting for all messages
-   j_t v = NULL;
+   const char *val = NULL;
    const char *routing = NULL;
    // Envelope (and audit data)
-   j_t envelope = j_find (j, "envelope");
-   if (!envelope)
-      fprintf (e, "API§2.1.5: \"envelope\" missing\n");
-   else if (!j_isobject (envelope))
-      fprintf (e, "API§2.1.5: \"envelope\" should be JSON object\n");
-   else
+   j_t envelope = expect_object (e, "API§2.1.5", j, "envelope");
+   if (envelope)
    {                            // Check envelope
-      if (!(v = j_find (envelope, "routingID")))
-         fprintf (e, "API§2.1.5: \"routingID\" missing from \"envelope\"\n");
-      else if (!j_isstring (v))
-         fprintf (e, "API§2.1.5: \"routingID\" should be a string\n");
-      else
+      if ((routing = expect_string (e, "API§2.1.5", envelope, "routingID", NULL)))
       {
-         routing = j_val (v);
          const char *t = routing;
          if (strcmp (t, "messageDeliveryFailure"))
          {
@@ -325,90 +368,65 @@ syntaxcheck (j_t j, FILE * e)
          if (!t)
             fprintf (e, "OTS§2.1: Invalid \"routindID\" (%s)\n", routing);
       }
+      void check (const char *tag)
+      {
+         j_t v = expect_object (e, "API§2.1.5", envelope, tag);
+         expect_string (e, "API§2.1.5", v, "type", "RCPID");
+         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && strlen (val) != 4)
+            expected (e, "API§2.1.5", v, NULL, "identity", NULL, "a 4 character string");
+         expect_string (e, "API§2.1.5", v, "correlationID", *tag == 's'
+                               || (routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
+      }
+      check ("source");
+      check ("destination");
    }
    if (!routing)
       return;
    // Payload specific checks
-   j_t payload = j_find (j, routing);
-   if (!payload)
-      fprintf (e, "APIU§2.1.5: Missing \"%s\"\n", routing);
+   j_t payload = expect_object (e, "API§2.1.5", j, routing);
    if (strstr (routing, "Failure"))
    {                            // Audit requirements
-      if (!(v = j_find (envelope, "auditData")))
-         fprintf (e, "API§2.1.6: \"auditData\" missing from \"envelope\"\n");
-      else if (!j_isarray (v))
-         fprintf (e, "API§2.1.6: \"auditData\" should be a JSON array\n");
-      else
+      j_t ad = expect_array (e, "API§2.1.6", envelope, "auditData");
+      if (ad)
       {
-         v = j_first (v);
-         if (!v)
-            fprintf (e, "API§2.1.6: \"auditData\" should contain a entry\n");
-         else if (!j_isobject (v))
-            fprintf (e, "API§2.1.6: \"auditData\" should contain a JSON object entry\n");
+         ad = j_first (ad);
+         if (!ad || !j_isobject (ad))
+            expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "a JSON object");
          else
          {
-            j_t t = NULL;
-            if (!(t = j_find (v, "name")))
-               fprintf (e, "API§2.1.6: \"name\" missing from \"auditData\"\n");
-            else if (!j_isstring (t))
-               fprintf (e, "API§2.1.6: \"name\" in \"auditData\" should be a string\n");
-            else if (strcmp (j_val (t), "faultCode"))
-               fprintf (e, "API§2.1.6: \"name\" in \"auditData\" should be \"faultCode\"\n");
-            if (!(t = j_find (v, "value")))
-               fprintf (e, "API§2.1.6: \"value\" missing from \"auditData\"\n");
-            else if (!j_isstring (t))
-               fprintf (e, "API§2.1.6: \"value\" in \"auditData\" should be a string\n");
-            else if (j_number_ok (j_val (t), NULL))
-               fprintf (e, "API§2.1.6: \"value\" in \"auditData\" should be numeric (%s)\n", j_val (t));
-            else
+            expect_string (e, "API§2.1.6", ad, "name", "faultCode");
+            if ((val = expect_string (e, "API§2.1.6", ad, "value", NULL)))
             {
-               const char *code = j_get (payload, "faultCode");
-               if (code && strcmp (code, j_val (t)))
-                  fprintf (e, "API§2.1.6: \"value\" in \"auditData\" (%s) does not match \"faultCode\" in payload (%s)\n",
-                           j_val (t), code);
+               if (j_number_ok (val, NULL))
+                  expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric");
+               else
+                  expect_string (e, "API§2.1.6", payload, "faultCode", val);
             }
-            if (j_next (v))
-               fprintf (e, "API§2.1.6: \"auditData\" should contain only one entry\n");
+            if (j_next (ad))
+               expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "only entry in array");
          }
       }
       if (payload)
       {                         // Failure payload
          int df = !strcmp (routing, "messageDeliveryFailure");
          const char *tag = df ? "code" : "faultCode";
-         if (!(v = j_find (payload, tag)))
-            fprintf (e, "API§2.1.8: \"%s\" missing from \"%s\"\n", tag, routing);
-         else if (!j_isstring (v))
-            fprintf (e, "API§2.1.8: \"%s\" in \"%s\" should be a string\n", tag, routing);
-         else if (j_number_ok (j_val (v), NULL))
-            fprintf (e, "API§2.1.8: \"%s\" in \"%s\" should be numeric (%s)\n", tag, routing, j_val (v));
+         if ((val = expect_string (e, "API§2.1.8", payload, tag, NULL)) && j_number_ok (val, NULL))
+            expected (e, "API§2.1.6", payload, NULL, tag, NULL, "numeric");
          tag = df ? "text" : "faultText";
-         if (!(v = j_find (payload, tag)))
-            fprintf (e, "API§2.1.8: \"%s\" missing from \"%s\"\n", tag, routing);
-         else if (!j_isstring (v))
-            fprintf (e, "API§2.1.8: \"%s\" in \"%s\" should be a string\n", tag, routing);
+         expect_string (e, "API§2.1.8", payload, tag, NULL);
          if (df)
+            expect_string (e, "API§2.1.8", payload, "severity", "failure");
+         else if (strcmp (routing, "residentialSwitchMatchFailure"))
          {
-            if (!(v = j_find (payload, "severity")))
-               fprintf (e, "API§2.1.8: \"severity\" missing from \"%s\"\n", routing);
-            else if (!j_isstring (v))
-               fprintf (e, "API§2.1.8: \"severity\" in \"%s\" should be a string\n", routing);
-            else if (strcmp (j_val (v), "failure"))
-               fprintf (e, "API§2.1.8: \"severity\" in \"%s\" should be a \"failure\"\n", routing);
-         } else if (strcmp (routing, "residentialSwitchMatchFailure"))
-         {
-            const char *ref = "2.3.2";
+            const char *ref = "OTS§2.3.2";
             if (!strcmp (routing, "residentialSwitchOrderUpdateFailure"))
-               ref = "2.4.2";
+               ref = "OTS§2.4.2";
             else if (!strcmp (routing, "residentialSwitchOrderTriggerFailure"))
-               ref = "2.5.2";
+               ref = "OTS§2.5.2";
             else if (!strcmp (routing, "residentialSwitchOrderCancellationFailure"))
-               ref = "2.6.2";
-            if (!(v = j_find (payload, "switchOrderReference")))
-               fprintf (e, "OTS§%s\"switchOrderReference\" missing from \"%s\"\n", ref, routing);
-            else if (!j_isstring (v))
-               fprintf (e, "OTS§%s\"switchOrderReference\" in \"%s\" should be a string\n", ref, routing);
-            else if (isuuid (j_val (v)))
-               fprintf (e, "OTS§%s\"switchOrderReference\" in \"%s\" should be a valid UUID\n", ref, routing);
+               ref = "OTS§2.6.2";
+            if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && isuuid (val))
+               expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID");
          }
          return;
       }

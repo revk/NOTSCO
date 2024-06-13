@@ -21,9 +21,9 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not ip><td>Rx</td></if>
 </tr>
 <tr>
-<if ip><td style='white-space:pre;font-weight:bold;'><output rxerror></td></if>
-<td style='white-space:pre;font-weight:bold;'><output txerror></td>
-<if not ip><td style='white-space:pre;font-weight:bold;'><output rxerror></td></if>
+<if ip><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
+<td style='white-space:pre;font-weight:bold;'><output name=txerror></td>
+<if not ip><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
 </tr>
 <tr>
 <if ip><td><pre><output name=rx></pre></td></if>
