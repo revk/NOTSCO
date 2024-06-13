@@ -377,10 +377,13 @@ expect_number (FILE * e, const char *ref, j_t parent, const char *tag, const cha
 void
 responsecheck (int status, j_t j, FILE * e)
 {                               // This is the reporting for a response at http level
-   if (status / 100 != 2)
-      fprintf (e, "- HTTP responded with status %d\n", status);
-   else if (status != 202)
-      fprintf (e, "API§2.1.8: HTTP response expected is 202, was %d\n", status);
+   if (status)
+   {
+      if (status / 100 != 2)
+         fprintf (e, "- HTTP responded with status %d\n", status);
+      else if (status != 202)
+         fprintf (e, "API§2.1.8: HTTP response expected is 202, was %d\n", status);
+   }
    if (j_isnull (j))
       return;
    if (!j_isobject (j))
@@ -460,7 +463,7 @@ syntaxcheck (j_t j, FILE * e)
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && strlen (val) != 4)
             expected (e, "API§2.1.5", v, NULL, "identity", NULL, "a 4 character string");
-         expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr(routing,"Failure"))
+         expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr (routing, "Failure"))
                         || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
       check ("source");
