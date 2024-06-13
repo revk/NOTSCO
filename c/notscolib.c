@@ -97,6 +97,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                   else
                      bearer = strdupa (token);
                }
+               if (!j_isnull (rx))
+                  break;        // We got an error
             }
             fclose (txe);
             fclose (rxe);
@@ -158,6 +160,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          free (er);
          if (!er)
             break;
+         if (!j_isnull (rx))
+            break;              // We got an error
       }
       curl_easy_cleanup (curl);
    }
@@ -180,7 +184,7 @@ notscoreply (j_t rx, j_t tx, const char *type)
    j_t envelope = j_store_object (tx, "envelope");
    j_t source = j_store_object (envelope, "source");
    j_store_string (source, "type", "RCPID");
-   j_store_string (source, "identity", j_get (rx, "envelope.destination.identity"));
+   j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity"));
    j_store_string (source, "correlationID", j_get (rx, "envelope.destination.correlationID"));
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
@@ -295,7 +299,7 @@ void
 responsecheck (int status, j_t j, FILE * e)
 {                               // This is the reporting for a response at http level
    if (status / 100 != 2)
-      fprintf (e, "HTTP response %d\n", status);
+      fprintf (e, "- HTTP responaedd with status %d\n", status);
    else if (status != 202)
       fprintf (e, "API§2.1.8: HTTP response expected is 202, was %d\n", status);
    if (j_isnull (j))
@@ -310,15 +314,15 @@ responsecheck (int status, j_t j, FILE * e)
    // Check for error
    const char *val = NULL;
    if ((val = expect_number (e, "API§2.1.8", j, "errorCode", "")))
-      fprintf (e, "errorCode %s\n", val);
+      fprintf (e, "- errorCode %s\n", val);
    if ((val = expect_string (e, "API§2.1.8", j, "errorText", "")))
-      fprintf (e, "errorText %s\n", val);
+      fprintf (e, "- errorText %s\n", val);
    if ((val = expect_number (e, "API§2.1.8", j, "code", "")))
-      fprintf (e, "code %s\n", val);
+      fprintf (e, "- code %s\n", val);
    if ((val = expect_string (e, "API§2.1.8", j, "message", "")))
-      fprintf (e, "message %s\n", val);
+      fprintf (e, "- message %s\n", val);
    if ((val = expect_string (e, "API§2.1.8", j, "description", "")))
-      fprintf (e, "description %s\n", val);
+      fprintf (e, "- description %s\n", val);
    if (status / 100 != 2)
    {
       if (!j_find (j, "errorCode") && !j_find (j, "code"))
@@ -375,7 +379,7 @@ syntaxcheck (j_t j, FILE * e)
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && strlen (val) != 4)
             expected (e, "API§2.1.5", v, NULL, "identity", NULL, "a 4 character string");
          expect_string (e, "API§2.1.5", v, "correlationID", *tag == 's'
-                               || (routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
+                        || (routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
       check ("source");
       check ("destination");
@@ -445,9 +449,11 @@ syntaxcheck (j_t j, FILE * e)
       return;
    }
    if (strstr (routing, "Request"))
-   {                            // Request
+   {                            // Other Requests
+
    }
    if (strstr (routing, "Confirmation"))
-   {                            // Confirmation
+   {                            // Other Confirmations
+
    }
 }

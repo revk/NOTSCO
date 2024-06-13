@@ -14,6 +14,31 @@
 
 int debug = 0;
 
+static j_t
+makemessage (SQL_RES * res, j_t tx, const char *routing)
+{
+   const char *v = NULL;
+   j_t envelope = j_store_object (tx, "envelope");
+   j_t source = j_store_object (envelope, "source");
+   j_store_string (source, "type", "RCPID");
+   if ((v = sql_colz (res, "fromrcpid")) && *v)
+      j_store_string (source, "identity", v);
+   //j_store_string (source, "correlationID", j_get (rx, "envelope.destination.correlationID"));
+   j_t destination = j_store_object (envelope, "destination");
+   j_store_string (destination, "type", "RCPID");
+   if ((v = sql_colz (res, "rcpid")) && *v)
+      j_store_string (destination, "identity", v);
+   //j_store_string (destination, "correlationID", j_get (rx, "envelope.source.correlationID"));
+   j_store_string (envelope, "routingID", routing);
+   return j_store_object (tx, routing);
+}
+
+void
+residentialSwitchMatchRequest (SQL_RES * res, j_t tx)
+{
+   j_t payload = makemessage (res, tx, "residentialSwitchMatchRequest");
+}
+
 int
 main (int argc, const char *argv[])
 {
@@ -61,6 +86,8 @@ main (int argc, const char *argv[])
    if (send)
    {
       j_t tx = j_create ();
+      if (!strcmp (send, "residentialSwitchMatchRequest"))
+         residentialSwitchMatchRequest (res, tx);
 
       notscotx (&sql, tester, tx);
    }

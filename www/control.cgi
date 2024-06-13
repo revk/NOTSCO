@@ -31,8 +31,9 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <td><output name=status></td>
 <td><output name=ip></td>
 <td style='white-space:nowrap;'><output name=description></td>
-<if rxerror><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
+<if ip rxerror><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
 <if txerror><td style='white-space:pre;font-weight:bold;'><output name=txerror></td></if>
+<if not ip rxerror><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
 </tr>
 
 </sql>

@@ -21,6 +21,7 @@ xmlsql --exec -d notsco head.html - tail.html << 'END'
 <sql table=tester where="ID=$TESTER">
 <form method=post>
 <table border=1>
+<tr><td>From RCPID</td><td><input name=fromrcpid size=5 maxlength=4 placeholder="XXXX"></td></tr>
 <tr><td>Brand name</td><td><input name=brand placeholder="Your brand name"></td></tr>
 <tr><td>Surname</td><td><input name=surname placeholder="Surname"></td></tr>
 <tr><td>Account</td><td><input name=account placeholder="Account"></td></tr>
