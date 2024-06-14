@@ -30,7 +30,7 @@ xmlsql --exec -d notsco head.html - tail.html << 'END'
 </select>
 </td></tr>
 <tr><td>Error code</td><td><select name=matcherror><exec ../bin/notscotx --error-choice></select> (for Failure)</td></tr>
-<tr><td>Sent to</td><td><input name=sentto placeholder="Email/Telephone"> (1st class post if blank)</td></tr>
+<tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"> (1st class post if blank)</td></tr>
 <tr><td>NBICS Network Operator</td><td><input name=networkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
 <tr><td>Access Line ID</td><td><input name=alid size=12 placeholder="ALID"></td></tr>

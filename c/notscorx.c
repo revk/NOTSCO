@@ -235,19 +235,19 @@ checksor (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *s
    if (!sor || !rcpid)
       return;
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `sor` WHERE `tester`=%d AND `issuedby`=%#s AND `sor`=%#s", tester,
-                                          rev ? "US" : "THEM", sor);
+                                          rev ? "THEM" : "US", sor);
    if (!sql_fetch_row (res))
       fprintf (rxe, "\"switchOrderReference\" is not one we were expecting.\n");
    else
    {
       const char *val;
-      const char *farid = j_get (rx, rev ? "envelope.destination.correlationID" : "envelope.source.correlationID");
-      const char *nearid = j_get (rx, rev ? "envelope.source.correlationID" : "envelope.destination.correlationID");
+      const char *farid = j_get (rx, "envelope.source.correlationID");
+      const char *nearid = j_get (rx, "envelope.destination.correlationID");
       if (rcpid && strcmp (rcpid, (val = sql_colz (res, "rcpid"))))
          fprintf (rxe, "The RCPID is not what we expected for this switch order (expected %s).\n", val);
-      if (farid && strcmp (rcpid, (val = sql_colz (res, "farid"))))
+      if (farid && strcmp (farid, (val = sql_colz (res, "farid"))))
          fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
-      if (nearid && strcmp (rcpid, (val = sql_colz (res, "nearid"))))
+      if (nearid && strcmp (nearid, (val = sql_colz (res, "nearid"))))
          fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
    }
    sql_free_result (res);
@@ -320,7 +320,7 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
 int
 progressConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload, const char *routing)
 {
-   const char *rcpid = j_get (rx, "envelope.source.identity");
+   const char *rcpid = j_get (rx, "envelope.destination.identity");
    const char *sor = j_get (payload, "switchOrderReference");
    const char *status = j_get (payload, "status");
    checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 1);
@@ -333,7 +333,7 @@ progressConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE *
 int
 progressFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload, const char *routing)
 {
-   const char *rcpid = j_get (rx, "envelope.source.identity");
+   const char *rcpid = j_get (rx, "envelope.destination.identity");
    const char *sor = j_get (payload, "switchOrderReference");
    checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 1);
    return 202;
