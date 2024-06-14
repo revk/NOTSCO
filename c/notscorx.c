@@ -132,7 +132,6 @@ void
 residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
 {
    int code = 0;
-   const char *farid = j_get (rx, "envelope.sender.correlationID");
    // Sanity checking e.g. envelope, etc
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    if (sql_fetch_row (res))
@@ -171,6 +170,10 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                sor = strdupa (sql_col (u, "U"));
             sql_free_result (u);
             j_store_string (match, "switchOrderReference", sor);
+            sql_safe_query_f (sqlp,
+                              "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='US',`rcpid`=%#s,`nearid`=%#s,`farid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
+                              tester, sor, j_get (t, "envelope.sender.identity"), j_get (t, "envelope.sender.correlationID"),
+                              j_get (t, "envelope.destination.correlationID"));
             j_t services = j_store_array (match, "services");
             const char *cupid = sql_colz (res, "cupid");
             const char *no = sql_colz (res, "networkoperator");
@@ -211,7 +214,6 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                add (j, "DN", dn);
                add (j, "PartialDN", partialdn);
             }
-            // TODO SOR table
          }
          add (0);
          if (strchr (reply, '+'))
@@ -266,6 +268,22 @@ residentialSwitchOrderCancellationRequest (SQL * sqlp, int tester, j_t rx, FILE 
 int
 residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
 {
+   void check (j_t j)
+   {
+      j = j_find (j, "matchResult");
+      if (!j)
+         return;
+      const char *sor = j_get (j, "switchOrderReference");
+      if (sor)
+         sql_safe_query_f (sqlp,
+                           "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='THEM',`rcpid`=%#s,`nearid`=%#s,`farid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
+                           tester, sor, j_get (rx, "envelope.destination.identity"), j_get (rx,
+                                                                                            "envelope.destination.correlationID"),
+                           j_get (rx, "envelope.sender.correlationID"));
+   }
+   check (payload);
+   for (j_t a = j_first (j_find (payload, "alternativeSwitchOrders")); a; a = j_next (a))
+      check (a);
    return 202;
 }
 

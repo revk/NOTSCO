@@ -757,7 +757,9 @@ syntaxcheck (j_t j, FILE * e)
          for (j_t i = j_first (is); i; i = j_next (i))
          {
             const char *sm = expect_string (e, "OTS§2.2.1", i, "sentMethod", NULL);
-            if (sm && strcmp (sm, "email") && strcmp (sm, "sms") && strcmp (sm, "1st class post"))
+            if (!sm)
+               continue;
+            if (strcmp (sm, "email") && strcmp (sm, "sms") && strcmp (sm, "1st class post"))
                expected (e, "OTS§2.2.1", i, NULL, "sentMethod", NULL, "\"email\" or \"sms\" or \"1st class post\"", NULL);
             const char *st = expect_string (e, "OTS§2.2.1", i, "sentTo", "");
             if (st && !strcmp (sm, "email") && (info = ismaskemail (st)))
@@ -787,7 +789,7 @@ syntaxcheck (j_t j, FILE * e)
                 && strcmp (sa, "OptionToRetain"))
                expected (e, "OTS§2.2.1", s, NULL, "ServiceWithAnotherRCP", NULL, "valid value", NULL);
             j_t si = expect_array (e, "OTS§2.2.1", s, "serviceIdentifiers");
-            if (si)
+            if (si && st)
                for (j_t i = j_first (si); i; i = j_next (i))
                {
                   const char *it = expect_string (e, "OTS§2.2.1", i, "identifierType", NULL);
