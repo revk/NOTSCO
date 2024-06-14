@@ -22,6 +22,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td><input type=submit name=SEND value=BadEnvelope4></td><td>Send a message with missing destination identity.</td></tr>
 <tr><td><input type=submit name=SEND value=BadEnvelope5></td><td>Send a message with missing destination type.</td></tr>
 <tr><td><input type=submit name=SEND value=BadEnvelope6></td><td>Send a message with source type.</td></tr>
+<tr><td><input type=submit name=SEND value=BadRouting></td><td>Send a message bad routing.</td></tr>
 </table>
 </form>
 'END'

@@ -115,6 +115,7 @@ void
 makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
 {
    const char *routing = "residentialSwitchMatchRequest";
+   if(!strcmp(send,"BadRouting"))routing="Silly";
    char *sid = NULL;
    SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS `U`");
    if (sql_fetch_row (u))
