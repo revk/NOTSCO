@@ -253,9 +253,26 @@ isdatetime (const char *u)
       return "Not a valid date/time";
    time_t now = time (0);
    if (t < now - 86400 * 40)
-      return "Far in past";
+      return "Too far in past";
    if (t > now + 86400 * 40)
-      return "Far in future";
+      return "Too far in future";
+   return NULL;
+}
+
+static const char *
+isdate (const char *u)
+{
+   const char *e = ispattern (u, "NNNN-NN-NN");
+   if (e)
+      return e;
+   time_t t = j_time (u);
+   if (!t)
+      return "Not a valid date/time";
+   time_t now = time (0);
+   if (t < now - 86400 * 40)
+      return "Too far in past";
+   if (t > now + 86400 * 40)
+      return "Too far in future";
    return NULL;
 }
 
@@ -456,10 +473,12 @@ notscoreply (j_t rx, j_t tx, const char *type)
 }
 
 void
-notscofailure (SQL * sqlp, int tester, j_t rx, int code)
+notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
 {                               // Fault code return message to other RCP
    j_t t = j_create ();
    j_t payload = notscoreply (rx, t, code >= 9000 ? NULL : "Failure");
+   if (sor && *sor)
+      j_store_stringf (payload, "switchOrderReference", sor);
    j_store_stringf (payload, code >= 9000 ? "code" : "faultCode", "%d", code);
    const char *msg (void)
    {
@@ -694,11 +713,11 @@ syntaxcheck (j_t j, FILE * e)
          else if (strcmp (routing, "residentialSwitchMatchFailure"))
          {
             const char *ref = "OTS§2.3.2";
-            if (!strcmp (routing, "residentialSwitchOrderUpdateFailure"))
+            if (strstr (routing, "Update"))
                ref = "OTS§2.4.2";
-            else if (!strcmp (routing, "residentialSwitchOrderTriggerFailure"))
+            else if (strstr (routing, "Trigger"))
                ref = "OTS§2.5.2";
-            else if (!strcmp (routing, "residentialSwitchOrderCancellationFailure"))
+            else if (strstr (routing, "Cancellation"))
                ref = "OTS§2.6.2";
             if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
@@ -837,10 +856,32 @@ syntaxcheck (j_t j, FILE * e)
    }
    if (strstr (routing, "Request"))
    {                            // Other Requests
-
+      const char *ref = "OTS§2.3";
+      if (strstr (routing, "Update"))
+         ref = "OTS§2.4";
+      else if (strstr (routing, "Trigger"))
+         ref = "OTS§2.5";
+      else if (strstr (routing, "Cancellation"))
+         ref = "OTS§2.6";
+      if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
+         expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
+      if (strstr (routing, "Trigger") && (val = expect_string (e, ref, payload, "activationDate", NULL)) && (info = isdate (val)))
+         expected (e, ref, payload, NULL, "activationDate", NULL, "a valid date", info);
+      else if (!strstr (routing, "Cancellation") && (val = expect_string (e, ref, payload, "plannedSwitchDate", NULL))
+               && (info = isdate (val)))
+         expected (e, ref, payload, NULL, "plannedSwitchDate", NULL, "a valid date", info);
    }
    if (strstr (routing, "Confirmation"))
    {                            // Other Confirmations
+      const char *ref = "OTS§2.3.1";
+      if (strstr (routing, "Update"))
+         ref = "OTS§2.4.1";
+      else if (strstr (routing, "Trigger"))
+         ref = "OTS§2.5.1";
+      else if (strstr (routing, "Cancellation"))
+         ref = "OTS§2.6.1";
+      if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
+         expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
 
    }
 }

@@ -226,7 +226,31 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
       }
    }
    if (code)
-      notscofailure (sqlp, tester, rx, code);
+      notscofailure (sqlp, tester, rx, code, NULL);
+}
+
+void
+checksor (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *sor, const char *rcpid, int rev)
+{
+   if (!sor || !rcpid)
+      return;
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `sor` WHERE `tester`=%d AND `issuedby`=%#s AND `sor`=%#s", tester,
+                                          rev ? "US" : "THEM", sor);
+   if (!sql_fetch_row (res))
+      fprintf (rxe, "\"switchOrderReference\" is not one we were expecting.\n");
+   else
+   {
+      const char *val;
+      const char *farid = j_get (rx, rev ? "envelope.destination.correlationID" : "envelope.source.correlationID");
+      const char *nearid = j_get (rx, rev ? "envelope.source.correlationID" : "envelope.destination.correlationID");
+      if (rcpid && strcmp (rcpid, (val = sql_colz (res, "rcpid"))))
+         fprintf (rxe, "The RCPID is not what we expected for this switch order (expected %s).\n", val);
+      if (farid && strcmp (rcpid, (val = sql_colz (res, "farid"))))
+         fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
+      if (nearid && strcmp (rcpid, (val = sql_colz (res, "nearid"))))
+         fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
+   }
+   sql_free_result (res);
 }
 
 void
@@ -235,18 +259,71 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
    int code = 0;
    const char *rcpid = j_get (rx, "envelope.destination.identity");
    const char *sor = j_get (payload, "switchOrderReference");
-   // TODO
-
-   if (code)
-      notscofailure (sqlp, tester, rx, code);
+   checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 0);
+   int base = 1200;
+   const char *newstatus = "confirmed";
+   if (strstr (routing, "Update"))
+   {
+      base = 1300;
+      newstatus = "updated";
+   } else if (strstr (routing, "Trigger"))
+   {
+      base = 1400;
+      newstatus = "triggered";
+   } else if (strstr (routing, "Cancellation"))
+   {
+      base = 1500;
+      newstatus = "cancelled";
+   }
+   time_t now = time (0);
+   SQL_RES *res =
+      sql_safe_query_store_f (sqlp, "SELECT * FROM `sor` WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
+                              tester, sor, rcpid);
+   int process (void)
+   {
+      const char *status = sql_colz (res, "status");
+      const char *date = NULL;
+      if (j_time (sql_colz (res, "created")) < now - 86400 * 31)
+         return base + 2;
+      if ((base == 1200 || base == 1300) && !(date = j_get (payload, "plannedSwitchDate")))
+         return base + 3;
+      if (base == 1400 && !(date = j_get (payload, "activationDate")))
+         return base + 3;
+      if (!strcmp (status, "triggered"))
+         return base + 4;
+      if (!strcmp (status, "cancelled"))
+         return base + 5;
+      if (base != 1200 && !strcmp (status, "new"))
+         return base + 6;
+      if (base == 1200 && strcmp (status, "new"))
+         return base + 13;
+      return 0;
+   }
+   if (!sql_fetch_row (res))
+      code = base + 1;
+   else
+      code = process ();
+   sql_free_result (res);
+   if (!code)
+   {
+      j_t t = j_create ();
+      j_t payload = notscoreply (rx, t, "Confirmation");
+      j_store_string (payload, "switchOrderReference", sor);
+      j_store_string (payload, "status", newstatus);
+      notscotx (sqlp, tester, t);
+      sql_safe_query_f (sqlp, "UPDATE `sor` SET `status`=%#s WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
+                        newstatus, tester, sor, rcpid);
+   } else
+      notscofailure (sqlp, tester, rx, code, sor);
 }
 
 int
 progressConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload, const char *routing)
 {
-   const char *rcpid = j_get (rx, "envelope.destination.identity");
+   const char *rcpid = j_get (rx, "envelope.source.identity");
    const char *sor = j_get (payload, "switchOrderReference");
    const char *status = j_get (payload, "status");
+   checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 1);
    if (rcpid && sor && status)
       sql_safe_query_f (sqlp, "UPDATE `sor` SET `status`=%#s WHERE `tester`=%d AND `rcpid`=%#s AND `sor`=%#s AND `issuedby`='THEM'",
                         status, tester, rcpid, sor);
@@ -256,6 +333,9 @@ progressConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE *
 int
 progressFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload, const char *routing)
 {
+   const char *rcpid = j_get (rx, "envelope.source.identity");
+   const char *sor = j_get (payload, "switchOrderReference");
+   checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 1);
    return 202;
 }
 

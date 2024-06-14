@@ -106,7 +106,8 @@ residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *r
    if (dated && *dated && !strstr (routing, "Cancellation"))
    {
       j_store_string (payload, strstr (routing, "Trigger") ? "activationDate" : "plannedSwitchDate", dated);
-      sql_safe_query_f(sqlp,"UPDATE `sor` SET `dated`=%#s WHERE `tester`=%#s AND `issuedby`='THEM' AND `sor`=%#s AND `rcpid`=%#s",dated,sql_colz(res,"ID"),sor,rcpid);
+      sql_safe_query_f (sqlp, "UPDATE `sor` SET `dated`=%#s WHERE `tester`=%#s AND `issuedby`='THEM' AND `sor`=%#s AND `rcpid`=%#s",
+                        dated, sql_colz (res, "ID"), sor, rcpid);
    }
 }
 
