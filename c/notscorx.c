@@ -172,7 +172,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_store_string (match, "switchOrderReference", sor);
             sql_safe_query_f (sqlp,
                               "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='US',`rcpid`=%#s,`nearid`=%#s,`farid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
-                              tester, sor, j_get (t, "envelope.sender.identity"), j_get (t, "envelope.sender.correlationID"),
+                              tester, sor, j_get (t, "envelope.source.identity"), j_get (t, "envelope.source.correlationID"),
                               j_get (t, "envelope.destination.correlationID"));
             j_t services = j_store_array (match, "services");
             const char *cupid = sql_colz (res, "cupid");
@@ -279,7 +279,7 @@ residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, 
                            "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='THEM',`rcpid`=%#s,`nearid`=%#s,`farid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
                            tester, sor, j_get (rx, "envelope.destination.identity"), j_get (rx,
                                                                                             "envelope.destination.correlationID"),
-                           j_get (rx, "envelope.sender.correlationID"));
+                           j_get (rx, "envelope.source.correlationID"));
    }
    check (payload);
    for (j_t a = j_first (j_find (payload, "alternativeSwitchOrders")); a; a = j_next (a))

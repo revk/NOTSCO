@@ -23,13 +23,13 @@ makemessage (SQL_RES * res, j_t tx, const char *routing, const char *sid, const 
    j_store_string (source, "type", "RCPID");
    if ((v = sql_colz (res, "fromrcpid")) && *v)
       j_store_string (source, "identity", v);
-   if (sid)
+   if (sid && *sid)
       j_store_string (source, "correlationID", sid);
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
    if ((v = sql_colz (res, "rcpid")) && *v)
       j_store_string (destination, "identity", v);
-   if (did)
+   if (did && *did)
       j_store_string (destination, "correlationID", did);
    j_store_string (envelope, "routingID", routing);
    return j_store_object (tx, routing);
@@ -93,7 +93,18 @@ residentialSwitchMatchRequest (SQL * sqlp, SQL_RES * res, j_t tx)
       j_store_string (s, "serviceIdentifier", idn);
       j_store_string (s, "action", "identify");
    }
+}
 
+void
+residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *routing, const char *rcpid, const char *sor,
+                                const char *nearid, const char *farid, const char *dated)
+{
+   j_t payload = makemessage (res, tx, routing, nearid, farid);
+   j_store_string (j_find (tx, "envelope.source"), "identity", rcpid);
+   if (*sor)
+      j_store_string (payload, "switchOrderReference", sor);
+   if (dated && *dated && !strstr (routing, "Cancellation"))
+      j_store_string (payload, strstr (routing, "Trigger") ? "activationDate" : "plannedSwitchDate", dated);
 }
 
 int
@@ -102,10 +113,20 @@ main (int argc, const char *argv[])
    int errorchoice = 0;
    int tester = 0;
    const char *send = NULL;
+   const char *sor = NULL;
+   const char *nearid = NULL;
+   const char *farid = NULL;
+   const char *dated = NULL;
+   const char *rcpid = NULL;
    poptContext optCon;          // context for parsing command-line options
    {                            // POPT
       const struct poptOption optionsTable[] = {
          {"send", 's', POPT_ARG_STRING, &send, 0, "Send", "MessageType"},
+         {"sor", 0, POPT_ARG_STRING, &sor, 0, "Switch Order Reference", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"},
+         {"nearid", 0, POPT_ARG_STRING, &nearid, 0, "Our correlation ID", "ID"},
+         {"farid", 0, POPT_ARG_STRING, &farid, 0, "Their correlation ID", "ID"},
+         {"dated", 0, POPT_ARG_STRING, &dated, 0, "Dated", "YYYY-MM-DD"},
+         {"rcpid", 0, POPT_ARG_STRING, &rcpid, 0, "RCPID", "XXXX"},
          {"tester", 't', POPT_ARG_INT, &tester, 0, "Tester", "N"},
          {"error-choice", 'e', POPT_ARG_NONE, &errorchoice, 0, "Error choice list"},
          {"debug", 'v', POPT_ARG_NONE, &debug, 0, "Debug"},
@@ -142,6 +163,10 @@ main (int argc, const char *argv[])
       j_t tx = j_create ();
       if (!strcmp (send, "residentialSwitchMatchRequest"))
          residentialSwitchMatchRequest (&sql, res, tx);
+      else if (!strcmp (send, "residentialSwitchOrderRequest") || !strcmp (send, "residentialSwitchOrderUpdateRequest")
+               || !strcmp (send, "residentialSwitchOrderTriggerRequest")
+               || !strcmp (send, "residentialSwitchOrderCancellationRequest"))
+         residentialSwitchOrderRequests (&sql, res, tx, send, rcpid, sor, nearid, farid, dated);
       notscotx (&sql, tester, tx);
    }
    sql_free_result (res);

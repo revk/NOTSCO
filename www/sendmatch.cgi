@@ -6,10 +6,10 @@ if($?brand) then
         unsetenv clientsecret
         unsetenv ID
         sqlwrite notsco tester ID="$TESTER"
+	../bin/notscotx --tester="$TESTER" residentialSwitchMatchRequest
 	echo "Status: 303"
         echo "Location: https://$HTTP_HOST/control.cgi"
         echo ""
-	../bin/notscotx --tester="$TESTER" residentialSwitchMatchRequest
         exit 0
 endif
 
