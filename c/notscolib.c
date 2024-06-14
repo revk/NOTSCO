@@ -347,7 +347,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                free (valid);
                curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
                if (er)
-                  fprintf (rxe, "Failed: %s\n", er);
+                  fprintf (rxe, "%s\n", er);
                else
                {
                   const char *tokentype = j_get (rx, "token_type");
@@ -427,7 +427,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             er = j_curl_send (curl, tx, rx, bearer, "https://%s/letterbox/v1/post", host);
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)
-               fprintf (rxe, "Failed: %s\n", er);
+               fprintf (rxe, "%s\n", er);
             responsecheck (status, rx, rxe);
          }
          fclose (rxe);
