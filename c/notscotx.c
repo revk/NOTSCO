@@ -135,6 +135,7 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
       j_free (j_find (tx, "envelope.destination.type"));
    else if (!strcmp (send, "BadEnvelope6"))
       j_free (j_find (tx, "envelope.source.type"));
+   // TODO some other stuff.
 }
 
 int

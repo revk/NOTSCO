@@ -874,8 +874,8 @@ syntaxcheck (j_t j, FILE * e)
          expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
       if (strstr (routing, "Trigger") && (val = expect_string (e, ref, payload, "activationDate", NULL)) && (info = isdate (val)))
          expected (e, ref, payload, NULL, "activationDate", NULL, "a valid date", info);
-      else if (!strstr (routing, "Cancellation") && (val = expect_string (e, ref, payload, "plannedSwitchDate", NULL))
-               && (info = isdate (val)))
+      else if (!strstr (routing, "Trigger") && !strstr (routing, "Cancellation")
+               && (val = expect_string (e, ref, payload, "plannedSwitchDate", NULL)) && (info = isdate (val)))
          expected (e, ref, payload, NULL, "plannedSwitchDate", NULL, "a valid date", info);
    }
    if (strstr (routing, "Confirmation"))
