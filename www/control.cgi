@@ -27,13 +27,13 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <table>
 <sql table=log where="tester=$TESTER" order=ID DESC><set found=1>
 <tr>
-<td><output name=ts type=%T href="/log.cgi?ID=$ID"></td>
-<td><output name=status></td>
-<td><output name=ip></td>
-<td style='white-space:nowrap;'><output name=description></td>
-<if ip rxerror><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
-<if txerror><td style='white-space:pre;font-weight:bold;'><output name=txerror></td></if>
-<if not ip rxerror><td style='white-space:pre;font-weight:bold;'><output name=rxerror></td></if>
+<td valign=top><output name=ts type=%T href="/log.cgi?ID=$ID"></td>
+<td valign=top><output name=status></td>
+<td valign=top><output name=ip></td>
+<td valign=top style='white-space:nowrap;'><output name=description></td>
+<if txerror or rxerror>
+<td style='white-space:pre;font-weight:bold;'><if ip rxerror><output name=rxerror><if txerror><hr></if></if><if txerror><output name=txerror><if not ip rxerror><hr></if></if><if not ip rxerror><output name=rxerror></if></td>
+</if>
 </tr>
 
 </sql>

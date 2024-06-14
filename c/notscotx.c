@@ -111,6 +111,31 @@ residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *r
    }
 }
 
+void
+makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
+{
+   const char *routing = "residentialSwitchMatchRequest";
+   char *sid = NULL;
+   SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS `U`");
+   if (sql_fetch_row (u))
+      sid = strdupa (sql_colz (u, "U"));
+   sql_free_result (u);
+   j_t payload = makemessage (res, tx, routing, sid, NULL);
+   j_store_string(j_find(tx,"envelope"),"test",send);
+   if (!strcmp (send, "BadEnvelope1"))
+      j_store_string (j_find (tx, "envelope.source"), "type", "Silly");
+   else if (!strcmp (send, "BadEnvelope2"))
+      j_store_string (j_find (tx, "envelope.destination"), "type", "Silly");
+   else if (!strcmp (send, "BadEnvelope3"))
+      j_store_string (j_find (tx, "envelope.destination"), "identity", "NOTYOU");
+   else if (!strcmp (send, "BadEnvelope4"))
+      j_free (j_find (tx, "envelope.destination.identity"));
+   else if (!strcmp (send, "BadEnvelope5"))
+      j_free (j_find (tx, "envelope.destination.type"));
+   else if (!strcmp (send, "BadEnvelope6"))
+      j_free (j_find (tx, "envelope.source.type"));
+}
+
 int
 main (int argc, const char *argv[])
 {
@@ -171,6 +196,8 @@ main (int argc, const char *argv[])
                || !strcmp (send, "residentialSwitchOrderTriggerRequest")
                || !strcmp (send, "residentialSwitchOrderCancellationRequest"))
          residentialSwitchOrderRequests (&sql, res, tx, send, rcpid, sor, nearid, farid, dated);
+      else
+         makebad (&sql, res, tx, send);
       notscotx (&sql, tester, tx);
    }
    sql_free_result (res);

@@ -390,6 +390,13 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             sql_safe_query_f (sqlp, "UPDATE `tester` SET `bearer`=%#s,`expiry`=%#T WHERE `ID`=%d", bearer, time (0) + secs, tester);
       }
       const char *routing = j_get (tx, "envelope.routingID");
+      const char *description = j_get (tx, "envelope.test");
+      if (description)
+      {
+         description = strdupa (description);
+         j_free (j_find (tx, "envelope.test"));
+      } else
+         description = routing;
       int try = 0;
       while (try < 5)
       {
@@ -411,7 +418,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          char *txt = j_write_pretty_str (tx);
          sql_safe_query_f (sqlp,
                            "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s",
-                           tester, routing, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
+                           tester, description, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
          int id = sql_insert_id (sqlp);
          j_t rx = j_create ();
          if (host && *host)
@@ -661,7 +668,7 @@ syntaxcheck (j_t j, FILE * e)
                t = NULL;
          }
          if (!t)
-            fprintf (e, "OTS§2.1: Invalid \"routindID\" (%s)\n", routing);
+            fprintf (e, "OTS§2.1: Invalid \"routingID\" (%s)\n", routing);
       }
       void check (const char *tag)
       {
