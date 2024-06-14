@@ -230,39 +230,33 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
 }
 
 void
-residentialSwitchOrderRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *routing)
 {
    int code = 0;
+   const char *rcpid = j_get (rx, "envelope.destination.identity");
+   const char *sor = j_get (payload, "switchOrderReference");
+   // TODO
 
    if (code)
       notscofailure (sqlp, tester, rx, code);
 }
 
-void
-residentialSwitchOrderUpdateRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+int
+progressConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload, const char *routing)
 {
-   int code = 0;
-
-   if (code)
-      notscofailure (sqlp, tester, rx, code);
+   const char *rcpid = j_get (rx, "envelope.destination.identity");
+   const char *sor = j_get (payload, "switchOrderReference");
+   const char *status = j_get (payload, "status");
+   if (rcpid && sor && status)
+      sql_safe_query_f (sqlp, "UPDATE `sor` SET `status`=%#s WHERE `tester`=%d AND `rcpid`=%#s AND `sor`=%#s AND `issuedby`='THEM'",
+                        status, tester, rcpid, sor);
+   return 202;
 }
 
-void
-residentialSwitchOrderTriggerRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
+int
+progressFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload, const char *routing)
 {
-   int code = 0;
-
-   if (code)
-      notscofailure (sqlp, tester, rx, code);
-}
-
-void
-residentialSwitchOrderCancellationRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload)
-{
-   int code = 0;
-
-   if (code)
-      notscofailure (sqlp, tester, rx, code);
+   return 202;
 }
 
 int
@@ -403,14 +397,8 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
             if (!strcmp (routing, "residentialSwitchMatchRequest"))
                residentialSwitchMatchRequest (&sql, tester, rx, rxe, payload);
-            else if (!strcmp (routing, "residentialSwitchOrderRequest"))
-               residentialSwitchOrderRequest (&sql, tester, rx, rxe, payload);
-            else if (!strcmp (routing, "residentialSwitchOrderUpdateRequest"))
-               residentialSwitchOrderUpdateRequest (&sql, tester, rx, rxe, payload);
-            else if (!strcmp (routing, "residentialSwitchOrderTriggerRequest"))
-               residentialSwitchOrderTriggerRequest (&sql, tester, rx, rxe, payload);
-            else if (!strcmp (routing, "residentialSwitchOrderCancellationRequest"))
-               residentialSwitchOrderCancellationRequest (&sql, tester, rx, rxe, payload);
+            else if (strstr (routing, "Request"))
+               progressRequest (&sql, tester, rx, rxe, payload, routing);
             sql_close (&sql);
             _exit (0);
          }
@@ -422,6 +410,10 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             status = residentialSwitchMatchFailure (sqlp, tester, rx, rxe, tx, txe, payload);
          else if (!strcmp (routing, "messageDeliveryFailure"))
             status = messageDeliveryFailure (sqlp, tester, rx, rxe, tx, txe, payload);
+         else if (strstr (routing, "Confirmation"))
+            status = progressConfirmation (sqlp, tester, rx, rxe, tx, txe, payload, routing);
+         else if (strstr (routing, "Failure"))
+            status = progressFailure (sqlp, tester, rx, rxe, tx, txe, payload, routing);
       }
    }
    return status ? : 202;

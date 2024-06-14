@@ -47,10 +47,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <td><output name=rcpid></td>
 <td><output name=sor></td>
 <td><output name=dated></td>
-<td>
-<if cancelled>Cancelled</if>
-<if triggered>Triggered</if>
-</td>
+<td><output name=status></td>
 </tr>
 </sql>
 </table>
