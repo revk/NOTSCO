@@ -138,10 +138,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
    if (sql_fetch_row (res))
    {
       const char *reply = sql_colz (res, "matchresponse");
-      if (!strcmp (reply, "NoMatch"))
+      if (!strcmp (reply, "Failure"))
          code = atoi (sql_colz (res, "matcherror"));
-      else if (!strcmp (reply, "DeliveryFail"))
-         code = -atoi (sql_colz (res, "matcherror"));
       else if (strcmp (reply, "None"))
       {
          j_t t = j_create ();
@@ -151,15 +149,19 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_store_string (j_find (t, "envelope.source"), "correlationID", sql_col (u, "U"));
          sql_free_result (u);
          j_t implications = j_store_array (payload, "implicationsSent");
-         const char *email = sql_colz (res, "email");
-         email = strrchr (email, '@');
-         j_t j = j_append_object (implications);
-         j_store_string (j, "sentMethod", "email");
-         j_store_stringf (j, "sentTo", "x****%s", email);
-         j_store_datetime (j, "sentBy", time (0));
-         j = j_append_object (implications);
-         j_store_string (j, "sentMethod", "1st class post");
-         j_store_datetime (j, "sentBy", time (0));
+         const char *sentto = sql_colz (res, "sentto");
+         if (*sentto)
+         {
+            j_t j = j_append_object (implications);
+            j_store_string (j, "sentMethod", strchr (sentto, '@') ? "email" : "sms");
+            j_store_string (j, "sentTo", sentto);
+            j_store_datetime (j, "sentBy", time (0));
+         } else
+         {
+            j_t j = j_append_object (implications);
+            j_store_string (j, "sentMethod", "1st class post");
+            j_store_datetime (j, "sentBy", time (0));
+         }
          j_t match = j_store_object (payload, "matchResult");
          void add (int alt)
          {

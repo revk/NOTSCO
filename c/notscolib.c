@@ -14,20 +14,44 @@
 #include "notscolib.h"
 
 static const char *
-isuuid (const char *u)
+ispattern (const char *u, const char *p)
 {
    if (!u)
       return "NULL";
    if (!*u)
       return "Empty string";
-   if (strlen (u) != 36)
+   if (strlen (u) != strlen (p))
       return "Wrong length";
-   for (int i = 0; i < 36; i++)
-      if ((i == 9 || i == 14 || i == 19 || i == 24) && u[i] != '-')
-         return "Expected -";
-      else if (!isxdigit (u[i]))
-         return "Expecting hex character";
+   while (*u)
+   {
+      switch (*p)
+      {
+      case 'X':
+         if (!isxdigit (*u))
+            return "Expected hex character";
+         break;
+      case 'N':
+         if (!isdigit (*u))
+            return "Expected digit";
+         break;
+      case 'A':
+         if (!isalpha (*u))
+            return "Expected letter";
+         break;
+      default:
+         if (*u != *p)
+            return "Does not match pattern expected";
+      }
+      u++;
+      p++;
+   }
    return NULL;
+}
+
+static const char *
+isuuid (const char *u)
+{
+   return ispattern (u, "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX");
 }
 
 static const char *
@@ -43,6 +67,22 @@ isdigits (const char *u)
       return "Non numeric";
    return NULL;
 }
+
+#if 0
+static const char *
+isalphas (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   while (*u && isalpha (*u))
+      u++;
+   if (*u)
+      return "Non numeric";
+   return NULL;
+}
+#endif
 
 static const char *
 ispostcode (const char *u)
@@ -74,6 +114,148 @@ ispostcode (const char *u)
       e--;
    if (e > u)
       return "Extra on start";
+   return NULL;
+}
+
+static const char *
+ismaskemail (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   int p = 0,
+      a = 0;
+   while (u[a] && u[a] != '@')
+   {
+      if (u[a] != '*')
+         p++;
+      a++;
+   }
+   if (u[a] != '@')
+      return "No domain part";
+   if (!a)
+      return "Missing local part";
+   if (a < 4 && p > 0)
+      return "Expected no unmasked characters in local part";
+   if (a < 6 && p > 1)
+      return "Expected no more than one unmasked characters in local part";
+   if (p > 2)
+      return "Expected no more than two unmasked characters in local part";
+   u += a + 1;
+   p = 0;
+   while (*u)
+   {
+      if (*u == '-')
+         return "Bad domain (leading -)";
+      if (!isalnum (*u))
+         return "Bad domain";
+      while (*u == '-' || isalnum (*u))
+         u++;
+      if (u[-1] == '-')
+         return "Bad domain (trailing -)";
+      if (!*u)
+         break;
+      if (*u != '.')
+         return "Bad domain (invalid character)";
+      u++;
+      p++;
+   }
+   if (!p)
+      return "Bad domain (no dots)";
+   return NULL;
+}
+
+static const char *
+ismasktelephone (const char *u)
+{
+   if (!u)
+      return "NULL";
+   if (!*u)
+      return "Empty string";
+   const char *checkend (void)
+   {                            // Last *'s 3 digits
+      while (isspace (*u))
+         u++;
+      if (*u != '*')
+         return "Expecting *";
+      while (*u && (isspace (*u) || *u == '*'))
+         u++;
+      int n = 0;
+      while (*u && *u != '*')
+      {
+         if (isspace (*u))
+         {
+            u++;
+            continue;
+         }
+         if (isdigit (*u))
+            n++;
+         u++;
+      }
+      if (n != 3)
+         return "Expected only last 3 digits to be unmasked";
+      if (*u)
+         return "Unexpected characters at end";
+      return NULL;
+   }
+   const char *checknumber (void)
+   {                            // 2 digits, *s and last 3 digits
+      int n = 0;
+      while (*u && *u != '*')
+      {
+         if (isspace (*u))
+         {
+            u++;
+            continue;
+         }
+         if (isdigit (*u))
+            n++;
+         u++;
+      }
+      if (n != 2)
+         return "Expected only 2 initial digits to be unmasked";
+      return checkend ();
+   }
+   if (*u == '+')
+   {                            // International
+      u++;
+      if (!isdigit (*u))
+         return "Expected country code";
+      while (isdigit (*u))
+         u++;                   // We cannot tell when international code ends really
+      if (isspace (*u))
+         u++;
+      if (!strncmp (u, "(0)", 3))
+      {                         // Well that ends the international
+         u += 3;                // FFS
+         return checknumber ();
+      }
+      return checkend ();
+   } else
+   {                            // UK
+      if (*u != '0')
+         return "Expecting 0 for UK number";
+      u++;
+      return checknumber ();
+   }
+   return NULL;
+}
+
+static const char *
+isdatetime (const char *u)
+{
+   const char *e = ispattern (u, "NNNN-NN-NN NN:NN:NN");
+   if (e)
+      return e;
+   time_t t = j_time (u);
+   if (!t)
+      return "Not a valid date/time";
+   time_t now = time (0);
+   if (t < now - 86400 * 40)
+      return "Far in past";
+   if (t > now + 86400 * 40)
+      return "Far in future";
    return NULL;
 }
 
@@ -276,15 +458,12 @@ notscoreply (j_t rx, j_t tx, const char *type)
 void
 notscofailure (SQL * sqlp, int tester, j_t rx, int code)
 {                               // Fault code return message to other RCP
-   int n = code;
-   if (n < 0)
-      n = 0 - n;
    j_t t = j_create ();
-   j_t payload = notscoreply (rx, t, code < 0 ? NULL : "Failure");
-   j_store_stringf (payload, code < 0 ? "code" : "faultCode", "%d", n);
+   j_t payload = notscoreply (rx, t, code >= 9000 ? NULL : "Failure");
+   j_store_stringf (payload, code >= 9000 ? "code" : "faultCode", "%d", code);
    const char *msg (void)
    {
-      switch (n)
+      switch (code)
       {
 #define e(c,e) case c:return e;
 #include "notscoerrors.m"
@@ -292,27 +471,30 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code)
          return "Unspecified error";
       }
    }
-   j_store_string (payload, code < 0 ? "text" : "faultText", msg ());
-   if (code < 0)
+   j_store_string (payload, code >= 9000 ? "text" : "faultText", msg ());
+   if (code >= 9000)
       j_store_string (payload, "severity", "failure");
    j_t audit = j_append_object (j_store_array (j_find (t, "envelope"), "auditData"));
    j_store_string (audit, "name", "faultCode");
-   j_store_stringf (audit, "value", "%d", n);
+   j_store_stringf (audit, "value", "%d", code);
    notscotx (sqlp, tester, t);
 }
 
 // Tools for syntax checking
 
 static void *
-expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const char *val, const char *type)
+expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const char *val, const char *type, const char *reason)
 {                               // Report expected and return NULL
    if (!v && tag)
       v = j_find (parent, tag);
+   const char *is = j_val (v);
    fprintf (e, "%s: ", ref);
    if (tag)
       fprintf (e, "\"%s\"", tag);
    else if (v)
-      fprintf (e, " entry %d", j_pos (v));
+      fprintf (e, "entry %d", j_pos (v));
+   if (is)
+      fprintf (e, " [\"%s\"]", is);
    j_t p = parent;
    while (p)
    {
@@ -328,10 +510,12 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
    }
    if (!v)
       fprintf (e, " is missing");
-   if (v && val && *val && strcmp (j_val (v), val))
-      fprintf (e, " is expected to be \"%s\" but is \"%s\"", val, j_val (v));
+   if (is && val && *val && strcmp (is, val))
+      fprintf (e, " is expected to be \"%s\"", val);
    else if (v && type)
       fprintf (e, " is expected to be %s", type);
+   if (reason)
+      fprintf (e, " (%s)", reason);
    fprintf (e, ".\n");
    return NULL;
 }
@@ -341,9 +525,9 @@ expect_object (FILE * e, const char *ref, j_t parent, const char *tag)
 {                               // Return object if it is as expected
    j_t v = j_find (parent, tag);
    if (!v || !j_isobject (v))
-      return expected (e, ref, parent, v, tag, NULL, "a JSON object");
+      return expected (e, ref, parent, v, tag, NULL, "a JSON object", NULL);
    if (!j_len (v))
-      return expected (e, ref, parent, v, tag, NULL, "a non empty object");
+      return expected (e, ref, parent, v, tag, NULL, "a non empty object", NULL);
    return v;
 }
 
@@ -352,9 +536,9 @@ expect_array (FILE * e, const char *ref, j_t parent, const char *tag)
 {                               // Return array if it is as expected
    j_t v = j_find (parent, tag);
    if (!v || !j_isarray (v))
-      return expected (e, ref, parent, v, tag, NULL, "a JSON array");
+      return expected (e, ref, parent, v, tag, NULL, "a JSON array", NULL);
    if (!j_len (v))
-      return expected (e, ref, parent, v, tag, NULL, "a non empty array");
+      return expected (e, ref, parent, v, tag, NULL, "a non empty array", NULL);
    return v;
 }
 
@@ -363,7 +547,7 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
 {                               // Return string if as expected, if val="" then allow missing, if val non null expects to match val
    j_t v = j_find (parent, tag);
    if ((!v && (!val || *val)) || (v && !j_isstring (v)) || (v && val && *val && strcmp (j_val (v), val)))
-      return expected (e, ref, parent, v, tag, val, "a JSON string");
+      return expected (e, ref, parent, v, tag, val, "a JSON string", NULL);
    return j_val (v);
 }
 
@@ -372,7 +556,7 @@ expect_number (FILE * e, const char *ref, j_t parent, const char *tag, const cha
 {                               // Return string if as expected, if val="" then allow missing, if val non null expects to match val
    j_t v = j_find (parent, tag);
    if ((!v && (!val || *val)) || (v && !j_isnumber (v)) || (v && val && *val && strcmp (j_val (v), val)))
-      return expected (e, ref, parent, v, tag, val, "a JSON number");
+      return expected (e, ref, parent, v, tag, val, "a JSON number", NULL);
    return j_val (v);
 }
 
@@ -422,6 +606,7 @@ responsecheck (int status, j_t j, FILE * e)
 void
 syntaxcheck (j_t j, FILE * e)
 {                               // This is the main syntax checking and reporting for all messages
+   const char *info = NULL;
    const char *val = NULL;
    const char *routing = NULL;
    int df = 0;
@@ -463,8 +648,8 @@ syntaxcheck (j_t j, FILE * e)
       {
          j_t v = expect_object (e, "API§2.1.5", envelope, tag);
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
-         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && strlen (val) != 4)
-            expected (e, "API§2.1.5", v, NULL, "identity", NULL, "a 4 character string");
+         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = ispattern (val, "AAAA")))
+            expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "a string of 4 alpha chars", info);
          expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr (routing, "Failure"))
                         || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
@@ -482,26 +667,26 @@ syntaxcheck (j_t j, FILE * e)
       {
          ad = j_first (ad);
          if (!ad || !j_isobject (ad))
-            expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "a JSON object");
+            expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "a JSON object", NULL);
          else
          {
             expect_string (e, "API§2.1.6", ad, "name", "faultCode");
             if ((val = expect_string (e, "API§2.1.6", ad, "value", NULL)))
             {
                if (isdigits (val))
-                  expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric");
+                  expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
                else
                   expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", val);
             }
             if (j_next (ad))
-               expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "only entry in array");
+               expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "only entry in array", NULL);
          }
       }
       if (payload)
       {                         // Failure payload
          const char *tag = df ? "code" : "faultCode";
-         if ((val = expect_string (e, "API§2.1.8", payload, tag, NULL)) && isdigits (val))
-            expected (e, "API§2.1.6", payload, NULL, tag, NULL, "numeric");
+         if ((val = expect_string (e, "API§2.1.8", payload, tag, NULL)) && (info = isdigits (val)))
+            expected (e, "API§2.1.6", payload, NULL, tag, NULL, "numeric", info);
          tag = df ? "text" : "faultText";
          expect_string (e, "API§2.1.8", payload, tag, NULL);
          if (df)
@@ -515,8 +700,8 @@ syntaxcheck (j_t j, FILE * e)
                ref = "OTS§2.5.2";
             else if (!strcmp (routing, "residentialSwitchOrderCancellationFailure"))
                ref = "OTS§2.6.2";
-            if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && isuuid (val))
-               expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID");
+            if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
+               expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
          }
          return;
       }
@@ -532,36 +717,36 @@ syntaxcheck (j_t j, FILE * e)
       j_t address = expect_object (e, "OTS§2.2", payload, "address");
       if (address)
       {
-         if ((val = expect_string (e, "OTS§2.2", address, "uprn", "")) && (isdigits (val) || strlen (val) > 12))
-            expected (e, "API§2.1.6", address, NULL, "uprn", NULL, "up to 12 digits");
+         if ((val = expect_string (e, "OTS§2.2", address, "uprn", "")) && ((info = isdigits (val)) || strlen (val) > 12))
+            expected (e, "OTS§2.2", address, NULL, "uprn", NULL, "up to 12 digits", info);
          const char *posttown = expect_string (e, "OTS§2.2", address, "postTown", NULL);
          const char *postcode = expect_string (e, "OTS§2.2", address, "postCode", NULL);
-         if (postcode && ispostcode (postcode))
-            expected (e, "API§2.1.6", address, NULL, "postCode", NULL, "valid post code");
+         if (postcode && (info = ispostcode (postcode)))
+            expected (e, "OTS§2.2", address, NULL, "postCode", NULL, "valid post code", info);
          j_t lines = expect_array (e, "OTS§2.2", address, "addressLines");
          for (j_t l = j_first (lines); l; l = j_next (l))
             if (!j_isstring (l))
-               expected (e, "API§2.1.6", lines, l, NULL, NULL, "a JSON string");
+               expected (e, "OTS§2.2", lines, l, NULL, NULL, "a JSON string", NULL);
             else if (!*j_val (l))
-               expected (e, "API§2.1.6", lines, l, NULL, NULL, "a non empty JSON string");
+               expected (e, "OTS§2.2", lines, l, NULL, NULL, "a non empty JSON string", NULL);
             else if (posttown && !strcasecmp (j_val (l), posttown))
-               expected (e, "API§2.1.6", lines, l, NULL, NULL, "not include post town");
+               expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post town", NULL);
             else if (postcode && !strcasecmp (j_val (l), postcode))
-               expected (e, "API§2.1.6", lines, l, NULL, NULL, "not include post code");
+               expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post code", NULL);
       }
       j_t services = expect_array (e, "OTS§2.2", payload, "services");
       for (j_t s = j_first (services); s; s = j_next (s))
       {
          const char *st = expect_string (e, "OTS§2.2", s, "serviceType", NULL);
          if (st && strcmp (st, "IAS") && strcmp (st, "NBICS"))
-            expected (e, "API§2.1.6", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"");
+            expected (e, "OTS§2.2", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"", NULL);
          if ((val = expect_string (e, "OTS§2.2", s, "action", NULL)) && strcmp (val, "cease")
              && (!strcmp (st, "IAS") || (strcmp (val, "port") && strcmp (val, "identify"))))
-            expected (e, "API§2.1.6", s, NULL, "action", NULL,
+            expected (e, "OTS§2.2", s, NULL, "action", NULL, NULL,
                       !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"idenitfy\"");
          const char *id = expect_string (e, "OTS§2.2", s, "serviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
-         if (id && !strcmp (st, "NBICS") && istelephone (id))
-            expected (e, "API§2.1.6", s, NULL, "serviceIdentifier", NULL, "valid telephone number");
+         if (id && !strcmp (st, "NBICS") && (info = istelephone (id)))
+            expected (e, "OTS§2.2", s, NULL, "serviceIdentifier", NULL, "valid telephone number", info);
       }
       return;
    }
@@ -569,28 +754,80 @@ syntaxcheck (j_t j, FILE * e)
    {
       j_t is = expect_array (e, "OTS§2.2.1", payload, "implicationsSent");
       if (is)
-      {
-         //TODO
-
-      }
-      void check (j_t j)
+         for (j_t i = j_first (is); i; i = j_next (i))
+         {
+            const char *sm = expect_string (e, "OTS§2.2.1", i, "sentMethod", NULL);
+            if (sm && strcmp (sm, "email") && strcmp (sm, "sms") && strcmp (sm, "1st class post"))
+               expected (e, "OTS§2.2.1", i, NULL, "sentMethod", NULL, "\"email\" or \"sms\" or \"1st class post\"", NULL);
+            const char *st = expect_string (e, "OTS§2.2.1", i, "sentTo", "");
+            if (st && !strcmp (sm, "email") && (info = ismaskemail (st)))
+               expected (e, "IP§5.11.2", i, NULL, "sentTo", NULL, "obfuscated email address", info);
+            else if (st && !strcmp (sm, "sms") && (info = ismasktelephone (st)))
+               expected (e, "IP§5.11.2", i, NULL, "sentTo", NULL, "obfuscated telephone number", info);
+            else if (st && !strcmp (sm, "sms") && *st == '+' && strstr (st, "(0)"))
+               fprintf (e, "E.123 does not allow (0) in an international format number, please follow E.123.\n");
+            else if (st && !strcmp (sm, "1st class post"))
+               expected (e, "IP§5.11.2", i, NULL, "sentTo", NULL, "omitted", NULL);
+            if ((val = expect_string (e, "OTS§2.2.1", i, "sentBy", NULL)) && (info = isdatetime (val)))
+               expected (e, "OTS§2.2.1", i, NULL, "sentBy", NULL, "datetime (YYYY-MM-DD HH:MM:SS)", info);
+         }
+      void check (j_t j, int main)
       {                         // Check matchResult
-         //TODO
-
+         if ((val = expect_string (e, "OTS§2.2.1", j, "switchOrderReference", NULL)) && (info = isuuid (val)))
+            expected (e, "OTS§2.2.1", j, NULL, "switchOrderReference", NULL, "a valid UUID", info);
+         j_t services = expect_array (e, "OTS§2.2.1", j, "services");
+         for (j_t s = j_first (services); s; s = j_next (s))
+         {
+            const char *st = expect_string (e, "OTS§2.2.1", s, "serviceType", NULL);
+            if (st && strcmp (st, "IAS") && strcmp (st, "NBICS"))
+               expected (e, "OTS§2.2.1", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"", NULL);
+            const char *sa = expect_string (e, "OTS§2.2.1", s, "switchAction", NULL);
+            if (sa && strcmp (sa, "ServiceFound") && strcmp (sa, "ServiceWithAnotherRCP") && strcmp (sa, "ServiceWithAnotherCust")
+                && strcmp (sa, "ServiceNotFound") && strcmp (sa, "ForcedCease") && strcmp (sa, "OptionToCease")
+                && strcmp (sa, "OptionToRetain"))
+               expected (e, "OTS§2.2.1", s, NULL, "ServiceWithAnotherRCP", NULL, "valid value", NULL);
+            j_t si = expect_array (e, "OTS§2.2.1", s, "serviceIdentifiers");
+            if (si)
+               for (j_t i = j_first (si); i; i = j_next (i))
+               {
+                  const char *it = expect_string (e, "OTS§2.2.1", i, "identifierType", NULL);
+                  if (it && !strcmp (st, "NBICS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN") && strcmp (it, "PartialDN")
+                      && strcmp (it, "CUPID"))
+                     expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for NBICS", NULL);
+                  if (it && !strcmp (st, "IAS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN") && strcmp (it, "PartialDN")
+                      && strcmp (it, "ServiceInformation") && strcmp (it, "AccessLineId") && strcmp (it, "ONTReference")
+                      && strcmp (it, "PortNumber"))
+                     expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for IAS", NULL);
+                  const char *id = expect_string (e, "OTS§2.2.1", i, "identifier", NULL);
+                  if (it && id)
+                  {
+                     if (!strcmp (it, "NetworkOperator") && (info = ispattern (id, "ANNN")))
+                        expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Letter and three digits", info);
+                     if (!strcmp (it, "DN") && (info = istelephone (id)))
+                        expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Telephone number", info);
+                     if (!strcmp (it, "PartialDN") && (info = ispattern (id, "NN")))
+                        expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Two digits", info);
+                     if (!strcmp (it, "CUPID") && (info = ispattern (id, "NNN")))
+                        expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Three digits", info);
+                     if (!strcmp (it, "PortNumber") && (info = ispattern (id, "N")))
+                        expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "One digit", info);
+                  }
+               }
+         }
       }
       j_t mr = expect_object (e, "OTS§2.2.1", payload, "matchResult");
-      check (mr);
+      check (mr, 1);
       if (j_find (payload, "alternativeSwitchOrders"))
       {
          j_t as = expect_array (e, "OTS§2.2.1", payload, "alternativeSwitchOrders");
          for (j_t a = j_first (as); a; a = j_next (a))
          {
             if (!j_isobject (a))
-               expected (e, "OTS§2.2.1", as, a, NULL, NULL, "a JSON object");
+               expected (e, "OTS§2.2.1", as, a, NULL, NULL, "a JSON object", NULL);
             else
             {
                j_t mr = expect_object (e, "OTS§2.2.1", a, "matchResult");
-               check (mr);
+               check (mr, 0);
             }
          }
       }
