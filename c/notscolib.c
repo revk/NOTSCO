@@ -387,7 +387,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                break;
          }
          if (bearer)
-            sql_safe_query_f (sqlp, "UPDATE `tester` SET `bearer`=%#s,`expiry`=%#T WHERE `ID`=%d", bearer, time (0) + secs, tester);
+            sql_safe_query_f (sqlp, "UPDATE `tester` SET `bearer`=%#s,`expiry`=%#T WHERE `ID`=%d", bearer, time (0) + secs - 10,
+                              tester);
       }
       const char *routing = j_get (tx, "envelope.routingID");
       const char *description = j_get (tx, "envelope.test");
