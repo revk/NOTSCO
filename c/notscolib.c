@@ -329,11 +329,11 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             j_t rx = j_create ();
             j_t tx = j_create ();
             char *er = NULL;
-            const char *host = sql_col (res, "tokenhost");
+            const char *url = sql_col (res, "tokenurl");
             const char *clientid = sql_col (res, "farclientid");
             const char *clientsecret = sql_col (res, "farclientsecret");
-            if (!host || !*host)
-               fprintf (txe, "No token host defined");
+            if (!url || !*url)
+               fprintf (txe, "No token URL defined");
             else if (!clientid || !*clientid)
                fprintf (txe, "No client ID defined");
             else if (!clientsecret || !*clientsecret)
@@ -343,7 +343,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                j_store_string (tx, "grant_type", "client_credentials");
                char *valid = NULL;
                asprintf (&valid, "%s:%s", clientid, clientsecret);
-               er = j_curl (J_CURL_POST | J_CURL_BASIC, curl, tx, rx, valid, "https://%s/oauth2/token", host);
+               er = j_curl (J_CURL_POST | J_CURL_BASIC, curl, tx, rx, valid, "https://%s", url);
                free (valid);
                curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
                if (er)
@@ -411,10 +411,10 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          size_t rxlen = 0;
          FILE *rxe = open_memstream (&rxerror, &rxlen);
          char *er = NULL;
-         const char *host = sql_col (res, "apihost");
+         const char *url = sql_col (res, "apiurl");
          syntaxcheck (tx, txe);
-         if (!host || !*host)
-            fprintf (txe, "No API host defined");
+         if (!url || !*url)
+            fprintf (txe, "No API URL defined");
          fclose (txe);
          char *txt = j_write_pretty_str (tx);
          sql_safe_query_f (sqlp,
@@ -422,10 +422,10 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                            tester, description, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
          int id = sql_insert_id (sqlp);
          j_t rx = j_create ();
-         if (host && *host)
+         if (url && *url)
          {
             // Send message
-            er = j_curl_send (curl, tx, rx, bearer, "https://%s/letterbox/v1/post", host);
+            er = j_curl_send (curl, tx, rx, bearer, "https://%s", url);
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)
                fprintf (rxe, "%s\n", er);
