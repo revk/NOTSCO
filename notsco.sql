@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=245 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -74,7 +74,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=598 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1158 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -87,20 +87,20 @@ DROP TABLE IF EXISTS `sor`;
 CREATE TABLE `sor` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tester` int(10) unsigned DEFAULT NULL,
+  `rcpid` char(4) DEFAULT NULL,
   `sor` uuid NOT NULL,
   `nearid` tinytext DEFAULT NULL,
   `farid` tinytext DEFAULT NULL,
   `issuedby` enum('US','THEM') DEFAULT NULL,
-  `created` datetime DEFAULT NULL,
-  `triggered` datetime DEFAULT NULL,
-  `cancelled` datetime DEFAULT NULL,
+  `created` datetime NOT NULL DEFAULT curtime(),
   `dated` date DEFAULT NULL,
+  `status` enum('new','confirmed','updated','triggered','cancelled') NOT NULL DEFAULT 'new',
   PRIMARY KEY (`ID`),
+  UNIQUE KEY `tester` (`tester`,`rcpid`,`sor`),
   KEY `sor_tester` (`tester`),
-  KEY `sor` (`sor`),
   KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,6 +113,7 @@ DROP TABLE IF EXISTS `tester`;
 CREATE TABLE `tester` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `email` tinytext NOT NULL,
+  `emailed` datetime DEFAULT NULL,
   `company` tinytext DEFAULT NULL,
   `clientid` char(20) NOT NULL,
   `clientsecret` tinytext NOT NULL,
@@ -121,8 +122,9 @@ CREATE TABLE `tester` (
   `apihost` tinytext DEFAULT NULL,
   `farclientid` tinytext DEFAULT NULL,
   `farclientsecret` tinytext DEFAULT NULL,
-  `matchresponse` enum('None','Match','Match+Alt','NoMatch','DeliveryFail') DEFAULT 'Match',
+  `matchresponse` enum('None','Match','Match+Alt','Failure') DEFAULT 'Match',
   `matcherror` int(4) NOT NULL DEFAULT 1000,
+  `sentto` tinytext DEFAULT NULL,
   `ontref` tinytext DEFAULT NULL,
   `ontport` int(11) NOT NULL DEFAULT 0,
   `dn` varchar(20) DEFAULT NULL,
@@ -134,10 +136,11 @@ CREATE TABLE `tester` (
   `servicename` tinytext DEFAULT '1GB Broadband',
   `networkoperator` char(4) NOT NULL DEFAULT 'A001',
   `cupid` char(3) DEFAULT NULL,
+  `fromrcpid` char(4) DEFAULT 'ZZZZ',
   `brand` tinytext DEFAULT NULL,
   `surname` tinytext DEFAULT NULL,
   `account` tinytext DEFAULT NULL,
-  `urpn` varchar(12) DEFAULT NULL,
+  `uprn` varchar(12) DEFAULT NULL,
   `address1` tinytext DEFAULT NULL,
   `address2` tinytext DEFAULT NULL,
   `address3` tinytext DEFAULT NULL,
@@ -150,7 +153,7 @@ CREATE TABLE `tester` (
   `identifydn` varchar(11) DEFAULT NULL,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -162,4 +165,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-13  9:41:37
+-- Dump completed on 2024-06-15  7:56:57
