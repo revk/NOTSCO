@@ -1,4 +1,4 @@
-all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql
+all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql ../SQLlib/sqlwrite
 
 SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
@@ -42,6 +42,9 @@ update:
 
 ../SQLlib/sql: ../SQLlib/sqllib.c
 	make -C ../SQLlib sql
+
+../SQLlib/sqlwrite: ../SQLlib/sqllib.c
+	make -C ../SQLlib sqlwrite
 
 ../xmlsql/xmlsql: ../xmlsql/xmlsql.c
 	make -C ../xmlsql xmlsql
