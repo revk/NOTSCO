@@ -1,0 +1,29 @@
+We did consider providing under a GPL licence, but I think some more subtle
+caveats are sensible. So basically this is GPL with a few extra caveats...
+
+1. This is provided on basis of no warranty, same wording as GPL for that
+   so copying only permitted on basis that you cannot hold the author(s),
+   host(s), or sponsor(s), liable for any loss or damages in any way.
+
+2. This is run as a free service on https://notsco.co.uk/ but we understand
+   that some companies will want to keep everything in house. If you plan
+   to use this for testing your own systems, you are welcome to do so,
+   free of charge.*
+
+3. If you want to run a free service using this, you also can do so free
+   of charge* but there is not a lot of point as we provide it at
+   https://notsco.co.uk/
+
+4. If you plan to use this to provide a charged for service, or one with
+   advertising, then no. You may not make any copy of this for that purpose.
+   The whole idea is to make this freely available for CPs.
+
+5. Finally, if you are TOTSCO, you need to talk to us and agree terms.
+   TOTSCO running this as an official service would be an ideal outcome,
+   and we will help with that, including shutting down https://notsco.co.uk/
+   and setting up a redirect as well. But paying something for the
+   development would be nice, and some agreement over ongoing maintenance.
+
+* All we ask is that if you find anything that needs changing, especially
+  if some way we are not meeting the spec, you provide feedback, or
+  better, a pull request, so all cen benefit from what you have found.
