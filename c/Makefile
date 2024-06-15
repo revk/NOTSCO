@@ -1,4 +1,4 @@
-all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql
+all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql
 
 SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
@@ -32,16 +32,19 @@ update:
 	make -C ../login envcgi
 
 ../AJL/ajlcurl.o: ../AJL/ajl.c
-	make -C ../AJL
+	make -C ../AJL ajlcurl.o
 
 ../AJL/jcgi.o: ../AJL/jcgi.c
-	make -C ../AJL
+	make -C ../AJL jcgi.o
 
 ../SQLlib/sqllib.o: ../SQLlib/sqllib.c
-	make -C ../SQLlib
+	make -C ../SQLlib sqllib.o
+
+../SQLlib/sql: ../SQLlib/sqllib.c
+	make -C ../SQLlib sql
 
 ../xmlsql/xmlsql: ../xmlsql/xmlsql.c
-	make -C ../xmlsql
+	make -C ../xmlsql xmlsql
 
 apt:
 	apt install apache2 letsencrypt python3-certbot-apache mariadb-server libpopt-dev libmariadb-dev libcurl4-openssl-dev uuid-dev apache2-ssl-dev
