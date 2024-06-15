@@ -50,5 +50,8 @@ update:
 	make -C ../xmlsql xmlsql
 
 apt:
-	apt install apache2 letsencrypt python3-certbot-apache mariadb-server libpopt-dev libmariadb-dev libcurl4-openssl-dev uuid-dev apache2-ssl-dev
-	a2enmod cgi ssl
+	sudo apt install apache2 letsencrypt python3-certbot-apache mariadb-server libpopt-dev libmariadb-dev libcurl4-openssl-dev uuid-dev apache2-ssl-dev
+	sudo a2enmod cgi ssl
+	sudo mysql 'CREATE USER `www-data`@`localhost`'
+	sudo mysql 'GRANT USAGE ON *.* TO `www-data`@`localhost`'
+	sudo mysql 'GRANT SELECT, INSERT, UPDATE, DELETE ON `notsco`.* TO `www-data`@`localhost`'
