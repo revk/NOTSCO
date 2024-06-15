@@ -45,3 +45,4 @@ update:
 
 apt:
 	apt install apache2 letsencrypt python3-certbot-apache mariadb-server libpopt-dev libmariadb-dev libcurl4-openssl-dev uuid-dev apache2-ssl-dev
+	a2enmod cgi ssl
