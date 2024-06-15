@@ -502,7 +502,6 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 int
 main (int argc, const char *argv[])
 {
-   sqldebug = 1;
    SQL sql;
    sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
    // Errors
