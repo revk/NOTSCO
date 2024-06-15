@@ -1,3 +1,2 @@
 #!/bin/csh -f
-set path=($path ../xmlsql ../SQLlib)
-sql notsco 'DELETE FROM auth WHERE expiry<NOW()' 'DELETE FROM log WHERE ts<curdate()' 'DELETE FROM sor WHERE created<date_sub(NOW(),interval 60 day)'
+/var/www/NOSTCO/sql notsco 'DELETE FROM auth WHERE expiry<NOW()' 'DELETE FROM log WHERE ts<curdate()' 'DELETE FROM sor WHERE created<date_sub(NOW(),interval 60 day)'
