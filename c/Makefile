@@ -31,7 +31,7 @@ update:
 	cc -fPIC -O -DLIB -c -o $@ $< ${CCOPTS}
 
 ../login/envcgi: ../login/envcgi.c
-	make -C ../login
+	make -C ../login envcgi
 
 ../AJL/ajlcurl.o: ../AJL/ajl.c
 	make -C ../AJL
