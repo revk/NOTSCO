@@ -7,7 +7,6 @@ if("$TESTER" == "") goto fail
 
 echo "Status: 303"
 echo "Set-Cookie: NOTSCO=$CLIENTID; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Domain=$HTTP_HOST; Path=/"
-echo "Content-Type: text/html"
 echo "Location: https://$HTTP_HOST/control.cgi"
 echo ""
 exit 0
