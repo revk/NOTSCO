@@ -58,4 +58,5 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </sql>
 </table>
 <if not found><p>You have not sent any match orders yet.</p></if>
+<p>Match orders are retained for 60 days to allow expired references to be tested.</p>
 'END'
