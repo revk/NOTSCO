@@ -521,7 +521,6 @@ main (int argc, const char *argv[])
          return;
       status = notscoerror (tx, s, 0, 0, e, NULL, NULL);
    }
-
    j_t cgi = j_create ();
  fail (j_cgi (cgi, medium:1), 500);
    if (!j_find (cgi, "info.https"))
@@ -620,7 +619,11 @@ main (int argc, const char *argv[])
    fclose (txe);
    fclose (rxe);
    j_t rx = j_find (cgi, "formdata");
-   char *rxt = j_write_pretty_str (rx);
+   char *rxt = NULL;
+   if(strcmp(j_get (cgi, "header.Content-Type")?:"","application/json"))
+   rxt=j_formdata(rx);
+   else
+   rxt=j_write_pretty_str (rx);
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
