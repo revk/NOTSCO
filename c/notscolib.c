@@ -386,7 +386,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             char *rxt = j_write_str (rx);
             char *txt = j_write_str (tx);
             sql_safe_query_f (sqlp,
-                              "INSERT INTO `log` SET `ID`=0,`ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 topen request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                              "INSERT INTO `log` SET `ID`=0,`ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
                               t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
             free (rxt);
             free (txt);
