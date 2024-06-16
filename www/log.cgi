@@ -6,7 +6,10 @@ echo ""
 
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Log message</h1>
-<sql select="min(ID) AS I" table=log WHERE="tester=$TESTER AND ID>$ID"><if I><p><a href="log.cgi?ID=$I">Next</a></p></if></sql>
+<p>
+<sql select="max(ID) AS I" table=log WHERE="tester=$TESTER AND ID<$ID"><if I><a href="log.cgi?ID=$I">Previous</a></if></sql>
+<sql select="min(ID) AS I" table=log WHERE="tester=$TESTER AND ID>$ID"><if I><a href="log.cgi?ID=$I">Next</a></if></sql>
+</p>
 <sql table=log WHERE="tester=$TESTER AND ID=$ID">
 <table>
 <tr><td>When</td><td><output name=ts></td></tr>
@@ -34,5 +37,4 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if rx not ip><td valign=top><pre><output name=rx></pre></td></if>
 </table>
 </sql>
-<sql select="max(ID) AS I" table=log WHERE="tester=$TESTER AND ID<$ID"><if I><p><a href="log.cgi?ID=$I">Previous</a></p></if></sql>
 'END'
