@@ -568,7 +568,7 @@ main (int argc, const char *argv[])
             }
             free (user);
             if (!c)
-               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
+               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", "Access failure");
             if (!strcmp (script, "/oauth2/token"))
             {
                description = "OAUTH2 token request";
@@ -595,7 +595,7 @@ main (int argc, const char *argv[])
             }
             sql_free_result (res);
             if (auth)
-               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", NULL);
+               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", "Access failure");
             if (!strcmp (script, "/directory/v1/entry"))
             {
                description = "directory API request";
