@@ -17,6 +17,7 @@ if($?rcpid) then
 	unsetenv clientsecret
 	unsetenv ID
 	sqlwrite notsco tester ID="$TESTER"
+	sql notsco 'UPDATE tester SET bearer=NULL,expiry=NULL WHERE ID=$TESTER'
         echo "Status: 303"
         echo "Location: https://$HTTP_HOST/control.cgi"
 	echo ""
