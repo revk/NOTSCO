@@ -606,7 +606,6 @@ main (int argc, const char *argv[])
                description = j_get (cgi, "formdata.envelope.routingID") ? : "letterbox API post";
                if (!status)
                   status = letterbox (&sql, tester, cgi, rxe, tx, txe);
-               responsecheck (status, tx, txe);
             } else
                fail ("Incorrect path for API", 500);
          }
@@ -615,6 +614,7 @@ main (int argc, const char *argv[])
    }
    if (!status)
       fail ("Not processed", 500);
+   responsecheck (status, tx, txe);
    // Log
    fclose (txe);
    fclose (rxe);
