@@ -58,22 +58,4 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </sql>
 </table>
 <if not found><p>You have not sent any match orders yet.</p></if>
-<hr>
-<p>Received match orders, for your information.</p>
-<set found>
-<table border=1>
-<sql table=sor where="tester=$TESTER and issuedby='US'" order="created" DESC>
-<if not found><set found=1><tr><th>Created</th><th>RCPID</th><th>Switch order reference</th><th>Date</th><th>Status</th></tr></if>
-<tr>
-<td><output name=created type=recent></td>
-<td><output name=rcpid></td>
-<td><tt><output name=sor></tt></td>
-<td><output name=dated></td>
-<td><output name=status></td>
-</tr>
-</sql>
-</table>
-<if not found><p>You have not received any match orders.</p></if>
-<p>Match orders are retained for 60 days to allow expired references to be tested.</p>
-
 'END'
