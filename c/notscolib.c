@@ -727,10 +727,11 @@ syntaxcheck (j_t j, FILE * e)
       if (payload)
       {                         // Failure payload
          const char *tag = df ? "code" : "faultCode";
-         if ((val = expect_string (e, "API§2.1.8", payload, tag, NULL)) && (info = isdigits (val)))
+	 const char *ec= expect_string (e, "API§2.1.8", payload, tag, NULL);
+         if (ec && (info = isdigits (ec)))
             expected (e, "API§2.1.6", payload, NULL, tag, NULL, "numeric", info);
          tag = df ? "text" : "faultText";
-         expect_string (e, "API§2.1.8", payload, tag, NULL);
+         const char *et=expect_string (e, "API§2.1.8", payload, tag, NULL);
          if (df)
             expect_string (e, "API§2.1.8", payload, "severity", "failure");
          else if (strcmp (routing, "residentialSwitchMatchFailure"))
@@ -745,6 +746,7 @@ syntaxcheck (j_t j, FILE * e)
             if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
          }
+	 if(ec&&et)fprintf(e,"Error %s: %s\n",ec,et);
          return;
       }
    }

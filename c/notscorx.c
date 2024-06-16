@@ -620,10 +620,11 @@ main (int argc, const char *argv[])
    fclose (rxe);
    j_t rx = j_find (cgi, "formdata");
    char *rxt = NULL;
-   if(strcmp(j_get (cgi, "header.Content-Type")?:"","application/json"))
-   rxt=j_formdata(rx);
+   if (!strcmp (j_get (cgi, "info.request_method") ? : "", "GET") ||
+       !strcmp (j_get (cgi, "header.Content-Type") ? : "", "application/x-www-form-urlencoded"))
+      rxt = j_formdata (rx);
    else
-   rxt=j_write_pretty_str (rx);
+      rxt = j_write_pretty_str (rx);
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
