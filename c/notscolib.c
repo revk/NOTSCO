@@ -304,8 +304,8 @@ istelephone (const char *u)
 static long long
 ms (void)
 {
-   struct timeval tv={0};
-   struct timezone tz={0};
+   struct timeval tv = { 0 };
+   struct timezone tz = { 0 };
    gettimeofday (&tv, &tz);
    return (long long) tv.tv_sec * 1000LL + tv.tv_usec / 1000LL;
 }
@@ -380,8 +380,6 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                   else
                      bearer = strdupa (token);
                }
-               if (!j_isnull (rx))
-                  break;        // We got an error
             }
             fclose (txe);
             fclose (rxe);
@@ -392,6 +390,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                               t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
             free (rxt);
             free (txt);
+            if (!j_null (rx))
+               er = NULL;       // Give up
             j_delete (&rx);
             j_delete (&tx);
             free (er);
@@ -452,12 +452,12 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                            j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);
          free (txt);
+         if (!j_null (rx))
+            er = NULL;          // Give up
          j_delete (&rx);
          free (er);
          if (!er)
             break;
-         if (!j_isnull (rx))
-            break;              // We got an error
       }
       curl_easy_cleanup (curl);
    }
