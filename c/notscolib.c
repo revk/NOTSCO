@@ -107,7 +107,7 @@ ispostcode (const char *u)
       return "Missing digit";
    e--;
    if (e > u && isdigit (*e))
-      u--;
+      e--;
    if (e == u || !isalpha (*e))
       return "Missing letter";
    if (e > u && isalpha (*e))
