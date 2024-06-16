@@ -394,7 +394,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                               t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
             free (rxt);
             free (txt);
-            if (!j_null (rx))
+            if (!j_isnull (rx))
                er = NULL;       // Give up
             j_delete (&rx);
             j_delete (&tx);
@@ -460,7 +460,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                            j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);
          free (txt);
-         if (!j_null (rx))
+         if (!j_isnull (rx))
             er = NULL;          // Give up
          j_delete (&rx);
          free (er);
