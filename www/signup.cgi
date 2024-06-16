@@ -34,8 +34,8 @@ The link to access the test system is:-
 Keep this link to allow you access when needed.
 
 <IF LAST=NULL> Use this link within 7 days, or you will have to request a new one.
-</IF>
-If you did not request this, please disregard this email.
+
+</IF>If you did not request this, please disregard this email.
 
 -- 
 NOTSCO Admin
