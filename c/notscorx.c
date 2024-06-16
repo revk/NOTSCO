@@ -248,7 +248,7 @@ checksor (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *s
       if (farid && strcmp (farid, (val = sql_colz (res, "farid"))))
          fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
       if (nearid && strcmp (nearid, (val = sql_colz (res, "nearid"))))
-         fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
+         fprintf (rxe, "The destination correlationID is not what we expected for this switch order (expected %s).\n", val);
    }
    sql_free_result (res);
 }
