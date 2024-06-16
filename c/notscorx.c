@@ -535,10 +535,13 @@ main (int argc, const char *argv[])
       else if (!script)
          fail ("No script_name", 500);
       else if (!auth || !*auth)
+      {
          status =
             notscoerror (tx, 401, 0, 900902, NULL, "Missing Credentials",
                          "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN'");
-      else if (!strncmp (host, "otshub-token.", 13))
+         if (status && status / 100 != 2)
+            fprintf (txe, "HTTP responded with status %d\n", status);
+      } else if (!strncmp (host, "otshub-token.", 13))
       {
          if (strncasecmp (auth, "Basic ", 6))
             status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
@@ -577,6 +580,8 @@ main (int argc, const char *argv[])
             } else
                fail ("Incorrect path for token", 500);
          }
+         if (status && status / 100 != 2)
+            fprintf (txe, "HTTP responded with status %d\n", status);
       } else if (!strncmp (host, "otshub.", 7))
       {
          if (strncasecmp (auth, "Bearer ", 7))
@@ -609,12 +614,12 @@ main (int argc, const char *argv[])
             } else
                fail ("Incorrect path for API", 500);
          }
+         responsecheck (status, tx, txe);
       } else
          fail ("Unknown Host header", 500);
    }
    if (!status)
       fail ("Not processed", 500);
-   responsecheck (status, tx, txe);
    // Log
    fclose (txe);
    fclose (rxe);
