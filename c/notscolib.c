@@ -384,7 +384,11 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             fclose (txe);
             fclose (rxe);
             char *txt = j_formdata (tx);
-            char *rxt = j_write_pretty_str (rx);
+            char *rxt = NULL;
+            if (j_isstring (rx))
+               rxt = strdup (j_val (rx));
+            else
+               rxt = j_write_pretty_str (rx);
             sql_safe_query_f (sqlp,
                               "INSERT INTO `log` SET `ID`=0,`ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
                               t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
@@ -447,7 +451,11 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             responsecheck (status, rx, rxe);
          }
          fclose (rxe);
-         char *rxt = j_write_pretty_str (rx);
+         char *rxt = NULL;
+         if (j_isstring (rx))
+            rxt = strdup (j_val (rx));
+         else
+            rxt = j_write_pretty_str (rx);
          sql_safe_query_f (sqlp, "UPDATE `log` SET `status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%d", status, t,
                            j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);
@@ -727,11 +735,11 @@ syntaxcheck (j_t j, FILE * e)
       if (payload)
       {                         // Failure payload
          const char *tag = df ? "code" : "faultCode";
-	 const char *ec= expect_string (e, "API§2.1.8", payload, tag, NULL);
+         const char *ec = expect_string (e, "API§2.1.8", payload, tag, NULL);
          if (ec && (info = isdigits (ec)))
             expected (e, "API§2.1.6", payload, NULL, tag, NULL, "numeric", info);
          tag = df ? "text" : "faultText";
-         const char *et=expect_string (e, "API§2.1.8", payload, tag, NULL);
+         const char *et = expect_string (e, "API§2.1.8", payload, tag, NULL);
          if (df)
             expect_string (e, "API§2.1.8", payload, "severity", "failure");
          else if (strcmp (routing, "residentialSwitchMatchFailure"))
@@ -746,7 +754,8 @@ syntaxcheck (j_t j, FILE * e)
             if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
          }
-	 if(ec&&et)fprintf(e,"Error %s: %s\n",ec,et);
+         if (ec && et)
+            fprintf (e, "Error %s: %s\n", ec, et);
          return;
       }
    }

@@ -618,6 +618,18 @@ main (int argc, const char *argv[])
    // Log
    fclose (txe);
    fclose (rxe);
+   const char *ip = j_get (cgi, "info.remote_addr");
+   if (!tester)
+   {                            // Guess tester from IP
+      SQL_RES *res =
+         sql_safe_query_store_f (&sql, "SELECT DISTINCT `tester` FROM `log` WHERE `ip`=%#s AND `tester` IS NOT NULL LIMIT 2", ip);
+      if (sql_fetch_row (res))
+      {
+         int t = atoi (sql_colz (res, "tester"));
+         if (!sql_fetch_row (res))
+            tester = t;
+      }
+   }
    j_t rx = j_find (cgi, "formdata");
    char *rxt = NULL;
    if (!strcmp (j_get (cgi, "info.request_method") ? : "", "GET") ||
@@ -628,7 +640,7 @@ main (int argc, const char *argv[])
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     status, j_get (cgi, "info.remote_addr"), description, j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL,
+                     status, ip, description, j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL,
                      j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
