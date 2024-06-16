@@ -304,10 +304,10 @@ istelephone (const char *u)
 static long long
 ms (void)
 {
-   struct timeval tv;
-   struct timezone tz;
+   struct timeval tv={0};
+   struct timezone tz={0};
    gettimeofday (&tv, &tz);
-   return (long long) tv.tv_sec * 1000 + tv.tv_usec;
+   return (long long) tv.tv_sec * 1000LL + tv.tv_usec / 1000LL;
 }
 
 void
@@ -438,7 +438,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          if (url && *url)
          {
             // Send message
-            long long t = ms ();
+            t = ms ();
             er = j_curl_send (curl, tx, rx, bearer, "https://%s", url);
             t = ms () - t;
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
