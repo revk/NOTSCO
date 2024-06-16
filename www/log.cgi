@@ -12,6 +12,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>When</td><td><output name=ts></td></tr>
 <if ip><tr><td>IP</td><td><output name=ip></td></tr></if>
 <tr><td>Status</td><td><output name=status></td></tr>
+<if ms><tr><td>Response time</td><td><output name=ms>ms</td></tr></if>
 </table>
 <table border=1>
 <tr><td colspan=2><output name=description></td></tr>

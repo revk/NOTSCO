@@ -114,6 +114,7 @@ CREATE TABLE `tester` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `email` tinytext NOT NULL,
   `emailed` datetime DEFAULT NULL,
+  `lastlogin` datetime DEFAULT NULL,
   `company` tinytext DEFAULT NULL,
   `clientid` char(20) NOT NULL,
   `clientsecret` tinytext NOT NULL,
@@ -166,4 +167,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-15 10:49:29
+-- Dump completed on 2024-06-16  6:41:43

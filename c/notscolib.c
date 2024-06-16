@@ -301,6 +301,15 @@ istelephone (const char *u)
    return NULL;
 }
 
+static long long
+ms (void)
+{
+   struct timeval tv;
+   struct timezone tz;
+   gettimeofday (&tv, &tz);
+   return (long long) tv.tv_sec * 1000 + tv.tv_usec;
+}
+
 void
 notscotx (SQL * sqlp, int tester, j_t tx)
 {                               // Send message
@@ -320,6 +329,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             if (try++)
                sleep (5);
             long status = 0;
+            long long t = 0;
             char *txerror = NULL;
             size_t txlen = 0;
             FILE *txe = open_memstream (&txerror, &txlen);
@@ -343,7 +353,9 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                j_store_string (tx, "grant_type", "client_credentials");
                char *valid = NULL;
                asprintf (&valid, "%s:%s", clientid, clientsecret);
+               t = ms ();
                er = j_curl (J_CURL_POST | J_CURL_BASIC, curl, tx, rx, valid, "https://%s", url);
+               t = ms () - t;
                free (valid);
                curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
                if (er)
@@ -376,8 +388,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             char *rxt = j_write_str (rx);
             char *txt = j_write_str (tx);
             sql_safe_query_f (sqlp,
-                              "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 topen request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                              tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
+                              "INSERT INTO `log` SET `ID`=0,`ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 topen request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                              t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
             free (rxt);
             free (txt);
             j_delete (&rx);
@@ -404,6 +416,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          if (try++)
             sleep (5);
          long status = 0;
+         long long t = 0;
          char *txerror = NULL;
          size_t txlen = 0;
          FILE *txe = open_memstream (&txerror, &txlen);
@@ -425,7 +438,9 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          if (url && *url)
          {
             // Send message
+            long long t = ms ();
             er = j_curl_send (curl, tx, rx, bearer, "https://%s", url);
+            t = ms () - t;
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)
                fprintf (rxe, "%s\n", er);
@@ -433,7 +448,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          }
          fclose (rxe);
          char *rxt = j_write_pretty_str (rx);
-         sql_safe_query_f (sqlp, "UPDATE `log` SET `status`=%ld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%d", status,
+         sql_safe_query_f (sqlp, "UPDATE `log` SET `status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%d", status, t,
                            j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);
          free (txt);

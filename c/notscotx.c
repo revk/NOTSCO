@@ -115,14 +115,15 @@ void
 makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
 {
    const char *routing = "residentialSwitchMatchRequest";
-   if(!strcmp(send,"BadRouting"))routing="Silly";
+   if (!strcmp (send, "BadRouting"))
+      routing = "Silly";
    char *sid = NULL;
    SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS `U`");
    if (sql_fetch_row (u))
       sid = strdupa (sql_colz (u, "U"));
    sql_free_result (u);
    j_t payload = makemessage (res, tx, routing, sid, NULL);
-   j_store_string(j_find(tx,"envelope"),"test",send);
+   j_store_string (j_find (tx, "envelope"), "test", send);
    if (!strcmp (send, "BadEnvelope1"))
       j_store_string (j_find (tx, "envelope.source"), "type", "Silly");
    else if (!strcmp (send, "BadEnvelope2"))

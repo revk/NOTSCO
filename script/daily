@@ -1,2 +1,6 @@
 #!/bin/csh -f
-/var/www/NOTSCO/SQLlib/sql notsco 'DELETE FROM auth WHERE expiry<NOW()' 'DELETE FROM log WHERE ts<curdate()' 'DELETE FROM sor WHERE created<date_sub(NOW(),interval 60 day)'
+/var/www/NOTSCO/SQLlib/sql notsco \
+		'DELETE FROM auth WHERE expiry<NOW()'	\
+		'DELETE FROM log WHERE ts<curdate()'	\
+		'DELETE FROM sor WHERE created<date_sub(NOW(),interval 60 day)'	\
+		'DELETE FROM tester WHERE lastlogin IS NULL AND emailed<date_sub(NOW(),interval 7 day) OR lastlogin IS NOT NULL AND lastlogin<date_sub(now(),interval 6 month)'
