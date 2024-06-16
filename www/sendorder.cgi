@@ -1,6 +1,10 @@
 #!../login/envcgi /bin/csh -fx
 source ../script/loggedin
 
+if(! $?dated) then
+	setenv dated `date +%F -d"14 days"`
+endif
+
 if($?SEND) then
 	if("$sor" == "") then
 		setenv MSG "Set switch order reference"
@@ -11,10 +15,6 @@ if($?SEND) then
         echo "Location: https://$HTTP_HOST/control.cgi"
         echo ""
         exit 0
-endif
-
-if(! $?dated) then
-	setenv dated `date +%F -d"14 days"`
 endif
 
 show:
@@ -50,6 +50,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <td><tt><output name=sor></tt></td>
 <td><output name=dated></td>
 <td><output name=status></td>
+<if status=new><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderRequest">Order</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderUpdateRequest">Update</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderTriggerRequest">Trigger</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderCancellationRequest">Cancel</a></td></if>
 </tr>
 </sql>
 </table>
