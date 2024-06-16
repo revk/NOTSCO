@@ -17,7 +17,7 @@ echo Content-Type: text/html
 echo ""
 xmlsql --exec -d notsco head.html - tail.html << 'END'
 <h1>Send a Match Request</h1>
-<p>You can send an invalid request by leaving mandatory fields blank.</p>
+<p>You can send an invalid request by leaving mandatory fields blank, or using invalid values.</p>
 <sql table=tester where="ID=$TESTER">
 <form method=post>
 <table border=1>

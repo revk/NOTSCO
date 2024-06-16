@@ -22,6 +22,7 @@ echo Content-Type: text/html
 echo ""
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Send order/update/tigger/cease</h1>
+<p>Select the SOR, or enter manually. You can send an invalid response by leaving mandatory fields blank, or using invalid values.</p>
 <if MSG><p><b><output name=MSG></b></p></if>
 <form method=post name=F>
 <table border=1>
@@ -32,25 +33,43 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Dated</td><td><input name=dated size=11 maxlength=10 placeholder="YYYY-MM-DD"></td></tr>
 </table>
 <p>
-<input type=submit name=SEND value="residentialSwitchOrderRequest"><br>
-<input type=submit name=SEND value="residentialSwitchOrderUpdateRequest"><br>
-<input type=submit name=SEND value="residentialSwitchOrderTriggerRequest"><br>
+<input type=submit name=SEND value="residentialSwitchOrderRequest">
+<input type=submit name=SEND value="residentialSwitchOrderUpdateRequest">
+<input type=submit name=SEND value="residentialSwitchOrderTriggerRequest">
 <input type=submit name=SEND value="residentialSwitchOrderCancellationRequest">
 </p>
 </form>
+<p>Sent match orders, select to fill in the above details.</p>
 <table border=1>
-<p>Select SOR to send</p>
+<if not found><set found=1><tr><th>Select</th><th>Created</th><th>RCPID</th><th>Switch order reference</th><th>Date</th><th>Status</th></tr></if>
 <sql table=sor where="tester=$TESTER and issuedby='THEM'" order="created" DESC><set found=1>
 <tr>
 <td><button onclick="F.rcpid.value='$rcpid';F.sor.value='$sor';F.nearid.value='$nearid';F.farid.value='$farid';">Select</button></td>
 <td><output name=created type=recent></td>
 <td><output name=rcpid></td>
-<td><output name=sor></td>
+<td><tt><output name=sor></tt></td>
 <td><output name=dated></td>
 <td><output name=status></td>
 </tr>
 </sql>
 </table>
-<if not found><p>You need to send a match order request first and ger SOR</p></if>
+<if not found><p>You have not sent any match orders yet.</p></if>
+<hr>
+<p>Received match orders, for your information.</p>
+<set found>
+<table border=1>
+<sql table=sor where="tester=$TESTER and issuedby='US'" order="created" DESC>
+<if not found><set found=1><tr><th>Created</th><th>RCPID</th><th>Switch order reference</th><th>Date</th><th>Status</th></tr></if>
+<tr>
+<td><output name=created type=recent></td>
+<td><output name=rcpid></td>
+<td><tt><output name=sor></tt></td>
+<td><output name=dated></td>
+<td><output name=status></td>
+</tr>
+</sql>
+</table>
+<if not found><p>You have not received any match orders.</p></if>
+<p>Match orders are retained for 60 days to allow expired references to be tested.</p>
 
 'END'

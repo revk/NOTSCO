@@ -15,11 +15,12 @@ if("$TESTER" == "") then
 endif
 setenv CLIENTID `sql notsco 'SELECT clientid FROM tester WHERE ID="$TESTER" AND (emailed is NULL or emailed<date_sub(now(),interval 10 minute))'`
 if("$CLIENTID" == "")	then
-	echo "Try a bit later"
+	echo "Rate limit, try again in 10 minutes."
 	exit 0
 endif
+setenv LAST `sql notsco 'SELECT lastlogin FROM tester WHERE ID="$TESTER"'`
 sql notsco 'UPDATE tester SET emailed=NOW() WHERE email="$email"'
-/usr/sbin/sendmail -B8BITMIME -f "info@$HTTP_HOST" "$email" << END
+xmlsql << END | /usr/sbin/sendmail -B8BITMIME -f "info@$HTTP_HOST" "$email"
 From: <info@$HTTP_HOST> "NOTSCO"
 To: <$email> "CP"
 Subject: One Touch Switching test platform
@@ -32,6 +33,8 @@ The link to access the test system is:-
 
 Keep this link to allow you access when needed.
 
+<IF LAST=NULL> Use this link within 7 days, or you will have to request a new one.
+</IF>
 If you did not request this, please disregard this email.
 
 -- 

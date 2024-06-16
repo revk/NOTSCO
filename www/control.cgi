@@ -26,16 +26,17 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </ul>
 <hr>
 <h2>Today's messages</h2>
-<table>
-<sql table=log where="tester=$TESTER" order=ID DESC><set found=1>
+<p><a href="/control.cgi">Reload</a> Note messages are deleted at the end of each day. Select message for more detailed log.</p>
+<table border=1>
+<sql table=log where="tester=$TESTER" order=ID DESC>
+<if not found><set found=1><tr><th>Time</th><th>Status</th><th>IP/time</th><th>Message</th><th>Notes/errors</th></tr></if>
 <tr>
 <td valign=top><output name=ts type=%T href="/log.cgi?ID=$ID"></td>
 <td valign=top><output name=status></td>
-<td valign=top><if ip><output name=ip></if><if else ms><output name=ms>ms</if></td>
+<td valign=top align=right><if ip><output name=ip></if><if else ms><output name=ms>ms</if></td>
 <td valign=top style='white-space:nowrap;'><output name=description></td>
-<if txerror or rxerror>
-<td style='white-space:pre;font-weight:bold;'><if ip rxerror><output name=rxerror><if txerror><hr></if></if><if txerror><output name=txerror><if not ip rxerror><hr></if></if><if not ip rxerror><output name=rxerror></if></td>
-</if>
+<td style='white-space:pre;font-weight:bold;'>
+<if txerror or rxerror><if ip rxerror><output name=rxerror><if txerror><hr></if></if><if txerror><output name=txerror><if not ip rxerror><hr></if></if><if not ip rxerror><output name=rxerror></if></if></td>
 </tr>
 
 </sql>
