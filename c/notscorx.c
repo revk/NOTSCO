@@ -37,18 +37,18 @@ token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    if (!method)
       fprintf (rxe, "No method?!\n");
    else if (strcasecmp (method, "POST"))
-      fprintf (rxe, "Expecting POST (is %s)\n", method);
+      fprintf (rxe, "Expecting POST (is \"%s\")\n", method);
    const char *ct = j_get (cgi, "header.Content-Type");
    if (!ct)
       fprintf (rxe, "No Content-Type\n");
    else if (strcmp (ct, "application/x-www-form-urlencoded"))
-      fprintf (rxe, "Expected Content-Type: application/x-www-form-urlencoded (is %s)\n", ct);
+      fprintf (rxe, "Expected Content-Type: application/x-www-form-urlencoded (is \"%s\")\n", ct);
    j_t rx = j_find (cgi, "formdata");
    const char *gt = j_get (rx, "grant_type");
    if (!gt)
       fprintf (rxe, "No grant_type\n");
    else if (strcmp (gt, "client_credentials"))
-      fprintf (rxe, "Expected grant_type=client_credentials (is %s)\n", gt);
+      fprintf (rxe, "Expected grant_type=client_credentials (is \"%s\")\n", gt);
    int secs = 3600;
    sql_safe_query_f (sqlp, "INSERT INTO `auth` SET `tester`=%d,`bearer`=to_base64(random_bytes(45)),`expiry`=%#T", tester,
                      time (0) + secs);
@@ -71,13 +71,13 @@ directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    if (!method)
       fprintf (rxe, "No method?!\n");
    else if (strcasecmp (method, "GET"))
-      fprintf (rxe, "Expecting GET (is %s)\n", method);
+      fprintf (rxe, "Expecting GET (is \"%s\")\n", method);
    j_t rx = j_find (cgi, "formdata");
    const char *lt = j_get (rx, "listType");
    if (!lt)
       fprintf (rxe, "listType not specified\n");
    else if (strcmp (lt, "RCPID"))
-      fprintf (rxe, "Expected listType=RCPID (is %s)\n", lt);
+      fprintf (rxe, "Expected listType=RCPID (is \"%s\")\n", lt);
    const char *identity = j_get (rx, "identity");       // can be all, or a list (how is it a list?)
    if (identity && !strcmp (identity, "all"))
       identity = NULL;
@@ -393,12 +393,12 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    if (!method)
       fprintf (rxe, "No method?!\n");
    else if (strcasecmp (method, "POST"))
-      fprintf (rxe, "Expecting POST (is %s)\n", method);
+      fprintf (rxe, "Expecting POST (is \"%s\")\n", method);
    const char *ct = j_get (cgi, "header.Content-Type");
    if (!ct)
       fprintf (rxe, "No Content-Type\n");
    else if (strcmp (ct, "application/json"))
-      fprintf (rxe, "Expected Content-Type: application/json (is %s)\n", ct);
+      fprintf (rxe, "Expected Content-Type: application/json (is \"%s\")\n", ct);
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    sql_fetch_row (res);
    const char *us = strdupa (sql_colz (res, "rcpid"));
