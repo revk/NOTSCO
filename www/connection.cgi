@@ -51,5 +51,15 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <input type=submit name=DELETE value="DELETE">
 </form>
 </sql>
+<h2>Directory</h2>
+<p>Send to one of these RCPIDs</p>
+<table border=1>
+<sql table=directory order=rcpid>
+<tr>
+<td><output name=rcpid></td>
+<td><output name=company></td>
+</tr>
+</sql>
+</table>
 
 'END'
