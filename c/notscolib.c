@@ -548,18 +548,19 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
    if (is)
       fprintf (e, " [\"%s\"]", is);
    j_t p = parent;
-   while (p)
-   {
-      j_t up = j_parent (p);
-      if (up && !strcmp (j_name (up) ? : "", "formdata"))
-         up = NULL;
-      const char *name = j_name (p);
-      if (name)
-         fprintf (e, " in \"%s\"", name);
-      else if (up)
-         fprintf (e, " in entry %d", j_pos (p));
-      p = up;
-   }
+   if (p && strcmp (j_name (p) ? : "", "formdata"))
+      while (p)
+      {
+         j_t up = j_parent (p);
+         if (up && !strcmp (j_name (up) ? : "", "formdata"))
+            up = NULL;
+         const char *name = j_name (p);
+         if (name)
+            fprintf (e, " in \"%s\"", name);
+         else if (up)
+            fprintf (e, " in entry %d", j_pos (p));
+         p = up;
+      }
    if (!v)
       fprintf (e, " is missing");
    if (is && val && *val && strcmp (is, val))
