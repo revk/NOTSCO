@@ -433,11 +433,6 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          if (!url || !*url)
             fprintf (txe, "No API URL defined");
          fclose (txe);
-         char *txt = j_write_pretty_str (tx);
-         sql_safe_query_f (sqlp,
-                           "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s",
-                           tester, description, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
-         int id = sql_insert_id (sqlp);
          j_t rx = j_create ();
          if (url && *url)
          {
@@ -451,13 +446,16 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             responsecheck (status, rx, rxe);
          }
          fclose (rxe);
+         char *txt = j_write_pretty_str (tx);
          char *rxt = NULL;
          if (j_isstring (rx))
             rxt = strdup (j_val (rx));
          else
             rxt = j_write_pretty_str (rx);
-         sql_safe_query_f (sqlp, "UPDATE `log` SET `status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%d", status, t,
-                           j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
+         sql_safe_query_f (sqlp,
+                           "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s",
+                           tester, description, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL, status, t,
+                           j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL);
          free (rxt);
          free (txt);
          if (!j_isnull (rx))

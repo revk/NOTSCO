@@ -258,7 +258,6 @@ checksor (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *s
 void
 progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *routing)
 {
-   int code = 0;
    const char *rcpid = j_get (rx, "envelope.destination.identity");
    const char *sor = j_get (payload, "switchOrderReference");
    checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 0);
@@ -277,35 +276,46 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
       base = 1500;
       newstatus = "cancelled";
    }
-   time_t now = time (0);
-   SQL_RES *res =
-      sql_safe_query_store_f (sqlp, "SELECT * FROM `sor` WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
-                              tester, sor, rcpid);
-   int process (void)
-   {
-      const char *status = sql_colz (res, "status");
-      const char *date = NULL;
-      if (j_time (sql_colz (res, "created")) < now - 86400 * 31)
-         return base + 2;
-      if ((base == 1200 || base == 1300) && !(date = j_get (payload, "plannedSwitchDate")))
-         return base + 3;
-      if (base == 1400 && !(date = j_get (payload, "activationDate")))
-         return base + 3;
-      if (!strcmp (status, "triggered"))
-         return base + 4;
-      if (!strcmp (status, "cancelled"))
-         return base + 5;
-      if (base != 1200 && !strcmp (status, "new"))
-         return base + 6;
-      if (base == 1200 && strcmp (status, "new"))
-         return base + 13;
-      return 0;
-   }
-   if (!sql_fetch_row (res))
-      code = base + 1;
-   else
-      code = process ();
+   int code = 0;
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
+   if (sql_fetch_row (res))
+      code = atoi (sql_colz (res, "orderresponse"));
    sql_free_result (res);
+   warnx ("code %d", code);
+   if (!code)
+      return;                   // No reply
+   else if (code < 1000)
+   {                            // Reply
+      time_t now = time (0);
+      SQL_RES *res =
+         sql_safe_query_store_f (sqlp, "SELECT * FROM `sor` WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
+                                 tester, sor, rcpid);
+      int process (void)
+      {
+         const char *status = sql_colz (res, "status");
+         const char *date = NULL;
+         if (j_time (sql_colz (res, "created")) < now - 86400 * 31)
+            return base + 2;
+         if ((base == 1200 || base == 1300) && !(date = j_get (payload, "plannedSwitchDate")))
+            return base + 3;
+         if (base == 1400 && !(date = j_get (payload, "activationDate")))
+            return base + 3;
+         if (!strcmp (status, "triggered"))
+            return base + 4;
+         if (!strcmp (status, "cancelled"))
+            return base + 5;
+         if (base != 1200 && !strcmp (status, "new"))
+            return base + 6;
+         if (base == 1200 && strcmp (status, "new"))
+            return base + 13;
+         return 0;
+      }
+      if (!sql_fetch_row (res))
+         code = base + 1;
+      else
+         code = process ();
+      sql_free_result (res);
+   }
    if (!code)
    {
       j_t t = j_create ();
