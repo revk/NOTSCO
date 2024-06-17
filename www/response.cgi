@@ -21,15 +21,12 @@ xmlsql --exec -d notsco head.html - tail.html << 'END'
 <form method=post>
 <table border=1>
 <tr><td>Response delay</td><td><input name=delay size=4 maxlength=3 placeholder=secs></td></tr>
-<tr><td>Match response</td><td>
-<select name=matchresponse>
-<option value=None>No response</option>
-<option value=Match>Respond with match</option>
-<option value=Match+Alt>Respond with match and alternatives</option>
-<option value=Failure>Failure</option>
-</select>
-</td></tr>
-<tr><td>Error code</td><td><select name=matcherror><exec ../bin/notscotx --error-choice></select> (for Failure)</td></tr>
+<tr><td>Match response</td><td><select name=matchresponse>
+<option value=0>No reply</option>
+<option value=1>Match Response</option>
+<option value=2>Match Response + alternative</option>
+<option value=3>Match Response + two alternatives</option>
+<exec ../bin/notscotx --error-choice></select> (for Failure)</td></tr>
 <tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"> (1st class post if blank)</td></tr>
 <tr><td>NBICS Network Operator</td><td><input name=networkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>

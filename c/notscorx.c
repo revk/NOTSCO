@@ -136,10 +136,10 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    if (sql_fetch_row (res))
    {
-      const char *reply = sql_colz (res, "matchresponse");
-      if (!strcmp (reply, "Failure"))
-         code = atoi (sql_colz (res, "matcherror"));
-      else if (strcmp (reply, "None"))
+      int reply = atoi (sql_colz (res, "matchresponse"));
+      if (reply >= 1000)
+         code = reply;
+      else if (reply)
       {
          j_t t = j_create ();
          j_t payload = notscoreply (rx, t, "Confirmation");
@@ -208,7 +208,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             {                   // NBICS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "NBICS");
-               j_store_string (j, "switchAction", alt ? "OptionToCease" : "OptionToRetain");
+               j_store_string (j, "switchAction", alt > 1 ? "OptionToCease" : "OptionToRetain");
                j = j_store_array (j, "serviceIdentifiers");
                add (j, "CUPID", cupid);
                add (j, "DN", dn);
@@ -216,11 +216,13 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             }
          }
          add (0);
-         if (strchr (reply, '+'))
+         if (reply > 1)
          {
             j_t alt = j_store_array (payload, "alternativeSwitchOrders");
             match = j_store_object (j_append_object (alt), "matchResult");
             add (1);
+            if (reply > 2)
+               add (2);
          }
          notscotx (sqlp, tester, t);
       }

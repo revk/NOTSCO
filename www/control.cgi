@@ -19,7 +19,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not farclientsecret or farclientsecret=''><li>You have not set a Client Secret yet.</li></if>
 </if>
 <li><a href="/connection.cgi">Connection and authentication</a><if rcpid not rcpid=''> (<output name=rcpid>)</if><if not apiurl or apiurl=''> <b>NOT SET UP</b></if></li>
-<li><a href="/matchresponse.cgi">Set up next match response</a> (<output name=matchresponse>)</li>
+<li><a href="/response.cgi">Set up next match response</a> (<output name=matchresponse 0=None 1=Match 2=Match+Alt 3=Match+Alts>)</li>
 <li><a href="/sendmatch.cgi">Send a match request</a><if postcode not postcode=''> (<output name=postcode>)</if></li>
 <li><a href="/sendorder.cgi">Send order/update/trigger/cancel</a></li>
 <li><a href="/sendbad.cgi">Send bad messages</a></li>
