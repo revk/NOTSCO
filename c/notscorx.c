@@ -434,7 +434,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory` WHERE `rcpid`=%#s", rcpid);
    if (!sql_fetch_row (res))
       status = notscoerror (tx, 400, 9001, 0, "Unknown or invalid destination.", NULL, NULL);
-   else if(*sql_colz(res,"active")=='N')
+   else if (*sql_colz (res, "active") == 'N')
       status = notscoerror (tx, 400, 9001, 0, "Unknown or invalid destination (suspended).", NULL, NULL);
    sql_free_result (res);
    if (status)
@@ -625,10 +625,10 @@ main (int argc, const char *argv[])
                description = j_get (cgi, "formdata.envelope.routingID") ? : "letterbox API post";
                if (!status)
                   status = letterbox (&sql, tester, cgi, rxe, tx, txe);
+               responsecheck (status, tx, txe);
             } else
                fail ("Incorrect path for API", 500);
          }
-         responsecheck (status, tx, txe);
       } else
          fail ("Unknown Host header", 500);
    }
