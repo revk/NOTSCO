@@ -342,6 +342,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             const char *url = sql_col (res, "tokenurl");
             const char *clientid = sql_col (res, "farclientid");
             const char *clientsecret = sql_col (res, "farclientsecret");
+            sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0");      // Get ID in advance to ensure correct order if other end sends reply before completing
+            long id = sql_insert_id (sqlp);
             if (!url || !*url)
                fprintf (txe, "No token URL defined");
             else if (!clientid || !*clientid)
@@ -390,8 +392,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             else
                rxt = j_write_pretty_str (rx);
             sql_safe_query_f (sqlp,
-                              "INSERT INTO `log` SET `ID`=0,`ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                              t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL);
+                              "UPDATE INTO `log` SET `ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
+                              t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
             free (rxt);
             free (txt);
             if (!j_isnull (rx))
@@ -432,8 +434,9 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          syntaxcheck (tx, txe);
          if (!url || !*url)
             fprintf (txe, "No API URL defined");
-         fclose (txe);
          j_t rx = j_create ();
+         sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0"); // Get ID in advance to ensure correct order if other end sends reply before completing
+         long id = sql_insert_id (sqlp);
          if (url && *url)
          {
             // Send message
@@ -446,6 +449,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             responsecheck (status, rx, rxe);
          }
          fclose (rxe);
+         fclose (txe);
          char *txt = j_write_pretty_str (tx);
          char *rxt = NULL;
          if (j_isstring (rx))
@@ -453,9 +457,9 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          else
             rxt = j_write_pretty_str (rx);
          sql_safe_query_f (sqlp,
-                           "INSERT INTO `log` SET `ID`=0,`tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s",
+                           "UPDATE `log` SET `tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%ld",
                            tester, description, j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL, status, t,
-                           j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL);
+                           j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);
          free (txt);
          if (!j_isnull (rx))
