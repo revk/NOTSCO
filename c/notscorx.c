@@ -428,12 +428,12 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
       return notscoerror (tx, 400, 9000, 0, "Unknown or invalid destination Type.", NULL, NULL);
    rcpid = j_get (destination, "identity");
    if (!rcpid || !*rcpid)
-      return notscoerror (tx, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
+      return notscoerror (tx, 400, 9001, 0, "Unknown or invalid destination.", NULL, NULL);
    if (*us && !strcmp (rcpid, us))
       return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Talking to ourselves");
    res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory` WHERE `rcpid`=%#s", rcpid);
    if (!sql_fetch_row (res))
-      status = notscoerror (tx, 400, 9001, 0, "Unknown of invalid destination.", NULL, NULL);
+      status = notscoerror (tx, 400, 9001, 0, "Unknown or invalid destination.", NULL, NULL);
    sql_free_result (res);
    if (status)
       return status;
