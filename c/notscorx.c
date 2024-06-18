@@ -50,7 +50,7 @@ token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    else if (strcmp (gt, "client_credentials"))
       fprintf (rxe, "Expected grant_type=client_credentials (is \"%s\")\n", gt);
    int secs = 3600;
-   sql_safe_query_f (sqlp, "INSERT INTO `auth` SET `tester`=%d,`bearer`=to_base64(random_bytes(45)),`expiry`=%#T", tester,
+   sql_safe_query_f (sqlp, "INSERT INTO `auth` SET `tester`=%d,`bearer`=replace(to_base64(random_bytes(680)),'\\n',''),`expiry`=%#T", tester,
                      time (0) + secs);
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `auth` WHERE `ID`=%d", sql_insert_id (sqlp));
    if (sql_fetch_row (res))
