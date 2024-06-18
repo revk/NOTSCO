@@ -162,9 +162,9 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_store_string (j, "sentMethod", "1st class post");
             j_store_datetime (j, "sentBy", time (0));
          }
-         j_t match = j_store_object (payload, "matchResult");
-         void add (int alt)
+         void add (j_t j, int alt)
          {
+            j_t match = j_store_object (j, "matchResult");
             char *sor = NULL;
             u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
             if (sql_fetch_row (u))
@@ -216,14 +216,13 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                add (j, "PartialDN", partialdn);
             }
          }
-         add (0);
+         add (payload, 0);
          if (reply > 1)
          {
             j_t alt = j_store_array (payload, "alternativeSwitchOrders");
-            match = j_store_object (j_append_object (alt), "matchResult");
-            add (1);
+            add (j_append_object (alt), 1);
             if (reply > 2)
-               add (2);
+               add (j_append_object (alt), 2);
          }
          notscotx (sqlp, tester, t);
       }

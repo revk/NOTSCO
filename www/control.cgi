@@ -32,8 +32,8 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not found><set found=1><tr><th>Time</th><th>Status</th><th>IP/time</th><th>Message</th><th>Notes/errors</th></tr></if>
 <tr>
 <td valign=top><output name=ts type=%T href="/log.cgi?ID=$ID"></td>
-<td valign=top><output name=status></td>
-<td valign=top align=right><if ip><output name=ip></if><if else ms><output name=ms>ms</if></td>
+<td valign=top><output name=status 0=''></td>
+<td valign=top align=right><if ip><output name=ip></if><if else ms not ms=0><output name=ms>ms</if></td>
 <td valign=top style='white-space:nowrap;'><output name=description></td>
 <td style='white-space:pre;font-weight:bold;'><if txerror or rxerror><if ip rxerror><output name=rxerror><if txerror><hr></if></if><if txerror><output name=txerror><if not ip rxerror><hr></if></if><if not ip rxerror><output name=rxerror></if></if></td>
 </tr>
