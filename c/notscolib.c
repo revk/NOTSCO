@@ -730,8 +730,8 @@ syntaxcheck (j_t j, FILE * e)
       {
          j_t v = expect_object (e, "API§2.1.5", envelope, tag);
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
-         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = ispattern (val, "AAAA")))
-            expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "a string of 4 alpha chars", info);
+         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && ((info = ispattern (val, "AAAA")) || *val == 'A'))
+            expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "a string of 4 alpha chars not starting A", info);
          expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr (routing, "Failure"))
                         || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
