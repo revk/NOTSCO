@@ -29,7 +29,8 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <option value=3>Match Response + two alternatives</option>
 <include src=notscoerrors.html>
 </select></td></tr>
-<tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"> (1st class post if blank)</td></tr>
+<tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"></td><td rowspan=2>(1st class post if bothblank)</td></tr>
+<tr><td>Sent to (email/sms)</td><td><input name=sentto2 placeholder="Email/Telephone"></td></tr>
 <tr><td>NBICS Network Operator</td><td><input name=networkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
 <tr><td>Access Line ID</td><td><input name=alid size=12 placeholder="ALID"></td></tr>

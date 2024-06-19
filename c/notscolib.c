@@ -214,7 +214,7 @@ ismasktelephone (const char *u)
          u++;
       }
       if (n != 2)
-         return "Expected only 2 initial digits to be unmasked";
+         return "Expected only initial digits to be unmasked";
       return checkend ();
    }
    if (*u == '+')

@@ -150,13 +150,22 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          sql_free_result (u);
          j_t implications = j_store_array (payload, "implicationsSent");
          const char *sentto = sql_colz (res, "sentto");
+         const char *sentto2 = sql_colz (res, "sentto2");
          if (*sentto)
          {
             j_t j = j_append_object (implications);
             j_store_string (j, "sentMethod", strchr (sentto, '@') ? "email" : "sms");
             j_store_string (j, "sentTo", sentto);
             j_store_datetime (j, "sentBy", time (0));
-         } else
+         }
+         if (*sentto2)
+         {
+            j_t j = j_append_object (implications);
+            j_store_string (j, "sentMethod", strchr (sentto2, '@') ? "email" : "sms");
+            j_store_string (j, "sentTo", sentto2);
+            j_store_datetime (j, "sentBy", time (0));
+         }
+         if (!*sentto && !*sentto2)
          {
             j_t j = j_append_object (implications);
             j_store_string (j, "sentMethod", "1st class post");
