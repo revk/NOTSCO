@@ -368,7 +368,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                   if (!tokentype)
                      fprintf (rxe, "Missing token_type\n");
                   if (strcmp (tokentype, "bearer"))
-                     fprintf (rxe, "Expected token_type=bearer (is %s)", tokentype);
+                     fprintf (rxe, "Expected \"token_type\":\"bearer\" (is \"%s\")", tokentype);
                   const char *expiresin = j_get (rx, "expires_in");
                   if (!expiresin)
                      fprintf (rxe, "No expires_in\n");
