@@ -434,8 +434,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          syntaxcheck (tx, txe);
          if (!url || !*url)
             fprintf (txe, "No API URL defined. Not sending request.\n");
-         if (!bearer || !*bearer);
-         fprintf (txe, "We have no authorisation to send this request. Not sending.\n");
+         if (!bearer || !*bearer)
+            fprintf (txe, "We have no authorisation to send this request. Not sending.\n");
          j_t rx = j_create ();
          sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0"); // Get ID in advance to ensure correct order if other end sends reply before completing
          long id = sql_insert_id (sqlp);
