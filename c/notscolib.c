@@ -116,10 +116,10 @@ ispostcode (const char *u)
    e--;
    if (e > u && isdigit (*e))
       e--;
-   if (!isalpha (*e))
-      return "Missing letter";
    if (e > u && isalpha (*e))
       e--;
+   if (!isalpha (*e))
+      return "Missing letter";
    if (e > u)
       return "Extra on start";
    return NULL;
