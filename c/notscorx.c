@@ -41,7 +41,7 @@ token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    const char *ct = j_get (cgi, "header.Content-Type");
    if (!ct)
       fprintf (rxe, "No Content-Type\n");
-   else if (strcmp (ct, "application/x-www-form-urlencoded"))
+   else if (strncmp (ct, "application/x-www-form-urlencoded", 33) || (ct[33] && ct[33] != ';'))
       fprintf (rxe, "Expected Content-Type: application/x-www-form-urlencoded (is \"%s\")\n", ct);
    j_t rx = j_find (cgi, "formdata");
    const char *gt = j_get (rx, "grant_type");
@@ -406,7 +406,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    const char *ct = j_get (cgi, "header.Content-Type");
    if (!ct)
       fprintf (rxe, "No Content-Type\n");
-   else if (strcmp (ct, "application/json"))
+   else if (strncmp (ct, "application/json", 16) || (ct[16] && ct[16] != ';'))
       fprintf (rxe, "Expected Content-Type: application/json (is \"%s\")\n", ct);
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    sql_fetch_row (res);
@@ -661,7 +661,7 @@ main (int argc, const char *argv[])
    j_t rx = j_find (cgi, "formdata");
    char *rxt = NULL;
    if (!strcmp (j_get (cgi, "info.request_method") ? : "", "GET") ||
-       !strcmp (j_get (cgi, "header.Content-Type") ? : "", "application/x-www-form-urlencoded"))
+       !strncmp (j_get (cgi, "header.Content-Type") ? : "", "application/x-www-form-urlencoded", 33))
       rxt = j_formdata (rx);
    else
       rxt = j_write_pretty_str (rx);
