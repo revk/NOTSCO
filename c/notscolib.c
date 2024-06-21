@@ -49,6 +49,14 @@ ispattern (const char *u, const char *p)
 }
 
 static const char *
+isrcpid (const char *u)
+{
+   if (u && *u == 'A')
+      return "Must not start \"A\"";
+   return ispattern (u, "AAAA");
+}
+
+static const char *
 isuuid (const char *u)
 {
    return ispattern (u, "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX");
@@ -514,7 +522,9 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
    j_t payload = notscoreply (rx, t, code >= 9000 ? NULL : "Failure");
    if (sor && *sor)
       j_store_stringf (payload, "switchOrderReference", sor);
-   j_store_stringf (payload, code >= 9000 ? "code" : "faultCode", "%d", code);
+   char codes[20];
+   sprintf (codes, "%d", code);
+   j_store_string (payload, code >= 9000 ? "code" : "faultCode", codes);
    const char *msg (void)
    {
       switch (code)
@@ -528,9 +538,23 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
    j_store_string (payload, code >= 9000 ? "text" : "faultText", msg ());
    if (code >= 9000)
       j_store_string (payload, "severity", "failure");
-   j_t audit = j_append_object (j_store_array (j_find (t, "envelope"), "auditData"));
-   j_store_string (audit, "name", "faultCode");
-   j_store_stringf (audit, "value", "%d", code);
+   j_t audit = j_store_array (j_find (t, "envelope"), "auditData");
+   void add (const char *name, const char *value)
+   {
+      if (!value)
+         return;
+      j_t e = j_append_object (audit);
+      j_store_string (e, "name", name);
+      j_store_string (e, "value", value);
+   }
+   if (code >= 9000)
+   {
+      add ("originalDestinationType", j_get (rx, "envelope.destination.type"));
+      add ("originalDestination", j_get (rx, "envelope.destination.identity"));
+      add ("originalSourceType", j_get (rx, "envelope.source.type"));
+      add ("originalSource", j_get (rx, "envelope.source.identity"));
+   }
+   add ("faultCode", codes);
    notscotx (sqlp, tester, t);
 }
 
@@ -730,8 +754,8 @@ syntaxcheck (j_t j, FILE * e)
       {
          j_t v = expect_object (e, "API§2.1.5", envelope, tag);
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
-         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && ((info = ispattern (val, "AAAA")) || *val == 'A'))
-            expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "a string of 4 alpha chars not starting A", info);
+         if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = isrcpid (val)))
+            expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "an RCPID", info);
          expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr (routing, "Failure"))
                         || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
@@ -746,24 +770,36 @@ syntaxcheck (j_t j, FILE * e)
       {                         // Audit requirements
          j_t ad = expect_array (e, "API§2.1.6", envelope, "auditData");
          if (ad)
-         {
-            ad = j_first (ad);
-            if (!ad || !j_isobject (ad))
-               expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "a JSON object", NULL);
-            else
+            for (ad = j_first (ad); ad; ad = j_next (ad))
             {
-               expect_string (e, "API§2.1.6", ad, "name", "faultCode");
-               if ((val = expect_string (e, "API§2.1.6", ad, "value", NULL)))
+               if (!j_isobject (ad))
+                  expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "a JSON object", NULL);
+               else
                {
-                  if (isdigits (val))
-                     expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
-                  else
-                     expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", val);
+                  const char *name = expect_string (e, "API§2.1.6", ad, "name", NULL);
+                  val = expect_string (e, "API§2.1.6", ad, "value", NULL);
+                  if (!name || !val)
+                     continue;
+                  if (!strcmp (name, "faultCode"))
+                  {
+                     if (isdigits (val))
+                        expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
+                     else
+                        expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", val);
+                  } else if (!strcmp (name, "originalDestinationType") || !strcmp (name, "originalSourceType"))
+                  {
+                     if (strcmp (val, "RCPID"))
+                        expected (e, "API§2.1.6", ad, NULL, "value", NULL, "\"RCPID\"", NULL);
+                  } else if (!strcmp (name, "originalDestination") || !strcmp (name, "originalSource"))
+                  {
+                     if ((info = isrcpid (val)))
+                        expected (e, "API§2.1.6", ad, NULL, "value", NULL, "an RCPID", info);
+                  } else
+                     expected (e, "API§2.1.6", ad, NULL, "name", NULL,
+                               "\"faultCode\", \"originalDestinationType\", \"originalSourceType\", \"originalDestination\", or \"originalSource\"",
+                               NULL);
                }
-               if (j_next (ad))
-                  expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "only entry in array", NULL);
             }
-         }
          if (payload)
          {                      // Failure payload
             const char *tag = df ? "code" : "faultCode";
@@ -874,8 +910,8 @@ syntaxcheck (j_t j, FILE * e)
                      expected (e, "OTS§2.2.1", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"", NULL);
                   const char *sa = expect_string (e, "OTS§2.2.1", s, "switchAction", NULL);
                   if (sa && strcmp (sa, "ServiceFound") && strcmp (sa, "ServiceWithAnotherRCP")
-                      && strcmp (sa, "ServiceWithAnotherCust") && strcmp (sa, "ServiceNotFound") && strcmp (sa, "ForcedCease")
-                      && strcmp (sa, "OptionToCease") && strcmp (sa, "OptionToRetain"))
+                      && strcmp (sa, "ServiceWithAnotherCust") && strcmp (sa, "ServiceNotFound")
+                      && strcmp (sa, "ForcedCease") && strcmp (sa, "OptionToCease") && strcmp (sa, "OptionToRetain"))
                      expected (e, "OTS§2.2.1", s, NULL, "ServiceWithAnotherRCP", NULL, "valid value", NULL);
                   j_t si = expect_array (e, "OTS§2.2.1", s, "serviceIdentifiers");
                   if (si && st)
