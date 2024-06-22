@@ -551,8 +551,7 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
    {
       add ("originalDestinationType", j_get (rx, "envelope.destination.type"));
       add ("originalDestination", j_get (rx, "envelope.destination.identity"));
-      add ("originalSourceType", j_get (rx, "envelope.source.type"));
-      add ("originalSource", j_get (rx, "envelope.source.identity"));
+      add ("originalRoutingId", j_get (rx, "envelope.routingId"));
    }
    add ("faultCode", codes);
    notscotx (sqlp, tester, t);
@@ -786,17 +785,20 @@ syntaxcheck (j_t j, FILE * e)
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
                      else
                         expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", val);
-                  } else if (!strcmp (name, "originalDestinationType") || !strcmp (name, "originalSourceType"))
+                  } else if (!strcmp (name, "originalDestinationType"))
                   {
                      if (strcmp (val, "RCPID"))
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "\"RCPID\"", NULL);
-                  } else if (!strcmp (name, "originalDestination") || !strcmp (name, "originalSource"))
+                  } else if (!strcmp (name, "originalDestination"))
                   {
                      if ((info = isrcpid (val)))
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "an RCPID", info);
+                  } else if (!strcmp (name, "originalRoutingID"))
+		  {
+
                   } else
                      expected (e, "API§2.1.6", ad, NULL, "name", NULL,
-                               "\"faultCode\", \"originalDestinationType\", \"originalSourceType\", \"originalDestination\", or \"originalSource\"",
+                               "\"faultCode\", \"originalDestinationType\", \"originalDestination\", \"originalSource\", or \"originalRoutingID\"",
                                NULL);
                }
             }
@@ -1005,3 +1007,17 @@ syntaxcheck (j_t j, FILE * e)
    }
    unexpected (e, j);
 }
+
+#ifndef LIB
+// Command line
+int
+main (int argc, const char *argv[])
+{                               // Simple validation command
+   j_t j = j_create ();
+   j_err (j_read (j, stdin));
+   syntaxcheck (j, stdout);
+   j_delete (&j);
+   return 0;
+}
+
+#endif

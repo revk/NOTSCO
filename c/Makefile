@@ -1,4 +1,4 @@
-all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql ../SQLlib/sqlwrite
+all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql ../SQLlib/sqlwrite ../bin/notsco
 
 SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
@@ -23,6 +23,10 @@ update:
 
 ../bin/notscorx:	notscorx.c ../lib/notscolib.o ../AJL/ajlcurl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
 	cc -fPIC -O -o $@.new $< ${OPTS} ${SQLLIB}
+	mv -f $@.new $@
+
+../bin/notsco:	notscolib.c ../AJL/jcgi.o
+	cc -fPIC -O -o $@.new $< ${CCOPTS} ../AJL/ajlcurl.o ../AJL/jcgi.o ../SQLlib/sqllib.o -lcurl ${SQLLIB}
 	mv -f $@.new $@
 
 ../lib/notscolib.o:	notscolib.c notscolib.h
