@@ -551,7 +551,7 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
    {
       add ("originalDestinationType", j_get (rx, "envelope.destination.type"));
       add ("originalDestination", j_get (rx, "envelope.destination.identity"));
-      add ("originalRoutingId", j_get (rx, "envelope.routingId"));
+      add ("originalRoutingID", j_get (rx, "envelope.routingID"));
    }
    add ("faultCode", codes);
    notscotx (sqlp, tester, t);
