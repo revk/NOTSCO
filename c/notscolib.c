@@ -560,28 +560,53 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
 // Tools for syntax checking
 
 static void
-locate (FILE * e, const char *tag, j_t parent, j_t v, const char *is)
+locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
 {
+   char *location = NULL;
+   // Top layer is manual as it has to allow for missing
    if (tag)
-      fprintf (e, "\"%s\"", tag);
-   else if (v)
-      fprintf (e, "entry %d", j_pos (v));
+      location = strdup (tag);
+   else if (p)
+      asprintf (&location, "[%d]", j_pos (v));
+   v = p;
+   while (v)
+   {
+      const char *name = j_name (v);
+      if (name && !strcmp (name, "formdata"))
+         break;
+      j_t p = j_parent (v);
+      if (!strcmp (j_name (p) ? : "", "formdata"))
+         p = NULL;
+      char *next = NULL;
+      if (name)
+      {
+         if (!location)
+            next = strdup (name);
+         else if (*location == '[')
+            asprintf (&next, "%s%s", name, location);
+         else
+            asprintf (&next, "%s.%s", name, location);
+      } else if (p)
+      {
+         if (!location)
+            asprintf (&next, "[%d]", j_pos (v));
+         else if (*location == '[')
+            asprintf (&next, "[%d]%s", j_pos (v), location);
+         else
+            asprintf (&next, "[%d].%s", j_pos (v), location);
+      }
+      if (next)
+      {
+         free (location);
+         location = next;
+      }
+      v = p;
+   }
+   if (location)
+      fprintf (e, "%s", location);
    if (is)
       fprintf (e, " [\"%s\"]", is);
-   j_t p = parent;
-   if (p && strcmp (j_name (p) ? : "", "formdata"))
-      while (p)
-      {
-         j_t up = j_parent (p);
-         if (up && !strcmp (j_name (up) ? : "", "formdata"))
-            up = NULL;
-         const char *name = j_name (p);
-         if (name)
-            fprintf (e, " in \"%s\"", name);
-         else if (up)
-            fprintf (e, " in entry %d", j_pos (p));
-         p = up;
-      }
+   free (location);
 }
 
 static void
@@ -771,6 +796,7 @@ syntaxcheck (j_t j, FILE * e)
          if (ad)
             for (ad = j_first (ad); ad; ad = j_next (ad))
             {
+               j_tag (ad);
                if (!j_isobject (ad))
                   expected (e, "API§2.1.6", j_parent (ad), ad, NULL, NULL, "a JSON object", NULL);
                else
@@ -784,7 +810,7 @@ syntaxcheck (j_t j, FILE * e)
                      if (isdigits (val))
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
                      else
-                        expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", val);
+                        expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", ""); // Missing reported later
                   } else if (!strcmp (name, "originalDestinationType"))
                   {
                      if (strcmp (val, "RCPID"))
@@ -795,10 +821,34 @@ syntaxcheck (j_t j, FILE * e)
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "an RCPID", info);
                   } else if (!strcmp (name, "originalRoutingID"))
                   {
-
+                     const char *t = val;
+                     if (strcmp (t, "messageDeliveryFailure"))
+                     {
+                        if (t && !strncmp (t, "residentialSwitch", 17))
+                           t += 17;
+                        else
+                           t = NULL;
+                        if (t && !strncmp (t, "Match", 5))
+                           t += 5;
+                        else if (t && !strncmp (t, "Order", 5))
+                        {
+                           t += 5;
+                           if (!strncmp (t, "Update", 6))
+                              t += 6;
+                           else if (!strncmp (t, "Trigger", 7))
+                              t += 7;
+                           else if (!strncmp (t, "Cancellation", 12))
+                              t += 12;
+                        } else
+                           t = NULL;
+                        if (t && strcmp (t, "Request") && strcmp (t, "Failure") && strcmp (t, "Confirmation"))
+                           t = NULL;
+                     }
+                     if (!t)
+                        expected (e, "API§2.1.6", ad, NULL, "value", NULL, "valid RoutingID", NULL);
                   } else
                      expected (e, "API§2.1.6", ad, NULL, "name", NULL,
-                               "\"faultCode\", \"originalDestinationType\", \"originalDestination\", \"originalSource\", or \"originalRoutingID\"",
+                               "\"faultCode\", \"originalDestinationType\", \"originalDestination\", or \"originalRoutingID\"",
                                NULL);
                }
             }
@@ -825,8 +875,7 @@ syntaxcheck (j_t j, FILE * e)
                   expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             }
             if (ec && et)
-               fprintf (e, "Error %s: %s\n", ec, et);
-            return;
+               fprintf (e, "This reports error %s: %s\n", ec, et);
          }
       }
       if (payload)
@@ -1000,8 +1049,6 @@ syntaxcheck (j_t j, FILE * e)
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             if ((val = expect_string (e, ref, payload, "status", NULL)) && strcmp (val, expectstate))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, expectstate, NULL);
-
-
          }
       }
    }
