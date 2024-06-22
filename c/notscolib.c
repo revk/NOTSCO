@@ -794,7 +794,7 @@ syntaxcheck (j_t j, FILE * e)
                      if ((info = isrcpid (val)))
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "an RCPID", info);
                   } else if (!strcmp (name, "originalRoutingID"))
-		  {
+                  {
 
                   } else
                      expected (e, "API§2.1.6", ad, NULL, "name", NULL,
@@ -1014,8 +1014,17 @@ int
 main (int argc, const char *argv[])
 {                               // Simple validation command
    j_t j = j_create ();
-   j_err (j_read (j, stdin));
-   syntaxcheck (j, stdout);
+   const char *er = NULL;
+   if (argc > 1)
+   {
+      const char *json = getenv (argv[1]);
+      er = j_read_mem (j, json, -1);
+   } else
+      er = j_read (j, stdin);
+   if (er)
+      printf ("JSON error\n%s", er);
+   else
+      syntaxcheck (j, stdout);
    j_delete (&j);
    return 0;
 }
