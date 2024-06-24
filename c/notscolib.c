@@ -53,6 +53,8 @@ isrcpid (const char *u)
 {
    if (u && *u == 'A')
       return "Must not start \"A\"";
+   if (u && !strcmp (u, "TOTSCO"))
+      return NULL;              // Special case, FFS, they claim not to actually define RCPID
    return ispattern (u, "AAAA");
 }
 
@@ -810,7 +812,7 @@ syntaxcheck (j_t j, FILE * e)
                      if (isdigits (val))
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
                      else
-                        expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", ""); // Missing reported later
+                        expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", "");        // Missing reported later
                   } else if (!strcmp (name, "originalDestinationType"))
                   {
                      if (strcmp (val, "RCPID"))
