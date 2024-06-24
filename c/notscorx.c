@@ -668,8 +668,8 @@ main (int argc, const char *argv[])
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     status, ip, description, j_isnull (rx) ? NULL : rxt, *rxerror ? rxerror : NULL,
-                     j_isnull (tx) ? NULL : txt, *txerror ? txerror : NULL);
+                     status, ip, description, j_isnull (rx) ? *rxerror ? "" : NULL : rxt, *rxerror ? rxerror : NULL,
+                     j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    free (rxt);
