@@ -506,6 +506,8 @@ notscoreply (j_t rx, j_t tx, const char *type)
    j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity")); // Note, example is TOTSCO, but surely it should be original destination identity regardless?
    if ((v = j_get (rx, "envelope.destination.correlationID")))
       j_store_string (source, "correlationID", v);
+   else if (!type)
+      j_store_string (source, "correlationID", "Unspecified");
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
    j_store_string (destination, "identity", j_get (rx, "envelope.source.identity"));
