@@ -787,6 +787,10 @@ syntaxcheck (j_t j, FILE * e)
       }
       check ("source");
       check ("destination");
+      if (routing && !strcmp (routing, "residentialSwitchMatchRequest") &&
+          (val = j_get (envelope, "destination.correlationID")) && *val)
+         fprintf (e,
+                  "API§2.1.5 envelope.destination.correlationID would only be populated when the message is being sent in response to a message previously sent to you.\n");
    }
    if (routing)
    {
