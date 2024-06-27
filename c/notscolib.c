@@ -784,7 +784,7 @@ syntaxcheck (j_t j, FILE * e)
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = isrcpid (val)))
             expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "an RCPID", info);
-         expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && !strstr (routing, "Failure"))
+         expect_string (e, "API§2.1.5", v, "correlationID", *tag == 's'
                         || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
       check ("source");
