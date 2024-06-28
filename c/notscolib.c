@@ -504,10 +504,8 @@ notscoreply (j_t rx, j_t tx, const char *type)
    j_t source = j_store_object (envelope, "source");
    j_store_string (source, "type", "RCPID");
    j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity")); // Note, example is TOTSCO, but surely it should be original destination identity regardless?
-   if ((v = j_get (rx, "envelope.destination.correlationID")))
+   if (type && (v = j_get (rx, "envelope.destination.correlationID")))
       j_store_string (source, "correlationID", v);
-   else if (!type)
-      j_store_string (source, "correlationID", "Unspecified");
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
    j_store_string (destination, "identity", j_get (rx, "envelope.source.identity"));
@@ -784,7 +782,7 @@ syntaxcheck (j_t j, FILE * e)
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = isrcpid (val)))
             expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "an RCPID", info);
-         expect_string (e, "API§2.1.5", v, "correlationID", *tag == 's'
+         expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && routing && strcmp (routing, "messageDeliveryFailure"))
                         || (*tag == 'd' && routing && strcmp (routing, "residentialSwitchMatchRequest")) ? NULL : "");
       }
       check ("source");
@@ -793,6 +791,10 @@ syntaxcheck (j_t j, FILE * e)
           (val = j_get (envelope, "destination.correlationID")) && *val)
          fprintf (e,
                   "API§2.1.5 envelope.destination.correlationID would only be populated when the message is being sent in response to a message previously sent to you.\n");
+      if (routing && !strcmp (routing, "messageDeliveryFailure") &&
+          (val = j_get (envelope, "source.correlationID")) && *val)
+         fprintf (e,
+                  "API§2.1.8 envelope.source.correlationID should not be present, despite what API§2.1.5 says.\n");
    }
    if (routing)
    {
