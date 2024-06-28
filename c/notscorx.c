@@ -370,9 +370,12 @@ checksla (SQL * sqlp, int tester, FILE * rxe, const char *did)
       fprintf (rxe, "API§2.1.5 Unexpected correlation ID, not matching residentialSwitchMatchRequest.\n");
    else
    {
+      if (sql_col (res, "recd"))
+         fprintf (rxe, "Duplicate response to residentialSwitchMatchRequest.\n");
       int lag = time (0) - sql_time (sql_colz (res, "sent"));
       if (lag > 60)
          fprintf (rxe, "IP§9.2 Response to residentialSwitchMatchRequest more than 60 seconds (%ds).\n", lag);
+     sql_safe_query_f (sqlp, "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s", tester, did);
    }
    sql_free_result (res);
 }

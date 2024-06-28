@@ -393,8 +393,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                      bearer = strdupa (token);
                }
             }
-            if (t > 2000)
-               fprintf (txe, "Response time greater than 2s\n");
+            if (t > 3000)
+               fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n", t);
             fclose (txe);
             fclose (rxe);
             char *txt = j_formdata (tx);
@@ -462,8 +462,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                fprintf (rxe, "%s\n", er);
             responsecheck (status, rx, rxe);
          }
-         if (t > 2000)
-            fprintf (txe, "Response time greater than 2s\n");
+         if (t > 3000)
+            fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n", t);
          fclose (rxe);
          fclose (txe);
          char *txt = j_write_pretty_str (tx);
