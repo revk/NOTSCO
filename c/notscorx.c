@@ -375,7 +375,7 @@ checksla (SQL * sqlp, int tester, FILE * rxe, const char *did)
       int lag = time (0) - sql_time (sql_colz (res, "sent"));
       if (lag > 60)
          fprintf (rxe, "IP§9.2 Response to residentialSwitchMatchRequest more than 60 seconds (%ds).\n", lag);
-     sql_safe_query_f (sqlp, "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s", tester, did);
+      sql_safe_query_f (sqlp, "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s", tester, did);
    }
    sql_free_result (res);
 }
@@ -519,7 +519,11 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             if (fork ())
                exit (0);        // Force apache to actually give up
             if (delay)
+            {
                sleep (delay);
+               if (delay > 60)
+                  fprintf (txe, "The selected delay (%ds) is longer than the SLA of 60s.\n", delay);
+            }
             SQL sql;
             sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
             if (!strcmp (routing, "residentialSwitchMatchRequest"))
@@ -700,9 +704,13 @@ main (int argc, const char *argv[])
    free (txt);
    // Return
    printf ("Status: %d\r\n", status);
-   printf ("Content-Type: application/json\r\n");
-   printf ("\r\n");
-   j_err (j_write (tx, stdout));
+   printf ("Connection: close\r\n");
+   if (!j_isnull (tx))
+   {
+      printf ("Content-Type: application/json\r\n\r\n");
+      j_err (j_write (tx, stdout));
+   } else
+      printf ("\r\n");
    if (sqldebug)
    {
       if (rxerror && *rxerror)
