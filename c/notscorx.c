@@ -360,9 +360,29 @@ progressFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe,
    return 202;
 }
 
+void
+checksla (SQL * sqlp, int tester, FILE * rxe, const char *did)
+{
+   if (!did)
+      return;                   // Already reported as errror
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `pending` WHERE `tester`=%d AND `correlation`=%#s", tester, did);
+   if (!sql_fetch_row (res))
+      fprintf (rxe, "API§2.1.5 Unexpected correlation ID, not matching residentialSwitchMatchRequest.\n");
+   else
+   {
+      int lag = time (0) - sql_time (sql_colz (res, "sent"));
+      if (lag > 60)
+         fprintf (rxe, "IP§9.2 Response to residentialSwitchMatchRequest more than 60 seconds (%ds).\n", lag);
+   }
+   sql_free_result (res);
+}
+
 int
 residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
 {
+   const char *sid = j_get (rx, "envelope.source.correlationID");
+   const char *did = j_get (rx, "envelope.destination.correlationID");
+   checksla (sqlp, tester, rxe, did);
    void check (j_t j)
    {
       j = j_find (j, "matchResult");
@@ -372,9 +392,7 @@ residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, 
       if (sor)
          sql_safe_query_f (sqlp,
                            "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='THEM',`rcpid`=%#s,`nearid`=%#s,`farid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
-                           tester, sor, j_get (rx, "envelope.destination.identity"), j_get (rx,
-                                                                                            "envelope.destination.correlationID"),
-                           j_get (rx, "envelope.source.correlationID"));
+                           tester, sor, j_get (rx, "envelope.destination.identity"), did, sid);
    }
    check (payload);
    for (j_t a = j_first (j_find (payload, "alternativeSwitchOrders")); a; a = j_next (a))
@@ -385,6 +403,8 @@ residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, 
 int
 residentialSwitchMatchFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
 {
+   const char *did = j_get (rx, "envelope.destination.correlationID");
+   checksla (sqlp, tester, rxe, did);
    return 202;
 }
 
@@ -491,9 +511,10 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             {
                close (0);
                close (1);
-               close (2);
-               setpgid (0, 0);
             }
+            setpgid (0, 0);
+            if (fork ())
+               exit (0);        // Force apache to actually give up
             if (delay)
                sleep (delay);
             SQL sql;
@@ -503,7 +524,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             else if (strstr (routing, "Request"))
                progressRequest (&sql, tester, rx, rxe, payload, routing);
             sql_close (&sql);
-            _exit (0);
+            exit (0);
          }
       } else
       {                         // Response handling

@@ -44,6 +44,7 @@ residentialSwitchMatchRequest (SQL * sqlp, SQL_RES * res, j_t tx)
    if (sql_fetch_row (u))
       sid = strdupa (sql_colz (u, "U"));
    sql_free_result (u);
+   sql_safe_query_f (sqlp, "INSERT INTO `pending` SET `correlation`=%#s,`tester`=%s", sid, sql_colz (res, "ID"));
    j_t payload = makemessage (res, tx, "residentialSwitchMatchRequest", sid, NULL);
    if (*(val = sql_colz (res, "brand")))
       j_store_string (payload, "grcpBrandName", val);
