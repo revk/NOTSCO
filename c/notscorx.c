@@ -59,7 +59,7 @@ token (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    else
       fprintf (rxe, "Failed to allocate token\n");
    sql_free_result (res);
-   j_store_string (tx, "token_type", "bearer");
+   j_store_string (tx, "token_type", "Bearer");
    j_store_string (tx, "scope", "default");
    j_store_int (tx, "expires_in", 3600);
    return 200;
