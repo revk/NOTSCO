@@ -393,7 +393,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                      bearer = strdupa (token);
                }
             }
-	    if(t>2000)fprintf(txe,"Response time greater than 2s\n");
+            if (t > 2000)
+               fprintf (txe, "Response time greater than 2s\n");
             fclose (txe);
             fclose (rxe);
             char *txt = j_formdata (tx);
@@ -461,6 +462,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                fprintf (rxe, "%s\n", er);
             responsecheck (status, rx, rxe);
          }
+         if (t > 2000)
+            fprintf (txe, "Response time greater than 2s\n");
          fclose (rxe);
          fclose (txe);
          char *txt = j_write_pretty_str (tx);
@@ -792,10 +795,8 @@ syntaxcheck (j_t j, FILE * e)
           (val = j_get (envelope, "destination.correlationID")) && *val)
          fprintf (e,
                   "API§2.1.5 envelope.destination.correlationID would only be populated when the message is being sent in response to a message previously sent to you.\n");
-      if (routing && !strcmp (routing, "messageDeliveryFailure") &&
-          (val = j_get (envelope, "source.correlationID")) && *val)
-         fprintf (e,
-                  "API§2.1.8 envelope.source.correlationID should not be present, despite what API§2.1.5 says.\n");
+      if (routing && !strcmp (routing, "messageDeliveryFailure") && (val = j_get (envelope, "source.correlationID")) && *val)
+         fprintf (e, "API§2.1.8 envelope.source.correlationID should not be present, despite what API§2.1.5 says.\n");
    }
    if (routing)
    {
