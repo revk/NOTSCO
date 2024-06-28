@@ -707,8 +707,16 @@ main (int argc, const char *argv[])
    printf ("Connection: close\r\n");
    if (!j_isnull (tx))
    {
-      printf ("Content-Type: application/json\r\n\r\n");
-      j_err (j_write (tx, stdout));
+      printf ("Content-Type: application/json\r\n");
+      char *response = j_write_str (tx);
+      if (!response)
+         warnx ("Failed to make JSON response");
+      else
+      {
+         size_t len = strlen (response);
+         printf ("Content-Length: %ld\r\n\r\n%s", len, response);
+         free (response);
+      }
    } else
       printf ("\r\n");
    if (sqldebug)
