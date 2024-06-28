@@ -27,7 +27,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </ul>
 <hr>
 <h2>Today's messages</h2>
-<p><a href="/control.cgi">Reload</a> Note messages are deleted at the end of each day. Select message for more detailed log.</p>
+<p><a href="/control.cgi">Reload</a> Note messages are deleted at the end of each day. Select message for more detailed log. Syntax checks are applied to sent and received messages to allow error checking.</p>
 <table border=1>
 <sql table=log where="tester=$TESTER" order=ID DESC>
 <if not found><set found=1><tr><th>Time</th><th>Status</th><th>IP/time</th><th>Message</th><th>Notes/errors</th></tr></if>
