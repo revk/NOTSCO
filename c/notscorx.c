@@ -142,11 +142,11 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          code = reply;
       else if (reply)
       {
-         j_t t = j_create ();
-         j_t payload = notscoreply (rx, t, "Confirmation");
+         j_t tx = j_create ();
+         j_t payload = notscoreply (rx, tx, "Confirmation");
          SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
          if (sql_fetch_row (u))
-            j_store_string (j_find (t, "envelope.source"), "correlationID", sql_col (u, "U"));
+            j_store_string (j_find (tx, "envelope.source"), "correlationID", sql_col (u, "U"));
          sql_free_result (u);
          j_t implications = j_store_array (payload, "implicationsSent");
          const char *sentto = sql_colz (res, "sentto");
@@ -182,8 +182,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_store_string (match, "switchOrderReference", sor);
             sql_safe_query_f (sqlp,
                               "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='US',`rcpid`=%#s,`nearid`=%#s,`farid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
-                              tester, sor, j_get (t, "envelope.source.identity"), j_get (t, "envelope.source.correlationID"),
-                              j_get (t, "envelope.destination.correlationID"));
+                              tester, sor, j_get (tx, "envelope.source.identity"), j_get (tx, "envelope.source.correlationID"),
+                              j_get (tx, "envelope.destination.correlationID"));
             j_t services = j_store_array (match, "services");
             const char *cupid = sql_colz (res, "cupid");
             const char *no = sql_colz (res, "networkoperator");
@@ -233,7 +233,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             if (reply > 2)
                add (j_append_object (alt), 2);
          }
-         notscotx (sqlp, tester, t);
+         notscotx (sqlp, tester, tx);
       }
    }
    if (code)
@@ -256,6 +256,7 @@ checksor (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *s
       const char *nearid = j_get (rx, "envelope.destination.correlationID");
       if (rcpid && strcmp (rcpid, (val = sql_colz (res, "rcpid"))))
          fprintf (rxe, "The RCPID is not what we expected for this switch order (expected %s).\n", val);
+      // TODO do we need to check correlationIDs?
       if (farid && strcmp (farid, (val = sql_colz (res, "farid"))))
          fprintf (rxe, "The source correlationID is not what we expected for this switch order (expected %s).\n", val);
       if (nearid && strcmp (nearid, (val = sql_colz (res, "nearid"))))
@@ -317,6 +318,7 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
             return base + 6;
          if (base == 1200 && strcmp (status, "new"))
             return base + 13;
+         // TODO warn of unexpected correlation ID if we expect it to match!
          return 0;
       }
       if (!sql_fetch_row (res))
@@ -327,11 +329,11 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
    }
    if (!code)
    {
-      j_t t = j_create ();
-      j_t payload = notscoreply (rx, t, "Confirmation");
+      j_t tx = j_create ();
+      j_t payload = notscoreply (rx, tx, "Confirmation");
       j_store_string (payload, "switchOrderReference", sor);
       j_store_string (payload, "status", newstatus);
-      notscotx (sqlp, tester, t);
+      notscotx (sqlp, tester, tx);
       sql_safe_query_f (sqlp, "UPDATE `sor` SET `status`=%#s WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
                         newstatus, tester, sor, rcpid);
    } else
@@ -360,32 +362,11 @@ progressFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe,
    return 202;
 }
 
-void
-checksla (SQL * sqlp, int tester, FILE * rxe, const char *did)
-{
-   if (!did)
-      return;                   // Already reported as errror
-   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `pending` WHERE `tester`=%d AND `correlation`=%#s", tester, did);
-   if (!sql_fetch_row (res))
-      fprintf (rxe, "API§2.1.5 Unexpected correlation ID, not matching residentialSwitchMatchRequest.\n");
-   else
-   {
-      if (sql_col (res, "recd"))
-         fprintf (rxe, "Duplicate response to residentialSwitchMatchRequest.\n");
-      int lag = time (0) - sql_time (sql_colz (res, "sent"));
-      if (lag > 60)
-         fprintf (rxe, "IP§9.2 Response to residentialSwitchMatchRequest more than 60 seconds (%ds).\n", lag);
-      sql_safe_query_f (sqlp, "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s", tester, did);
-   }
-   sql_free_result (res);
-}
-
 int
 residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
 {
    const char *sid = j_get (rx, "envelope.source.correlationID");
    const char *did = j_get (rx, "envelope.destination.correlationID");
-   checksla (sqlp, tester, rxe, did);
    void check (j_t j)
    {
       j = j_find (j, "matchResult");
@@ -406,8 +387,6 @@ residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, 
 int
 residentialSwitchMatchFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE * txe, j_t payload)
 {
-   const char *did = j_get (rx, "envelope.destination.correlationID");
-   checksla (sqlp, tester, rxe, did);
    return 202;
 }
 
@@ -519,10 +498,13 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
             if (fork ())
                exit (0);        // Force apache to actually give up
             if (delay)
-            {
+            {                   // Delay and SLA warning
                sleep (delay);
-               if (delay > 60)
-                  fprintf (txe, "The selected delay (%ds) is longer than the SLA of 60s.\n", delay);
+               int max = 7200;
+               if (strstr (routing, "Match"))
+                  max = 60;
+               if (delay > max)
+                  fprintf (txe, "The selected delay (%ds) is longer than the SLA of %ds.\n", delay, max);
             }
             SQL sql;
             sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
@@ -535,6 +517,39 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
          }
       } else
       {                         // Response handling
+         // Response and SLA check
+         char *suffix = strstr (routing, "Confirmation");
+         if (!suffix)
+            suffix = strstr (routing, "Failure");
+         if (suffix)
+         {                      // Correlation and SLA checks
+            const char *did = j_get (rx, "envelope.destination.correlationID");
+            if (did)
+            {
+               SQL_RES *res = sql_safe_query_store_f (sqlp,
+                                                      "SELECT * FROM `pending` WHERE `tester`=%d AND `correlation`=%#s AND `request`=%#.*s",
+                                                      tester, did, (int) (suffix - routing), routing);
+               if (!sql_fetch_row (res))
+                  fprintf (rxe, "API§2.1.5 Unexpected correlation ID, no matching %.*sRequest found.\n", (int) (suffix - routing),
+                           routing);
+               else
+               {
+                  if (sql_col (res, "recd"))
+                     fprintf (rxe, "Duplicate response to %s.\n", routing);
+                  int lag = time (0) - sql_time (sql_colz (res, "sent"));
+                  int max = 7200;
+                  if (strstr (routing, "Match"))
+                     max = 60;
+                  if (lag > max)
+                     fprintf (rxe, "IP§9.2 Response to %.*sRequest after more than %d seconds (%ds).\n", (int) (suffix - routing),
+                              routing, max, lag);
+                  sql_safe_query_f (sqlp,
+                                    "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s AND `request`=%#.*s",
+                                    tester, did, (int) (suffix - routing), routing);
+               }
+               sql_free_result (res);
+            }
+         }
          if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
             status = residentialSwitchMatchConfirmation (sqlp, tester, rx, rxe, tx, txe, payload);
          else if (!strcmp (routing, "residentialSwitchMatchFailure"))

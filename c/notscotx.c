@@ -44,7 +44,8 @@ residentialSwitchMatchRequest (SQL * sqlp, SQL_RES * res, j_t tx)
    if (sql_fetch_row (u))
       sid = strdupa (sql_colz (u, "U"));
    sql_free_result (u);
-   sql_safe_query_f (sqlp, "INSERT INTO `pending` SET `correlation`=%#s,`tester`=%s", sid, sql_colz (res, "ID"));
+   sql_safe_query_f (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`=%#s", sid, sql_colz (res, "ID"),
+                     "residentialSwitchMatch");
    j_t payload = makemessage (res, tx, "residentialSwitchMatchRequest", sid, NULL);
    if (*(val = sql_colz (res, "brand")))
       j_store_string (payload, "grcpBrandName", val);
@@ -110,6 +111,10 @@ residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *r
       sql_safe_query_f (sqlp, "UPDATE `sor` SET `dated`=%#s WHERE `tester`=%#s AND `issuedby`='THEM' AND `sor`=%#s AND `rcpid`=%#s",
                         dated, sql_colz (res, "ID"), sor, rcpid);
    }
+   char *suffix = strstr (routing, "Request");
+   if (suffix)
+      sql_safe_query_f (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`=%#.*s", nearid,
+                        sql_colz (res, "ID"), (int) (suffix - routing), routing);
 }
 
 void
