@@ -25,14 +25,14 @@ DROP TABLE IF EXISTS `auth`;
 CREATE TABLE `auth` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tester` int(10) unsigned NOT NULL,
-  `bearer` varchar(72) NOT NULL,
+  `bearer` text NOT NULL,
   `expiry` datetime NOT NULL,
   PRIMARY KEY (`ID`),
-  KEY `bearer` (`bearer`),
+  KEY `bearer` (`bearer`(768)),
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=255 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +75,27 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1463 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1780 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `pending`
+--
+
+DROP TABLE IF EXISTS `pending`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `pending` (
+  `correlation` uuid NOT NULL,
+  `request` varchar(50) DEFAULT NULL,
+  `sent` datetime NOT NULL DEFAULT curtime(),
+  `recd` datetime DEFAULT NULL,
+  `tester` int(10) unsigned DEFAULT NULL,
+  UNIQUE KEY `tester` (`tester`,`correlation`,`request`),
+  KEY `pending_tester` (`tester`),
+  KEY `sent` (`sent`),
+  CONSTRAINT `pending_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -101,7 +121,7 @@ CREATE TABLE `sor` (
   KEY `sor_tester` (`tester`),
   KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,15 +144,14 @@ CREATE TABLE `tester` (
   `apiurl` tinytext DEFAULT NULL,
   `farclientid` tinytext DEFAULT NULL,
   `farclientsecret` tinytext DEFAULT NULL,
-  `matchresponse` enum('None','Match','Match+Alt','Failure') DEFAULT 'Match',
-  `matcherror` int(4) NOT NULL DEFAULT 1000,
   `sentto` tinytext DEFAULT NULL,
+  `sentto2` tinytext DEFAULT NULL,
   `ontref` tinytext DEFAULT NULL,
   `ontport` int(11) NOT NULL DEFAULT 0,
   `dn` varchar(20) DEFAULT NULL,
   `partialdn` varchar(2) DEFAULT NULL,
   `alid` varchar(20) DEFAULT NULL,
-  `bearer` tinytext DEFAULT NULL,
+  `bearer` text DEFAULT NULL,
   `expiry` datetime DEFAULT NULL,
   `delay` int(3) unsigned NOT NULL DEFAULT 5,
   `servicename` tinytext DEFAULT '1GB Broadband',
@@ -153,6 +172,8 @@ CREATE TABLE `tester` (
   `circuit` tinytext DEFAULT NULL,
   `portdn` varchar(11) DEFAULT NULL,
   `identifydn` varchar(11) DEFAULT NULL,
+  `matchresponse` int(4) NOT NULL DEFAULT 1,
+  `orderresponse` int(4) NOT NULL DEFAULT 1,
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`),
   KEY `email` (`email`(255)),
@@ -170,4 +191,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-16 13:39:43
+-- Dump completed on 2024-06-29 15:24:52
