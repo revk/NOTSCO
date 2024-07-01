@@ -492,7 +492,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
 }
 
 j_t
-notscoreply (j_t rx, j_t tx, const char *type)
+notscoreply (SQL * sqlp, j_t rx, j_t tx, const char *type)
 {                               // Make reply message, set tx, return payload
    char *routing = strdupa (j_get (rx, "envelope.routingID"));
    if (!routing)
@@ -509,8 +509,15 @@ notscoreply (j_t rx, j_t tx, const char *type)
    j_t source = j_store_object (envelope, "source");
    j_store_string (source, "type", "RCPID");
    j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity")); // Note, example is TOTSCO, but surely it should be original destination identity regardless?
-   if (type && (v = j_get (rx, "envelope.destination.correlationID")))
+   if (type && (v = j_get (rx, "envelope.destination.correlationID")) && *v)
       j_store_string (source, "correlationID", v);
+   else
+   {                            // Make one up...
+      SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
+      if (sql_fetch_row (u))
+         j_store_string (source, "correlationID", sql_col (u, "U"));
+      sql_free_result (u);
+   }
    j_t destination = j_store_object (envelope, "destination");
    j_store_string (destination, "type", "RCPID");
    j_store_string (destination, "identity", j_get (rx, "envelope.source.identity"));
@@ -526,7 +533,7 @@ void
 notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
 {                               // Fault code return message to other RCP
    j_t t = j_create ();
-   j_t payload = notscoreply (rx, t, code >= 9000 ? NULL : "Failure");
+   j_t payload = notscoreply (sqlp, rx, t, code >= 9000 ? NULL : "Failure");
    if (sor && *sor)
       j_store_stringf (payload, "switchOrderReference", sor);
    char codes[20];
@@ -788,13 +795,12 @@ syntaxcheck (j_t j, FILE * e)
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = isrcpid (val)))
             expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "an RCPID", info);
          expect_string (e, "API§2.1.5", v, "correlationID",
-			 (*tag == 's' && routing && strcmp (routing, "messageDeliveryFailure"))
+                        (*tag == 's' && routing && strcmp (routing, "messageDeliveryFailure"))
                         || (*tag == 'd' && routing && !strstr (routing, "Request")) ? NULL : "");
       }
       check ("source");
       check ("destination");
-      if (routing && strstr (routing, "Request") &&
-          (val = j_get (envelope, "destination.correlationID")) && *val)
+      if (routing && strstr (routing, "Request") && (val = j_get (envelope, "destination.correlationID")) && *val)
          fprintf (e,
                   "API§2.1.5 envelope.destination.correlationID would only be populated when the message is being sent in response to a message previously sent to you. TOSTCO confirm this is not expected for any Request message.\n");
       if (routing && !strcmp (routing, "messageDeliveryFailure") && (val = j_get (envelope, "source.correlationID")) && *val)

@@ -143,7 +143,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
       else if (reply)
       {
          j_t tx = j_create ();
-         j_t payload = notscoreply (rx, tx, "Confirmation");
+         j_t payload = notscoreply (sqlp, rx, tx, "Confirmation");
          SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
          if (sql_fetch_row (u))
             j_store_string (j_find (tx, "envelope.source"), "correlationID", sql_col (u, "U"));
@@ -320,7 +320,7 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
    if (!code)
    {
       j_t tx = j_create ();
-      j_t payload = notscoreply (rx, tx, "Confirmation");
+      j_t payload = notscoreply (sqlp, rx, tx, "Confirmation");
       j_store_string (payload, "switchOrderReference", sor);
       j_store_string (payload, "status", newstatus);
       notscotx (sqlp, tester, tx);
