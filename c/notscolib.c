@@ -787,15 +787,16 @@ syntaxcheck (j_t j, FILE * e)
          expect_string (e, "API§2.1.5", v, "type", "RCPID");
          if ((val = expect_string (e, "API§2.1.5", v, "identity", NULL)) && (info = isrcpid (val)))
             expected (e, "OTS§2.2.1", v, NULL, "identity", NULL, "an RCPID", info);
-         expect_string (e, "API§2.1.5", v, "correlationID", (*tag == 's' && routing && strcmp (routing, "messageDeliveryFailure"))
+         expect_string (e, "API§2.1.5", v, "correlationID",
+			 (*tag == 's' && routing && strcmp (routing, "messageDeliveryFailure"))
                         || (*tag == 'd' && routing && !strstr (routing, "Request")) ? NULL : "");
       }
       check ("source");
       check ("destination");
-      if (routing && !strcmp (routing, "residentialSwitchMatchRequest") &&
+      if (routing && strstr (routing, "Request") &&
           (val = j_get (envelope, "destination.correlationID")) && *val)
          fprintf (e,
-                  "API§2.1.5 envelope.destination.correlationID would only be populated when the message is being sent in response to a message previously sent to you.\n");
+                  "API§2.1.5 envelope.destination.correlationID would only be populated when the message is being sent in response to a message previously sent to you. TOSTCO confirm this is not expected for any Request message.\n");
       if (routing && !strcmp (routing, "messageDeliveryFailure") && (val = j_get (envelope, "source.correlationID")) && *val)
          fprintf (e, "API§2.1.8 envelope.source.correlationID should not be present, despite what API§2.1.5 says.\n");
    }
