@@ -11,6 +11,7 @@ if($?SEND) then
 			goto show
 	endif
         ../bin/notscotx --tester="$TESTER" "$SEND" --sor="$sor" --dated="$dated" --rcpid="$rcpid"
+	sleep 1
         echo "Status: 303"
         echo "Location: https://$HTTP_HOST/control.cgi"
         echo ""

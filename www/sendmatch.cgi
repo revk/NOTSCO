@@ -7,6 +7,7 @@ if($?brand) then
         unsetenv ID
         sqlwrite notsco tester ID="$TESTER"
 	../bin/notscotx --tester="$TESTER" residentialSwitchMatchRequest
+	sleep 1
 	echo "Status: 303"
         echo "Location: https://$HTTP_HOST/control.cgi"
         echo ""
