@@ -20,9 +20,11 @@ if("$CLIENTID" == "")	then
 endif
 setenv LAST `sql notsco 'SELECT lastlogin FROM tester WHERE ID="$TESTER"'`
 sql notsco 'UPDATE tester SET emailed=NOW() WHERE email="$email"'
-xmlsql << END | /usr/sbin/sendmail -B8BITMIME -f "info@$HTTP_HOST" "$email"
-From: <info@$HTTP_HOST> "NOTSCO"
-To: <$email> "CP"
+setenv NEW ""
+if("$LAST" == NULL) setenv NEW "First use of this link must be within 7 days."
+/usr/sbin/sendmail -B8BITMIME -f "info@$HTTP_HOST" "$email" << END
+From: NOSTCO <info@$HTTP_HOST>
+To: CP <$email>
 Subject: One Touch Switching test platform
 
 You have requested a link for One Touch Switching test platform.
@@ -33,9 +35,9 @@ The link to access the test system is:-
 
 Keep this link to allow you access when needed.
 
-<IF LAST=NULL> Use this link within 7 days, or you will have to request a new one.
+$NEW
 
-</IF>If you did not request this, please disregard this email.
+If you did not request this, please disregard this email.
 
 -- 
 NOTSCO Admin

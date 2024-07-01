@@ -99,9 +99,14 @@ residentialSwitchMatchRequest (SQL * sqlp, SQL_RES * res, j_t tx)
 
 void
 residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *routing, const char *rcpid, const char *sor,
-                                const char *nearid, const char *farid, const char *dated)
+                                const char *dated)
 {
-   j_t payload = makemessage (res, tx, routing, nearid, farid);
+   char *sid = NULL;
+   SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS `U`");
+   if (sql_fetch_row (u))
+      sid = strdupa (sql_colz (u, "U"));
+   sql_free_result (u);
+   j_t payload = makemessage (res, tx, routing, sid, NULL);
    j_store_string (j_find (tx, "envelope.source"), "identity", rcpid);
    if (*sor)
       j_store_string (payload, "switchOrderReference", sor);
@@ -113,7 +118,7 @@ residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *r
    }
    char *suffix = strstr (routing, "Request");
    if (suffix)
-      sql_safe_query_f (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`=%#.*s", nearid,
+      sql_safe_query_f (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`=%#.*s", sid,
                         sql_colz (res, "ID"), (int) (suffix - routing), routing);
 }
 
@@ -153,8 +158,6 @@ main (int argc, const char *argv[])
    int tester = 0;
    const char *send = NULL;
    const char *sor = NULL;
-   const char *nearid = NULL;
-   const char *farid = NULL;
    const char *dated = NULL;
    const char *rcpid = NULL;
    poptContext optCon;          // context for parsing command-line options
@@ -162,8 +165,6 @@ main (int argc, const char *argv[])
       const struct poptOption optionsTable[] = {
          {"send", 's', POPT_ARG_STRING, &send, 0, "Send", "MessageType"},
          {"sor", 0, POPT_ARG_STRING, &sor, 0, "Switch Order Reference", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"},
-         {"nearid", 0, POPT_ARG_STRING, &nearid, 0, "Our correlation ID", "ID"},
-         {"farid", 0, POPT_ARG_STRING, &farid, 0, "Their correlation ID", "ID"},
          {"dated", 0, POPT_ARG_STRING, &dated, 0, "Dated", "YYYY-MM-DD"},
          {"rcpid", 0, POPT_ARG_STRING, &rcpid, 0, "RCPID", "XXXX"},
          {"tester", 't', POPT_ARG_INT, &tester, 0, "Tester", "N"},
@@ -204,7 +205,7 @@ main (int argc, const char *argv[])
       else if (!strcmp (send, "residentialSwitchOrderRequest") || !strcmp (send, "residentialSwitchOrderUpdateRequest")
                || !strcmp (send, "residentialSwitchOrderTriggerRequest")
                || !strcmp (send, "residentialSwitchOrderCancellationRequest"))
-         residentialSwitchOrderRequests (&sql, res, tx, send, rcpid, sor, nearid, farid, dated);
+         residentialSwitchOrderRequests (&sql, res, tx, send, rcpid, sor, dated);
       else
          makebad (&sql, res, tx, send);
       notscotx (&sql, tester, tx);

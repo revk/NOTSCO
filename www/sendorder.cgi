@@ -1,4 +1,4 @@
-#!../login/envcgi /bin/csh -fx
+#!../login/envcgi /bin/csh -f
 source ../script/loggedin
 
 if(! $?dated) then
@@ -10,7 +10,7 @@ if($?SEND) then
 		setenv MSG "Set switch order reference"
 			goto show
 	endif
-        ../bin/notscotx --tester="$TESTER" "$SEND" --sor="$sor" --nearid="$nearid" --farid="$farid" --dated="$dated" --rcpid="$rcpid"
+        ../bin/notscotx --tester="$TESTER" "$SEND" --sor="$sor" --dated="$dated" --rcpid="$rcpid"
         echo "Status: 303"
         echo "Location: https://$HTTP_HOST/control.cgi"
         echo ""
@@ -28,8 +28,6 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <table border=1>
 <tr><td>RCPID</td><td><input name=rcpid size=5 maxlength=4 placeholder="XXXX"></td></tr>
 <tr><td>Switch order reference</td><td><input name=sor size=37 maxlength=36 placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"></td></tr>
-<tr><td>Our correlation ID</td><td><input name=nearid size=40 placeholder="ID"></td></tr>
-<tr><td>Their correlation ID</td><td><input name=farid size=40 placeholder="ID"></td></tr>
 <tr><td>Dated</td><td><input name=dated size=11 maxlength=10 placeholder="YYYY-MM-DD"></td></tr>
 </table>
 <p>
@@ -44,16 +42,16 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not found><set found=1><tr><th>Select</th><th>Created</th><th>RCPID</th><th>Switch order reference</th><th>Date</th><th>Status</th></tr></if>
 <sql table=sor where="tester=$TESTER and issuedby='THEM'" order="created" DESC><set found=1>
 <tr>
-<td><button onclick="F.rcpid.value='$rcpid';F.sor.value='$sor';F.nearid.value='$nearid';F.farid.value='$farid';">Select</button></td>
+<td><button onclick="F.rcpid.value='$rcpid';F.sor.value='$sor';">Select</button></td>
 <td><output name=created type=recent></td>
 <td><output name=rcpid></td>
 <td><tt><output name=sor></tt></td>
 <td><output name=dated></td>
 <td><output name=status></td>
-<if status=new><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderRequest">Order</a></td></if>
-<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderUpdateRequest">Update</a></td></if>
-<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderTriggerRequest">Trigger</a></td></if>
-<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&nearid=$+nearid&farid=$+farid&SEND=residentialSwitchOrderCancellationRequest">Cancel</a></td></if>
+<if status=new><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderRequest">Order</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderUpdateRequest">Update</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderTriggerRequest">Trigger</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderCancellationRequest">Cancel</a></td></if>
 </tr>
 </sql>
 </table>
