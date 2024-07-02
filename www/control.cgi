@@ -24,6 +24,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <li><a href="/sendorder.cgi">Send order/update/trigger/cancel</a></li>
 <li><a href="/sendbad.cgi">Send bad messages</a></li>
 <li><a href="/syntaxcheck.cgi">Syntax check JSON</a></li>
+<li><a href="/notes.cgi">Tips, and notes on TOTSCO specifications.</a></li>
 </ul>
 <hr>
 <h2>Today's messages</h2>

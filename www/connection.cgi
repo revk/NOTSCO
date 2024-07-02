@@ -34,7 +34,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <table border=1>
 <tr><td colspan=4><b>Your details</b></td></tr>
 <tr><td>Company name</td><td colspan=3><tt><input name=company size=60 placeholder="Company name"></tt></td></tr>
-<tr><td>RCPID</td><td colspan=3><tt><input name=rcpid size=4 maxlength=4 placeholder=XXXX></tt></td></tr>
+<tr><td>RCPID</td><td colspan=3><tt><input name=rcpid size=4 maxlength=4 placeholder=XXXX></tt> Allocated by TOTSCO, but for testing you can make up - 4 alpha characters.</td></tr>
 <tr><td colspan=4><b>Messages and access to the simulator</b></td></tr>
 <tr><td>Token</td><td align=right><tt>https://</tt></td><td><tt>otshub-token.<output name=HTTP_HOST></tt></td><td><tt>/oauth2/token</tt></td></tr>
 <tr><td>API</td><td align=right><tt>https://</tt></td><td><tt>otshub.<output name=HTTP_HOST></tt></td><td><tt>/directory/v1/entry</tt></td></tr>
