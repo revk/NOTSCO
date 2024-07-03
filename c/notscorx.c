@@ -200,7 +200,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                j_store_string (j, "identifierType", tag);
                j_store_string (j, "identifier", val);
             }
-            if (*alid || *ontref || *ontport)
+            if (*alid || *ontref || atoi (ontport))
             {                   // IAS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "IAS");
@@ -217,7 +217,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             {                   // NBICS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "NBICS");
-               j_store_string (j, "switchAction", alt > 1 ? "OptionToCease" : "OptionToRetain");
+               j_store_string (j, "switchAction", alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceFound");
                j = j_store_array (j, "serviceIdentifiers");
                add (j, "CUPID", cupid);
                add (j, "DN", dn);
