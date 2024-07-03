@@ -200,7 +200,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                j_store_string (j, "identifierType", tag);
                j_store_string (j, "identifier", val);
             }
-            if (*alid || *ontref || atoi (ontport))
+            if (*alid || *ontref || *no || atoi (ontport))
             {                   // IAS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "IAS");
@@ -213,7 +213,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                add (j, "ServiceInformation", sn);
                add (j, "NetworkOperator", no);
             }
-            if (*dn || *partialdn)
+            if (*dn || *partialdn || *cupid)
             {                   // NBICS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "NBICS");
