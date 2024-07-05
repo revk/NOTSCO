@@ -831,6 +831,8 @@ syntaxcheck (j_t j, FILE * e)
                         expected (e, "API§2.1.6", ad, NULL, "value", NULL, "numeric", NULL);
                      else
                         expect_string (e, "API§2.1.6", payload, df ? "code" : "faultCode", "");        // Missing reported later
+                     if (strlen (val) != 4)
+                        fprintf (e, "faultCode is expected to be a 4 digit number\n");
                   } else if (!strcmp (name, "originalDestinationType"))
                   {
                      if (strcmp (val, "RCPID"))
