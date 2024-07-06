@@ -15,7 +15,6 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not apiurl or apiurl=''><li>You need to set up your connection/authentication details before you can send messages.</li></if>
 <if not rcpid or rcpid=''><li>You have not set an RCPID yet.</li></if>
 <if not tokenurl or tokenurl=''><li>You have not set a token API yet.</li></if>
-<if not farclientid or farclientid=''><li>You have not set a Client ID yet.</li></if>
 <if not farclientsecret or farclientsecret=''><li>You have not set a Client Secret yet.</li></if>
 </if>
 <li><a href="/connection.cgi">Connection and authentication</a><if rcpid not rcpid=''> (<output name=rcpid>)</if><if not apiurl or apiurl=''> <b>NOT SET UP</b></if></li>

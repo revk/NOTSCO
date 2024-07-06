@@ -583,22 +583,21 @@ main (int argc, const char *argv[])
    else
    {
       const char *auth = j_get (cgi, "header.Authorization");
+      const char *apikey = j_get (cgi, "header.Apikey");
       const char *host = j_get (cgi, "header.Host");
       const char *script = j_get (cgi, "info.script_name");
       if (!host)
          fail ("No Host header", 500);
       else if (!script)
          fail ("No script_name", 500);
-      else if (!auth || !*auth)
+      else if (!strncmp (host, "otshub-token.", 13))
       {
-         status =
-            notscoerror (tx, 401, 0, 900902, NULL, "Missing Credentials",
-                         "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN'");
-         if (status && status / 100 != 2)
-            fprintf (txe, "HTTP responded with status %d\n", status);
-      } else if (!strncmp (host, "otshub-token.", 13))
-      {
-         if (strncasecmp (auth, "Basic ", 6))
+         description = script;
+         if (!auth || !*auth)
+            status =
+               notscoerror (tx, 401, 0, 900902, NULL, "Missing Credentials",
+                            "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN'");
+         else if (strncasecmp (auth, "Basic ", 6))
             status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
          else
          {
@@ -639,23 +638,51 @@ main (int argc, const char *argv[])
             fprintf (txe, "HTTP responded with status %d\n", status);
       } else if (!strncmp (host, "otshub.", 7))
       {
-         if (strncasecmp (auth, "Bearer ", 7))
-            status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Bearer auth", NULL);
-         else
+         description = script;
+         if (apikey && *apikey)
          {
-            auth += 7;
-            SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `auth` WHERE `bearer`=%#s", auth);
+            SQL_RES *res =
+               sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `farclientid`='' AND `farclientsecret`=%#s", apikey);
             if (sql_fetch_row (res))
             {
-               tester = atoi (sql_colz (res, "tester"));
-               if (j_time (sql_colz (res, "expiry")) < time (0))
-                  fprintf (rxe, "Using expired bearer\n");
-               else
-                  auth = NULL;  // OK
+               tester = atoi (sql_colz (res, "ID"));
+               auth = NULL;     // OK - we don't do expiry
+               if (sql_fetch_row (res))
+                  status =
+                     notscoerror (tx, 401, 0, 900900, NULL, "Unclassified Authentication Failure",
+                                  "Unclassified Authentication Failure - set an unique apikey in settings");
             }
             sql_free_result (res);
-            if (auth)
-               status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", "Access failure");
+            if (auth && !status)
+               status =
+                  notscoerror (tx, 401, 0, 900900, NULL, "Unclassified Authentication Failure",
+                               "Unclassified Authentication Failure");
+         } else if (auth && *auth)
+         {
+            if (strncasecmp (auth, "Bearer ", 7))
+               status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Bearer auth", NULL);
+            else
+            {
+               auth += 7;
+               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `auth` WHERE `bearer`=%#s", auth);
+               if (sql_fetch_row (res))
+               {
+                  tester = atoi (sql_colz (res, "tester"));
+                  if (j_time (sql_colz (res, "expiry")) < time (0))
+                     fprintf (rxe, "Using expired bearer\n");
+                  else
+                     auth = NULL;       // OK
+               }
+               sql_free_result (res);
+               if (auth)
+                  status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", "Access failure");
+            }
+         } else
+            status =
+               notscoerror (tx, 401, 0, 900902, NULL, "Missing Credentials",
+                            "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN' or 'apikey: APIK_KEY'");
+         if (!status)
+         {
             if (!strcmp (script, "/directory/v1/entry"))
             {
                description = "directory API request";
@@ -666,15 +693,19 @@ main (int argc, const char *argv[])
                description = j_get (cgi, "formdata.envelope.routingID") ? : "letterbox API post";
                if (!status)
                   status = letterbox (&sql, tester, cgi, rxe, tx, txe);
-               responsecheck (status, tx, txe);
             } else
                fail ("Incorrect path for API", 500);
          }
       } else
+      {
+         description = host;
          fail ("Unknown Host header", 500);
+      }
    }
    if (!status)
       fail ("Not processed", 500);
+   if (!j_isnull (tx) && status / 100 != 2)
+      responsecheck (status, tx, txe);
    // Log
    fclose (txe);
    fclose (rxe);

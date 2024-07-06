@@ -351,18 +351,16 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             j_t tx = j_create ();
             char *er = NULL;
             const char *url = sql_col (res, "tokenurl");
-            const char *clientid = sql_col (res, "farclientid");
-            const char *clientsecret = sql_col (res, "farclientsecret");
+            const char *clientid = sql_colz (res, "farclientid");
+            const char *clientsecret = sql_colz (res, "farclientsecret");
             sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0");      // Get ID in advance to ensure correct order if other end sends reply before completing
             long id = sql_insert_id (sqlp);
             if (!url || !*url)
                fprintf (txe, "No token URL defined");
-            else if (!clientid || !*clientid)
-               fprintf (txe, "No client ID defined");
-            else if (!clientsecret || !*clientsecret)
+            else if (!*clientsecret)
                fprintf (txe, "No client secret defined");
-            else
-            {
+            else if (*clientid)
+            {                   // Get bearer
                j_store_string (tx, "grant_type", "client_credentials");
                char *valid = NULL;
                asprintf (&valid, "%s:%s", clientid, clientsecret);
@@ -398,17 +396,20 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n", t);
             fclose (txe);
             fclose (rxe);
-            char *txt = j_formdata (tx);
-            char *rxt = NULL;
-            if (j_isstring (rx))
-               rxt = strdup (j_val (rx));
-            else
-               rxt = j_write_pretty_str (rx);
-            sql_safe_query_f (sqlp,
-                              "UPDATE `log` SET `ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
-                              t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
-            free (rxt);
-            free (txt);
+            if (*clientid)
+            {
+               char *txt = j_formdata (tx);
+               char *rxt = NULL;
+               if (j_isstring (rx))
+                  rxt = strdup (j_val (rx));
+               else
+                  rxt = j_write_pretty_str (rx);
+               sql_safe_query_f (sqlp,
+                                 "UPDATE `log` SET `ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
+                                 t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
+               free (rxt);
+               free (txt);
+            }
             if (!j_isnull (rx))
                er = NULL;       // Give up
             j_delete (&rx);
@@ -443,20 +444,25 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          size_t rxlen = 0;
          FILE *rxe = open_memstream (&rxerror, &rxlen);
          char *er = NULL;
+         const char *clientid = sql_colz (res, "farclientid");
+         const char *clientsecret = sql_colz (res, "farclientsecret");
          const char *url = sql_col (res, "apiurl");
          syntaxcheck (tx, txe);
          if (!url || !*url)
             fprintf (txe, "No API URL defined. Not sending request.\n");
-         if (!bearer || !*bearer)
+         if (*clientid && (!bearer || !*bearer))
             fprintf (txe, "We have no authorisation to send this request. Not sending.\n");
          j_t rx = j_create ();
          sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0"); // Get ID in advance to ensure correct order if other end sends reply before completing
          long id = sql_insert_id (sqlp);
-         if (url && *url && bearer && *bearer)
+         if (url && *url && (!*clientid || (bearer && *bearer)))
          {
             // Send message
             t = ms ();
-            er = j_curl_send (curl, tx, rx, bearer, "https://%s", url);
+            if (*clientid)
+               er = j_curl (J_CURL_SEND, curl, tx, rx, bearer, "https://%s", url);
+            else
+               er = j_curl (J_CURL_SEND | J_CURL_APIKEY, curl, tx, rx, clientsecret, "https://%s", url);
             t = ms () - t;
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)
