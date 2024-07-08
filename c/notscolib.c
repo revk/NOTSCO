@@ -625,7 +625,7 @@ locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
    if (location)
       fprintf (e, "%s", location);
    if (is)
-      fprintf (e, " [\"%s\"]", is);
+      fprintf (e, " [%s]", is); // Expects to be quoted and escaped already
    free (location);
 }
 
@@ -650,7 +650,9 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
       v = j_find (parent, tag);
    fprintf (e, "%s: ", ref);
    const char *is = j_val (v);
-   locate (e, tag, parent, v, is);
+   char *jis = j_write_str (v);
+   locate (e, tag, parent, v, jis);
+   free (jis);
    if (!v)
       fprintf (e, " is missing");
    if (is && val && *val && strcmp (is, val))
@@ -697,6 +699,8 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
       return expected (e, ref, parent, v, tag, val, "a JSON string", NULL);
    if (s)
    {
+      if (strstr (s, "<br") || strstr (s, "&apos;") || strstr (s, "&lt;"))
+         return expected (e, ref, parent, v, tag, val, "a string without HTML in it", NULL);
       while (*s && ((unsigned char) (*s)) >= ' ')
          s++;
       if (*s)
@@ -946,10 +950,15 @@ syntaxcheck (j_t j, FILE * e)
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post code", NULL);
                   if (s)
                   {
-                     while (*s && ((unsigned char) (*s)) >= ' ')
-                        s++;
-                     if (*s)
-                        expected (e, "OTS§2.2", lines, l, NULL, NULL, "a string without control characters", NULL);
+                     if (strstr (s, "<br") || strstr (s, "&apos;") || strstr (s, "&lt;"))
+                        expected (e, "OTS§2.2", lines, l, NULL, NULL, "a string without HTML in it", NULL);
+                     else
+                     {
+                        while (*s && ((unsigned char) (*s)) >= ' ')
+                           s++;
+                        if (*s)
+                           expected (e, "OTS§2.2", lines, l, NULL, NULL, "a string without control characters", NULL);
+                     }
                   }
                }
             }
