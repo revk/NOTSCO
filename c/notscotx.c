@@ -187,6 +187,22 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
          j_store_string (payload, "name", "Starmér");
       if (test == 4)
          j_store_string (payload, "name", "O'Conner");
+      if (test == 5)
+         j_store_string (payload, "name", "Tables`ls`");
+      if (test == 6)
+         j_store_string (payload, "name", "\"Shakespear");
+      if (test == 7)
+         j_store_string (payload, "name", "\\Slasher");
+      if (test == 8)
+         j_store_string (payload, "account", "1'234");
+      if (test == 9)
+         j_store_string (payload, "account", "1234`ls`");
+      if (test == 10)
+         j_store_string (payload, "account", "\"1234");
+      if (test == 11)
+         j_store_string (payload, "account", "\\1234");
+      if (test == 12)
+         j_store_string (payload, "account", "1234\n");
       j_t services = j_store_array (payload, "services");
       j_t s = j_append_object (services);
       j_store_string (s, "serviceType", "IAS");
