@@ -1122,10 +1122,22 @@ main (int argc, const char *argv[])
       er = j_read_mem (j, json, -1);
    } else
       er = j_read (j, stdin);
+   char *buf=NULL;
+   size_t s=0;
+   FILE *o=open_memstream(&buf,&s);
    if (er)
-      printf ("JSON error\n%s", er);
+      fprintf (o,"JSON error\n%s", er);
    else
-      syntaxcheck (j, stdout);
+      syntaxcheck (j, o);
+   fclose(o);
+   for (char *b=buf;*b;b++)
+   {
+	   if(*b=='<')printf("&lt;");
+	   else if(*b=='>')printf("&gt;");
+	   else if(*b=='&')printf("&amp;");
+	   else putchar(*b);
+   }
+   free(buf);
    j_delete (&j);
    return 0;
 }
