@@ -692,8 +692,16 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
 {                               // Return string if as expected, if val="" then allow missing, if val non null expects to match val
    j_t v = j_find (parent, tag);
    j_tag (v);
-   if ((!v && (!val || *val)) || (v && !j_isstring (v)) || (v && val && *val && strcmp (j_val (v), val)))
+   const char *s = j_val (v);
+   if ((!v && (!val || *val)) || (v && !j_isstring (v)) || (v && val && *val && strcmp (s, val)))
       return expected (e, ref, parent, v, tag, val, "a JSON string", NULL);
+   if (s)
+   {
+      while (*s && ((unsigned char) (*s)) >= ' ')
+         s++;
+      if (*s)
+         return expected (e, ref, parent, v, tag, val, "a string without control characters", NULL);
+   }
    return j_val (v);
 }
 
@@ -927,14 +935,22 @@ syntaxcheck (j_t j, FILE * e)
                for (j_t l = j_first (lines); l; l = j_next (l))
                {
                   j_tag (l);
-                  if (!j_isstring (l))
+                  const char *s = j_val (l);
+                  if (!j_isstring (l) || !s)
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "a JSON string", NULL);
-                  else if (!*j_val (l))
+                  else if (!*s)
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "a non empty JSON string", NULL);
                   else if (posttown && !strcasecmp (j_val (l), posttown))
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post town", NULL);
                   else if (postcode && !strcasecmp (j_val (l), postcode))
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post code", NULL);
+                  if (s)
+                  {
+                     while (*s && ((unsigned char) (*s)) >= ' ')
+                        s++;
+                     if (*s)
+                        expected (e, "OTS§2.2", lines, l, NULL, NULL, "a string without control characters", NULL);
+                  }
                }
             }
             j_t services = expect_array (e, "OTS§2.2", payload, "services");
@@ -1080,6 +1096,7 @@ syntaxcheck (j_t j, FILE * e)
          }
       }
    }
+
    unexpected (e, j);
 }
 
