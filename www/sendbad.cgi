@@ -36,6 +36,8 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td><input type=submit name=SEND value=TestMatch11></td><td>Send a match with quote in account.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch12></td><td>Send a match with backslash in account.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch13></td><td>Send a match with newline in account.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch14></td><td>Send a match with Welsh accented place name address.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch15></td><td>Send a match with very long address..</td></tr>
 </table>
 </form>
 'END'
