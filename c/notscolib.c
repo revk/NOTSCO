@@ -1039,6 +1039,7 @@ syntaxcheck (j_t j, FILE * e)
                         {
                            if (!strcmp (it, "NetworkOperator") && (info = ispattern (id, "ANNN")))
                               expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Letter and three digits", info);
+			   if(!strcmp (it, "NetworkOperator")&&!strcmp(id,"VOIP"))fprintf(e,"OTS§2.2.1 is a tad vague, but does say A and there digits, and they define A000 as VOIP.\n");
                            if (!strcmp (it, "DN") && (info = istelephone (id)))
                               expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Telephone number", info);
                            if (!strcmp (it, "PartialDN") && (info = ispattern (id, "NN")))
