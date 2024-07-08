@@ -625,7 +625,7 @@ locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
    if (location)
       fprintf (e, "%s", location);
    if (is)
-      fprintf (e, " [%s]", is); // Expects to be quoted and escaped already
+      fprintf (e, " %s", is); // Expects to be quoted and escaped already
    free (location);
 }
 
