@@ -23,6 +23,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td><input type=submit name=SEND value=BadEnvelope5></td><td>Send a message with missing destination type.</td></tr>
 <tr><td><input type=submit name=SEND value=BadEnvelope6></td><td>Send a message with source type.</td></tr>
 <tr><td><input type=submit name=SEND value=BadRouting></td><td>Send a message bad routing.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch1></td><td>Send a match with apostrophe in post town.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch2></td><td>Send a match with apostrophe in address.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch3></td><td>Send a match with accent in surname.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch4></td><td>Send a match with apostrophe in surname.</td></tr>
 </table>
 </form>
 'END'

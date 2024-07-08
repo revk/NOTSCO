@@ -21,7 +21,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <li><a href="/response.cgi">Set up responses</a></li>
 <li><a href="/sendmatch.cgi">Send a match request</a><if postcode not postcode=''> (<output name=postcode>)</if></li>
 <li><a href="/sendorder.cgi">Send order/update/trigger/cancel</a></li>
-<li><a href="/sendbad.cgi">Send bad messages</a></li>
+<li><a href="/sendbad.cgi">Send bad/test messages</a></li>
 <li><a href="/syntaxcheck.cgi">Syntax check JSON</a></li>
 <li><a href="/notes.cgi">Tips, and notes on TOTSCO specifications.</a></li>
 </ul>

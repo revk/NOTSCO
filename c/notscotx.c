@@ -133,8 +133,7 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
    if (sql_fetch_row (u))
       sid = strdupa (sql_colz (u, "U"));
    sql_free_result (u);
-   //j_t payload =
-   makemessage (res, tx, routing, sid, NULL);
+   j_t payload = makemessage (res, tx, routing, sid, NULL);
    j_store_string (j_find (tx, "envelope"), "test", send);
    if (!strcmp (send, "BadEnvelope1"))
       j_store_string (j_find (tx, "envelope.source"), "type", "Silly");
@@ -148,7 +147,53 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
       j_free (j_find (tx, "envelope.destination.type"));
    else if (!strcmp (send, "BadEnvelope6"))
       j_free (j_find (tx, "envelope.source.type"));
-   // TODO some other stuff.
+   else if (!strncmp (send, "TestMatch", 9))
+   {
+      int test = atoi (send + 9);
+      char *val;
+      if (*(val = sql_colz (res, "brand")))
+         j_store_string (payload, "grcpBrandName", val);
+      if (*(val = sql_colz (res, "surname")))
+         j_store_string (payload, "name", val);
+      if (*(val = sql_colz (res, "account")))
+         j_store_string (payload, "account", val);
+      j_t address = j_store_object (payload, "address");
+      if (*(val = sql_colz (res, "posttown")))
+         j_store_string (address, "postTown", val);
+      if (*(val = sql_colz (res, "postcode")))
+         j_store_string (address, "postCode", val);
+      j_t lines = j_store_array (address, "addressLines");
+      if (test == 1)
+      {
+         j_append_string (lines, "Post Office");
+         j_append_string (lines, "75A South Street");
+         j_store_string (address, "postTown", "BISHOP'S STORTFORD");
+         j_store_string (address, "postCode", "CM23 3AL");
+      } else if (test == 2)
+      {
+         j_append_string (lines, "Royal Parks Office");
+         j_append_string (lines, "Store Yard");
+         j_append_string (lines, "St. James's Park");
+         j_store_string (address, "postTown", "LONDON");
+         j_store_string (address, "postCode", "SW1A 3BJ");
+      } else
+      {
+         j_append_string (lines, "Prime Minister & First Lord Of The Treasury");
+         j_append_string (lines, "10 Downing Street");
+         j_store_string (address, "postTown", "LONDON");
+         j_store_string (address, "postCode", "SW1A 2AA");
+      }
+      if (test == 3)
+         j_store_string (payload, "name", "Starmér");
+      if (test == 4)
+         j_store_string (payload, "name", "O'Conner");
+      j_t services = j_store_array (payload, "services");
+      j_t s = j_append_object (services);
+      j_store_string (s, "serviceType", "IAS");
+      j_store_string (s, "action", "cease");
+      sql_safe_query_f (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`='residentialSwitchMatch'",
+                        j_get (tx, "envelope.source.correlationID"), sql_colz (res, "ID"));
+   }
 }
 
 int
