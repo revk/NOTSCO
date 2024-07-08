@@ -1135,6 +1135,7 @@ main (int argc, const char *argv[])
 	   if(*b=='<')printf("&lt;");
 	   else if(*b=='>')printf("&gt;");
 	   else if(*b=='&')printf("&amp;");
+	   else if(*b=='\n')printf("<br>");
 	   else putchar(*b);
    }
    free(buf);
