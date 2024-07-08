@@ -20,7 +20,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <h2>Network Operator</h2>
 <p>OTS§2.2.1 says of NetworkOperator: <i>Network operators will be identified by A and 3 numbers, e.g. A001. “A” should be memorable as “Access Provider”</i> which is nice and clear.</p>
 <p>It then goes on to say <i>If the NBICS is found as VoIP service, the network operator can be retuned as “VOIP”</i> which directly contradicts that. It makes no sense as any number on the PSTN, even if it uses VoIP to connect to a customer, will have an actual network opertator, which the gaining provider will need to know.</p>
-<p>The Access Network Operators List defines <tt>A000</tt> as VOIP, so presumably they actually mean use "A000" not "VOIP" as a NetrworkOperator.</p>
+<p>The Access Network Operators List defines <tt>A000</tt> as VOIP, so presumably they actually mean use "A000" not "VOIP" as a NetworkOperator.</p>
 <p>But then OTS§3.2.1 has an example with NetworkOperator as "VOIP".</p>
 <p>Sorry, but at this point, your guess is as good as mine. I hope CPs do provide the actual network operator (Axxx).</p>
 <h2>Empty strings</h2>
