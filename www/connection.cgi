@@ -42,7 +42,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Client ID</td><td colspan=3><tt><output name=clientid></tt></td></tr>
 <tr><td>Client Secret</td><td colspan=3><tt><output name=clientsecret></tt></td></tr>
 <tr><td colspan=4><b>Messages from the simulator</b></td></tr>
-<tr><td>Token</td><td align=right><tt>https://</tt></td><td colspan=2><tt><input name=tokenurl size=50 placeholder="URL (usuall end /oauth2/token)"></tt></td></tr>
+<tr><td>OAUTH2 Token</td><td align=right><tt>https://</tt></td><td colspan=2><tt><input name=tokenurl size=50 placeholder="URL (usually end /oauth2/token), blank for APIKEY use"></tt></td></tr>
 <tr><td>API</td><td align=right><tt>https://</tt></td><td colspan=2><tt><input name=apiurl size=50 placeholder="URL (usually end /letterbox/v1/post)"></tt></td></tr>
 <tr><td>Client ID</td><td colspan=3><tt><input name=farclientid size=80 placeholder="ID (or blank for APIKEY)"></tt></td></tr>
 <tr><td>Client Secret</td><td colspan=3><tt><input name=farclientsecret size=80 placeholder="Secret or APIKEY"></tt><br>(leave Client ID blank to use this as an apikey)</td></tr>
