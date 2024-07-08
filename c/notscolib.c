@@ -625,7 +625,7 @@ locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
    if (location)
       fprintf (e, "%s", location);
    if (is)
-      fprintf (e, " %s", is); // Expects to be quoted and escaped already
+      fprintf (e, " %s", is);   // Expects to be quoted and escaped already
    free (location);
 }
 
@@ -648,7 +648,8 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
 {                               // Report expected and return NULL
    if (!v && tag)
       v = j_find (parent, tag);
-   fprintf (e, "%s: ", ref);
+   if (ref)
+      fprintf (e, "%s: ", ref);
    const char *is = j_val (v);
    char *jis = j_write_str (v);
    locate (e, tag, parent, v, jis);
@@ -690,6 +691,24 @@ expect_array (FILE * e, const char *ref, j_t parent, const char *tag)
 }
 
 static const char *
+check_string (const char *s)
+{
+   if (!s)
+      return NULL;
+   const char *p;
+   for (p = s; *p && ((unsigned char) (*p)) >= ' '; p++);
+   if (*p)
+      return "a string without control characters";
+   if (strstr (s, "&amp;") || strstr (s, "&lt;") || strstr (s, "&gt;") || strstr (s, "&apos;") || strstr (s, "&quot;"))
+      return "a string without XML";
+   if (strcasestr (s, "<br") || strcasestr (s, "</br"))
+      return "a string without HTML";
+   if (strcasestr (s, "<script") || strcasestr (s, "</script"))
+      return "a string without script tags";
+   return NULL;
+}
+
+static const char *
 expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const char *val)
 {                               // Return string if as expected, if val="" then allow missing, if val non null expects to match val
    j_t v = j_find (parent, tag);
@@ -697,15 +716,9 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
    const char *s = j_val (v);
    if ((!v && (!val || *val)) || (v && !j_isstring (v)) || (v && val && *val && strcmp (s, val)))
       return expected (e, ref, parent, v, tag, val, "a JSON string", NULL);
-   if (s)
-   {
-      if (strstr (s, "<br") || strstr (s, "&apos;") || strstr (s, "&lt;"))
-         return expected (e, ref, parent, v, tag, val, "a string without HTML in it", NULL);
-      while (*s && ((unsigned char) (*s)) >= ' ')
-         s++;
-      if (*s)
-         return expected (e, ref, parent, v, tag, val, "a string without control characters", NULL);
-   }
+   const char *er = check_string (s);
+   if (er)
+      return expected (e, ref, parent, v, tag, val, er, NULL);
    return j_val (v);
 }
 
@@ -948,18 +961,9 @@ syntaxcheck (j_t j, FILE * e)
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post town", NULL);
                   else if (postcode && !strcasecmp (j_val (l), postcode))
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post code", NULL);
-                  if (s)
-                  {
-                     if (strstr (s, "<br") || strstr (s, "&apos;") || strstr (s, "&lt;"))
-                        expected (e, "OTS§2.2", lines, l, NULL, NULL, "a string without HTML in it", NULL);
-                     else
-                     {
-                        while (*s && ((unsigned char) (*s)) >= ' ')
-                           s++;
-                        if (*s)
-                           expected (e, "OTS§2.2", lines, l, NULL, NULL, "a string without control characters", NULL);
-                     }
-                  }
+                  const char *er = check_string (s);
+                  if (er)
+                     expected (e, "OTS§2.2", lines, l, NULL, NULL, er, NULL);
                }
             }
             j_t services = expect_array (e, "OTS§2.2", payload, "services");
@@ -1122,23 +1126,28 @@ main (int argc, const char *argv[])
       er = j_read_mem (j, json, -1);
    } else
       er = j_read (j, stdin);
-   char *buf=NULL;
-   size_t s=0;
-   FILE *o=open_memstream(&buf,&s);
+   char *buf = NULL;
+   size_t s = 0;
+   FILE *o = open_memstream (&buf, &s);
    if (er)
-      fprintf (o,"JSON error\n%s", er);
+      fprintf (o, "JSON error\n%s", er);
    else
       syntaxcheck (j, o);
-   fclose(o);
-   for (char *b=buf;*b;b++)
+   fclose (o);
+   for (char *b = buf; *b; b++)
    {
-	   if(*b=='<')printf("&lt;");
-	   else if(*b=='>')printf("&gt;");
-	   else if(*b=='&')printf("&amp;");
-	   else if(*b=='\n')printf("<br>");
-	   else putchar(*b);
+      if (*b == '<')
+         printf ("&lt;");
+      else if (*b == '>')
+         printf ("&gt;");
+      else if (*b == '&')
+         printf ("&amp;");
+      else if (*b == '\n')
+         printf ("<br>");
+      else
+         putchar (*b);
    }
-   free(buf);
+   free (buf);
    j_delete (&j);
    return 0;
 }
