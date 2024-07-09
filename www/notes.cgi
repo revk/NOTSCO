@@ -22,7 +22,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <p>It then goes on to say <i>If the NBICS is found as VoIP service, the network operator can be retuned as “VOIP”</i> which directly contradicts that. It makes no sense as any number on the PSTN, even if it uses VoIP to connect to a customer, will have an actual network opertator, which the gaining provider will need to know.</p>
 <p>The Access Network Operators List defines <tt>A000</tt> as VOIP, so presumably they actually mean use "A000" not "VOIP" as a NetworkOperator.</p>
 <p>But then OTS§3.2.1 has an example with NetworkOperator as "VOIP".</p>
-<p>Sorry, but at this point, your guess is as good as mine. I hope CPs do provide the actual network operator (Axxx).</p>
+<p>TOTSCO have now confirmed (TOTSCO-34207) that it should be <tt>A000</tt> that is used.</p>
 <h2>Empty strings</h2>
 <p>It looks like all simple types are done as JSON strings, though I am not sure the spec says that, and even, in one place, says a field is <i>numeric</i> even though the example then has a string with numbers in it.</p>
 <p>Also, in at lease one example, a field that is <i>optional</i> and <i>would not be populated</i> is actually included as an empty string. What we have chosen to do is not send optional fields for which we have no value, but to accept an empty string in such a field as if it was not populated. Again, it would be nice if the specification was clear.</p>

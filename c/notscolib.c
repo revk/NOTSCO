@@ -1041,7 +1041,7 @@ syntaxcheck (j_t j, FILE * e)
                               expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Letter and three digits", info);
                            if (!strcmp (it, "NetworkOperator") && !strcmp (id, "VOIP"))
                               fprintf (e,
-                                       "OTS§2.2.1 is a tad vague, but does say A and there digits, and they define A000 as VOIP.\n");
+                                       "OTS§2.2.1 is a tad vague, but ticket TOTSCO-34207 confirms it should be A000 that is used for VOIP.\n");
                            if (!strcmp (it, "DN") && (info = istelephone (id)))
                               expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Telephone number", info);
                            if (!strcmp (it, "PartialDN") && (info = ispattern (id, "NN")))
