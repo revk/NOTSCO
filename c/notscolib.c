@@ -1022,7 +1022,7 @@ syntaxcheck (j_t j, FILE * e)
                   if (sa && strcmp (sa, "ServiceFound") && strcmp (sa, "ServiceWithAnotherRCP")
                       && strcmp (sa, "ServiceWithAnotherCust") && strcmp (sa, "ServiceNotFound")
                       && strcmp (sa, "ForcedCease") && strcmp (sa, "OptionToCease") && strcmp (sa, "OptionToRetain"))
-                     expected (e, "OTS§2.2.1", s, NULL, "ServiceWithAnotherRCP", NULL, "valid value", NULL);
+                     expected (e, "OTS§2.2.1", s, NULL, "switchAction", NULL, "valid value", NULL);
                   j_t si = expect_array (e, "OTS§2.2.1", s, "serviceIdentifiers");
                   if (si && st)
                      for (j_t i = j_first (si); i; i = j_next (i))
