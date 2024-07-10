@@ -137,6 +137,12 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    if (sql_fetch_row (res))
    {
+      {                         // Check obvious
+         const char *rcpid = j_get (rx, "envelope.source.identity");
+         const char *sid = j_get (rx, "envelope.source.correlationID");
+         if (sid && rcpid && !strncmp (sid, rcpid, 4) && !strcmp (sid + 4, "_1"))
+            fprintf (rxe, "Using a fixed source correlationID would not allow you to match responses to requests reliably.\n");
+      }
       int reply = atoi (sql_colz (res, "matchresponse"));
       if (reply >= 1000)
          code = reply;
