@@ -327,7 +327,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
    if (sql_fetch_row (res))
    {
       CURL *curl = curl_easy_init ();
-      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+      curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
       curl_easy_setopt (curl, CURLOPT_USERAGENT, "Synapse-PT-HttpComponents-NIO");      // As per TOTSCO
       int secs = 0;
       const char *bearer = NULL;
@@ -1109,7 +1109,7 @@ syntaxcheck (j_t j, FILE * e)
             if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             if ((val = expect_string (e, ref, payload, "status", NULL)) && strcmp (val, expectstate))
-               expected (e, ref, payload, NULL, "status", NULL, expectstate, NULL);
+               expected (e, ref, payload, NULL, "status", expectstate, NULL, NULL);
          }
       }
    }
