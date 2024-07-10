@@ -652,7 +652,8 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
    if (ref)
       fprintf (e, "%s: ", ref);
    const char *is = j_val (v);
-   char *jis = j_write_str (v);
+   char *jis = NULL;
+   if(!j_isarray(v)&&!j_isobject(v))jis=j_write_str (v);
    locate (e, tag, parent, v, jis);
    free (jis);
    if (!v)
