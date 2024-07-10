@@ -1109,7 +1109,7 @@ syntaxcheck (j_t j, FILE * e)
             if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             if ((val = expect_string (e, ref, payload, "status", NULL)) && strcmp (val, expectstate))
-               expected (e, ref, payload, NULL, "switchOrderReference", NULL, expectstate, NULL);
+               expected (e, ref, payload, NULL, "status", NULL, expectstate, NULL);
          }
       }
    }
