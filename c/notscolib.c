@@ -327,6 +327,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
    if (sql_fetch_row (res))
    {
       CURL *curl = curl_easy_init ();
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
       curl_easy_setopt (curl, CURLOPT_USERAGENT, "Synapse-PT-HttpComponents-NIO");      // As per TOTSCO
       int secs = 0;
       const char *bearer = NULL;
