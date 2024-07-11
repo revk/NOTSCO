@@ -736,7 +736,7 @@ main (int argc, const char *argv[])
       rxt = j_write_pretty_str (rx);
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
-                     "INSERT INTO `log` SET `ID`=0,`ts`=NOW(),`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                     "INSERT INTO `log` SET `ID`=0,`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
                      status, ip, description, j_isnull (rx) ? *rxerror ? "" : NULL : rxt, *rxerror ? rxerror : NULL,
                      j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL);
    if (tester)

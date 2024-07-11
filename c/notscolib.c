@@ -406,7 +406,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                else
                   rxt = j_write_pretty_str (rx);
                sql_safe_query_f (sqlp,
-                                 "UPDATE `log` SET `ms`=%lld,`tester`=%d,`ts`=NOW(),`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
+                                 "UPDATE `log` SET `ms`=%lld,`tester`=%d,`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
                                  t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
                free (rxt);
                free (txt);
@@ -481,7 +481,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          else
             rxt = j_write_pretty_str (rx);
          sql_safe_query_f (sqlp,
-                           "UPDATE `log` SET `tester`=%d,`ts`=NOW(),`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%ld",
+                           "UPDATE `log` SET `tester`=%d,`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%ld",
                            tester, description, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL, status, t,
                            j_isnull (rx) ? *rxerror ? "" : NULL : rxt, *rxerror ? rxerror : NULL, id);
          free (rxt);

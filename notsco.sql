@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=298 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -62,7 +62,7 @@ DROP TABLE IF EXISTS `log`;
 CREATE TABLE `log` (
   `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `tester` int(10) unsigned DEFAULT NULL,
-  `ts` datetime NOT NULL DEFAULT curtime(),
+  `ts` datetime(3) DEFAULT curtime(3),
   `description` tinytext DEFAULT NULL,
   `status` int(3) unsigned DEFAULT NULL,
   `ip` varchar(39) DEFAULT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1780 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -110,8 +110,6 @@ CREATE TABLE `sor` (
   `tester` int(10) unsigned DEFAULT NULL,
   `rcpid` char(4) DEFAULT NULL,
   `sor` uuid NOT NULL,
-  `nearid` tinytext DEFAULT NULL,
-  `farid` tinytext DEFAULT NULL,
   `issuedby` enum('US','THEM') DEFAULT NULL,
   `created` datetime NOT NULL DEFAULT curtime(),
   `dated` date DEFAULT NULL,
@@ -121,7 +119,7 @@ CREATE TABLE `sor` (
   KEY `sor_tester` (`tester`),
   KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -191,4 +189,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-06-29 15:24:52
+-- Dump completed on 2024-07-11  8:21:54
