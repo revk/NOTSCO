@@ -61,14 +61,7 @@ isrcpid (const char *u)
 static const char *
 isuuid (const char *u)
 {
-   const char *e = ispattern (u, "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX");
-   if (e)
-      return e;
-   while (*u && !isalpha (*u))
-      u++;
-   if (!*u)
-      return NULL;
-   return "Whilst upper case is valid, RFC 4122 says you should generate a UUID in lower case.";
+   return ispattern (u, "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX");
 }
 
 static const char *
