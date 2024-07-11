@@ -391,6 +391,40 @@ messageDeliveryFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE
    return 202;
 }
 
+void
+checkdelay (FILE * e, const char * routing, time_t ref)
+{
+   time_t now = time (0);
+   int lag = now - ref;
+   if (strstr (routing, "Match"))
+   {
+      if (lag > 60)
+         fprintf (e, "IP§9.2 Response delay is %ds, which is longer than 99%% SLA (60s)\n", lag);
+   } else if (strstr (routing, "Trigger"))
+   {
+      struct tm t;
+      localtime_r (&ref, &t);
+      do
+      {
+         t.tm_hour = 23;
+         t.tm_min = 59;
+         t.tm_sec = 59;
+         t.tm_mday++;
+         t.tm_isdst = -1;
+         ref = mktime (&t);
+      }
+      while (t.tm_mday < 1 || t.tm_mday > 5);
+      if (now > ref)
+         fprintf (e, "IP§9.2 Response delay is %ds, which is longer than 99%% SLA (end of next working day)\n", lag);
+   } else
+   {
+      if (lag > 7200)
+         fprintf (e, "IP§9.2 Response delay is %ds, which is longer than 99%% SLA (2h)\n", lag);
+      else if (lag > 3600)
+         fprintf (e, "IP§9.2 Response delay is %ds, which is longer than 95%% SLA (1h)\n", lag);
+   }
+}
+
 int
 letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 {                               // Handle posted message
@@ -494,12 +528,9 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                exit (0);        // Force apache to actually give up
             if (delay)
             {                   // Delay and SLA warning
+               time_t ref = time (0);
                sleep (delay);
-               int max = 7200;
-               if (strstr (routing, "Match"))
-                  max = 60;
-               if (delay > max)
-                  fprintf (txe, "The selected delay (%ds) is longer than the SLA of %ds.\n", delay, max);
+               checkdelay (txe, routing, ref);
             }
             SQL sql;
             sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
@@ -531,13 +562,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                {
                   if (sql_col (res, "recd"))
                      fprintf (rxe, "Duplicate response to %s.\n", routing);
-                  int lag = time (0) - sql_time (sql_colz (res, "sent"));
-                  int max = 7200;
-                  if (strstr (routing, "Match"))
-                     max = 60;
-                  if (lag > max)
-                     fprintf (rxe, "IP§9.2 Response to %.*sRequest after more than %d seconds (%ds).\n", (int) (suffix - routing),
-                              routing, max, lag);
+                  checkdelay (rxe, routing, sql_time (sql_colz (res, "sent")));
                   sql_safe_query_f (sqlp,
                                     "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s AND `request`=%#.*s",
                                     tester, did, (int) (suffix - routing), routing);
@@ -647,8 +672,8 @@ main (int argc, const char *argv[])
          description = script;
          if (apikey && *apikey)
          {
-            SQL_RES *res =
-               sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `farclientid`='' AND `farclientsecret`=%#s", apikey);
+            SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `farclientid`='' AND `farclientsecret`=%#s",
+                                                   apikey);
             if (sql_fetch_row (res))
             {
                tester = atoi (sql_colz (res, "ID"));
@@ -718,8 +743,9 @@ main (int argc, const char *argv[])
    const char *ip = j_get (cgi, "info.remote_addr");
    if (!tester)
    {                            // Guess tester from IP
-      SQL_RES *res =
-         sql_safe_query_store_f (&sql, "SELECT DISTINCT `tester` FROM `log` WHERE `ip`=%#s AND `tester` IS NOT NULL LIMIT 2", ip);
+      SQL_RES *res = sql_safe_query_store_f (&sql,
+                                             "SELECT DISTINCT `tester` FROM `log` WHERE `ip`=%#s AND `tester` IS NOT NULL LIMIT 2",
+                                             ip);
       if (sql_fetch_row (res))
       {
          int t = atoi (sql_colz (res, "tester"));
@@ -737,8 +763,8 @@ main (int argc, const char *argv[])
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
                      "INSERT INTO `log` SET `ID`=0,`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
-                     status, ip, description, j_isnull (rx) ? *rxerror ? "" : NULL : rxt, *rxerror ? rxerror : NULL,
-                     j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL);
+                     status, ip, description, j_isnull (rx) ? *rxerror ? "" : NULL : rxt,
+                     *rxerror ? rxerror : NULL, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    free (rxt);
