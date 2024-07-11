@@ -1,5 +1,5 @@
 #!/bin/csh -f
-set path=($path ../xmlsql ../SQLlib)
+set path=(../xmlsql ../SQLlib $path)
 
 echo "Content-Type: text/html"
 echo ""

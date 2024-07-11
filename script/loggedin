@@ -1,4 +1,4 @@
-set path=($path ../xmlsql ../SQLlib)
+set path=(../xmlsql ../SQLlib $path)
 if(! $?COOKIE_NOTSCO) goto fail
 setenv TESTER `sql notsco 'SELECT ID FROM tester WHERE clientid="$COOKIE_NOTSCO"'`
 if("$TESTER" == "") goto fail

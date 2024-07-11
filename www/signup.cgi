@@ -1,5 +1,5 @@
 #!../login/envcgi /bin/csh -f
-set path=($path ../xmlsql ../SQLlib)
+set path=(../xmlsql ../SQLlib $path)
 if(! $?email) setenv email ""
 if("$email" == "") then
 	echo "Location: /"

@@ -1,5 +1,5 @@
 #!../login/envcgi /bin/csh -f
-set path=($path ../xmlsql ../SQLlib)
+set path=(../xmlsql ../SQLlib $path)
 if(! $?PATH_INFO) goto fail
 setenv CLIENTID "$PATH_INFO:t"
 setenv TESTER `sql notsco 'SELECT ID FROM tester WHERE clientid="$CLIENTID"'`
