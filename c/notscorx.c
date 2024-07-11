@@ -312,7 +312,7 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
          if (date && date + 86399 < j_time (sql_colz (res, "created")))
             return base + 3;    // Backwards from created
          if (base <= 1300 && date + 83999 < now)
-            return base + 2;    // Backwards from now (allow for trigger)
+            return base + 3;    // Backwards from now (allow for trigger)
          if (!strcmp (status, "triggered"))
             return base + 4;
          if (!strcmp (status, "cancelled"))
