@@ -266,7 +266,7 @@ checksor (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *s
 void
 progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const char *routing)
 {
-   const char *date = NULL;
+   time_t date = 0;
    const char *rcpid = j_get (rx, "envelope.destination.identity");
    const char *sor = j_get (payload, "switchOrderReference");
    checksor (sqlp, tester, rx, rxe, payload, sor, rcpid, 0);
@@ -301,12 +301,18 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
       int process (void)
       {
          const char *status = sql_colz (res, "status");
-         if (j_time (sql_colz (res, "created")) < now - 86400 * 31)
-            return base + 2;
-         if ((base == 1200 || base == 1300) && !(date = j_get (payload, "plannedSwitchDate")))
+         if (base == 1200 && now >= j_time (sql_colz (res, "created")) + 86400 * 32)
+            return base + 2;    // 31 days of created from order
+         if (base != 1200 && now >= j_time (sql_colz (res, "dated")) + 86400 * 32)
+            return base + 2;    // 31 days of created from last planned date
+         if ((base == 1200 || base == 1300) && !(date = j_time (j_get (payload, "plannedSwitchDate"))))
             return base + 3;
-         if (base == 1400 && !(date = j_get (payload, "activationDate")))
+         if (base == 1400 && !(date = j_time (j_get (payload, "activationDate"))))
             return base + 3;
+         if (date && date + 86399 < j_time (sql_colz (res, "created")))
+            return base + 3;    // Backwards from created
+         if (base <= 1300 && date + 83999 < now)
+            return base + 2;    // Backwards from now (allow for trigger)
          if (!strcmp (status, "triggered"))
             return base + 4;
          if (!strcmp (status, "cancelled"))
@@ -331,7 +337,7 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
       j_store_string (payload, "status", newstatus);
       notscotx (sqlp, tester, tx);
       sql_safe_query_f (sqlp,
-                        "UPDATE `sor` SET `dated`=%#s,`status`=%#s WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
+                        "UPDATE `sor` SET `dated`=%#.10T,`status`=%#s WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
                         date, newstatus, tester, sor, rcpid);
    } else
       notscofailure (sqlp, tester, rx, code, sor);
@@ -392,7 +398,7 @@ messageDeliveryFailure (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t tx, FILE
 }
 
 void
-checkdelay (FILE * e, const char * routing, time_t ref)
+checkdelay (FILE * e, const char *routing, time_t ref)
 {
    time_t now = time (0);
    int lag = now - ref;
