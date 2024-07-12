@@ -27,5 +27,5 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <p>It looks like all simple types are done as JSON strings, though I am not sure the spec says that, and even, in one place, says a field is <i>numeric</i> even though the example then has a string with numbers in it.</p>
 <p>Also, in at lease one example, a field that is <i>optional</i> and <i>would not be populated</i> is actually included as an empty string. What we have chosen to do is not send optional fields for which we have no value, but to accept an empty string in such a field as if it was not populated. Again, it would be nice if the specification was clear.</p>
 <h2>UUID</h2>
-<p>A <i>Switch order Reference</i> is specified as a UUID. This is defined by RFC 4122 such that it uses lowercase, but should be accepted as upper case.</p>
+<p>A <i>Switch order Reference</i> is specified as a UUID. This is defined by RFC 9562 to allow upper or lower case, so you should match to either.</p>
 'END'
