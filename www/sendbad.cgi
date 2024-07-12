@@ -33,7 +33,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td><input type=submit name=SEND value=TestMatch8></td><td>Send a match with quote in surname.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch9></td><td>Send a match with backslash in surname.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch10></td><td>Send a match with apostrophe in account.</td></tr>
-<tr><td><input type=submit name=SEND value=TestMatch12></td><td>Send a match with back ticks in account.</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch11></td><td>Send a match with back ticks in account.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch12></td><td>Send a match with quote in account.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch13></td><td>Send a match with backslash in account.</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch14></td><td>Send a match with newline in account.</td></tr>

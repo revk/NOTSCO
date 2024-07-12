@@ -176,14 +176,14 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
          j_append_string (lines, "St. James's Park");
          j_store_string (address, "postTown", "LONDON");
          j_store_string (address, "postCode", "SW1A 3BJ");
-      } else if (test == 14)
+      } else if (test == 15)
       {
          j_append_string (lines, "Bryn Goch");
          j_append_string (lines, "Christchurch Bungalows");
          j_append_string (lines, "Aberbîg");
          j_store_string (address, "postTown", "Abertyleri");
          j_store_string (address, "postCode", "NP13 2DB");
-      } else if (test == 15)
+      } else if (test == 16)
       {
          for (int i = 1; i <= 100; i++)
             j_append_stringf (lines, "Line%d", i);
