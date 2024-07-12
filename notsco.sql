@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=298 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +75,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2218 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,6 +95,27 @@ CREATE TABLE `pending` (
   KEY `pending_tester` (`tester`),
   KEY `sent` (`sent`),
   CONSTRAINT `pending_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `scorecard`
+--
+
+DROP TABLE IF EXISTS `scorecard`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `scorecard` (
+  `tester` int(10) unsigned NOT NULL,
+  `routing` varchar(50) DEFAULT NULL,
+  `direction` enum('Rx','Tx') DEFAULT NULL,
+  `status` enum('CLEAN','ERRORS') DEFAULT NULL,
+  `first` datetime DEFAULT NULL,
+  `last` datetime DEFAULT NULL,
+  `count` int(10) unsigned DEFAULT NULL,
+  UNIQUE KEY `tester` (`tester`,`routing`,`direction`,`status`),
+  KEY `scorecard_tester` (`tester`),
+  CONSTRAINT `scorecard_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -119,7 +140,7 @@ CREATE TABLE `sor` (
   KEY `sor_tester` (`tester`),
   KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,7 +198,7 @@ CREATE TABLE `tester` (
   KEY `email` (`email`(255)),
   KEY `emailed` (`emailed`),
   KEY `lastlogin` (`lastlogin`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -189,4 +210,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-11  8:21:54
+-- Dump completed on 2024-07-12 13:02:07

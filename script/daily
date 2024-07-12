@@ -5,4 +5,5 @@
 		'DELETE FROM sor WHERE created<date_sub(NOW(),interval 60 day)'	\
 		'DELETE FROM tester WHERE lastlogin IS NULL AND emailed<date_sub(NOW(),interval 7 day) OR lastlogin IS NOT NULL AND lastlogin<date_sub(now(),interval 6 month)' \
 		'DELETE FROM pending WHERE sent<date_sub(NOW(),interval 1 day)' \
+		'DELETE FROM scorecard WHERE last<date_sub(NOW(),interval 30 day)' \
 

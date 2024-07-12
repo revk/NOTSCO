@@ -1,4 +1,4 @@
-#!../login/envcgi /bin/csh -fx
+#!../login/envcgi /bin/csh -f
 source ../script/loggedin
 
 if($?JSON) then

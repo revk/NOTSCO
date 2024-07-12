@@ -232,6 +232,7 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
 int
 main (int argc, const char *argv[])
 {
+   sqldebug = 1;
    int errorchoice = 0;
    int tester = 0;
    const char *send = NULL;

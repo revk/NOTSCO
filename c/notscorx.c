@@ -594,6 +594,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
 int
 main (int argc, const char *argv[])
 {
+   sqldebug = 1;
    SQL sql;
    sql_safe_connect (&sql, NULL, NULL, NULL, "notsco", 0, NULL, 0);
    // Errors
@@ -615,6 +616,7 @@ main (int argc, const char *argv[])
    }
    j_t cgi = j_create ();
  fail (j_cgi (cgi, medium:1), 500);
+   const char *routing = j_get (cgi, "formdata.envelope.routingID");
    if (!j_find (cgi, "info.https"))
       fail ("Not https", 500);
    else
@@ -727,7 +729,7 @@ main (int argc, const char *argv[])
                   status = directory (&sql, tester, cgi, rxe, tx, txe);
             } else if (!strcmp (script, "/letterbox/v1/post"))
             {
-               description = j_get (cgi, "formdata.envelope.routingID") ? : "letterbox API post";
+               description = routing ? : "letterbox API post";
                if (!status)
                   status = letterbox (&sql, tester, cgi, rxe, tx, txe);
             } else
@@ -773,6 +775,10 @@ main (int argc, const char *argv[])
                      *rxerror ? rxerror : NULL, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
+   if (routing && tester)
+      sql_safe_query_f (&sql,
+                        "INSERT INTO `scorecard` SET `tester`=%d,`routing`=%#s,`status`=%#s,`direction`='Rx',`first`=NOW(),`last`=NOW(),`count`=1 ON DUPLICATE KEY UPDATE `count`=`count`+1,`last`=NOW()",
+                        tester, routing, *txerror || (!strstr (routing, "Failure") && *rxerror) ? "ERRORS" : "CLEAN");
    free (rxt);
    free (txt);
    // Return

@@ -23,8 +23,9 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <li><a href="/sendorder.cgi">Send order/update/trigger/cancel</a></li>
 <li><a href="/sendbad.cgi">Send bad/test messages</a></li>
 <li><a href="/syntaxcheck.cgi">Syntax check JSON</a></li>
-<li><a href="/notes.cgi">Tips, and notes on TOTSCO specifications.</a></li>
+<li><a href="/scorecard.cgi">Testing scorecard</a></li>
 </ul>
+<p><a href="/notes.cgi">Tips, and notes on TOTSCO specifications.</a></p>
 <hr>
 <h2>Today's messages</h2>
 <p><a href="/control.cgi">Reload</a> Note messages are deleted at the end of each day. Select message for more detailed log. Syntax checks are applied to sent and received messages to allow error checking.</p>

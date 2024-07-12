@@ -484,6 +484,10 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                            "UPDATE `log` SET `tester`=%d,`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%ld",
                            tester, description, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL, status, t,
                            j_isnull (rx) ? *rxerror ? "" : NULL : rxt, *rxerror ? rxerror : NULL, id);
+         if (routing && tester)
+            sql_safe_query_f (sqlp,
+                              "INSERT INTO `scorecard` SET `tester`=%d,`routing`=%#s,`status`=%#s,`direction`='Tx',`first`=NOW(),`last`=NOW(),`count`=1 ON DUPLICATE KEY UPDATE `count`=`count`+1,`last`=NOW()",
+                              tester, routing, *rxerror || (!strstr (routing, "Failure") && *txerror) ? "ERRORS" : "CLEAN");
          free (rxt);
          free (txt);
          if (!j_isnull (rx))
