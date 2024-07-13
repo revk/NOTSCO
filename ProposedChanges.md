@@ -116,7 +116,7 @@ I specifically propose:
 The `plannedSwitchDate`
 
 - shall not be before the current date.
-- shall not be more than 6 months beyond the date the switch order was issued (i.e. when residentialSwitchMatchConfirmation was received).
+- shall not be more than 6 months beyond the date the switch order was issued (i.e. when `residentialSwitchMatchConfirmation` was received).
 
 #### residentialSwitchOrderUpdateRequest:
 
