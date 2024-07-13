@@ -5,6 +5,8 @@ The specifications come in several layers: the API specification; The OTS messag
 
 I have outlined a number of proposed changes for consideration.
 
+MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
+
 ## API
 
 The API specification should ensure all examples match the specification and align with the separate examples documentation. At present they do not, notably:
