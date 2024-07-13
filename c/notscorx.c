@@ -143,8 +143,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          if (sid && rcpid && !strncmp (sid, rcpid, 4) && !strcmp (sid + 4, "_1"))
             fprintf (rxe, "Using a fixed source correlationID would not allow you to match responses to requests reliably.\n");
       }
-      char ias = 0;
-      char nbics = 0;
+      const char *ias = NULL;
+      const char *nbics = NULL;
       const char *routing = j_get (rx, "envelope.routingID");
       j_t payload = j_find (rx, routing);
       j_t services = j_find (payload, "services");
@@ -154,9 +154,9 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          if (!type)
             continue;
          if (!strcmp (type, "IAS"))
-            ias = 1;
+            ias = j_get (a, "serviceIdentifier") ? : "";
          if (!strcmp (type, "NBICS"))
-            nbics = 1;
+            nbics = j_get (a, "serviceIdentifier") ? : "";
       }
       int reply = atoi (sql_colz (res, "matchresponse"));
       if (reply >= 1000)
@@ -210,7 +210,6 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             const char *nbicsno = sql_colz (res, "nbicsnetworkoperator");
             const char *sn = sql_colz (res, "servicename");
             const char *dn = sql_colz (res, "dn");
-            const char *partialdn = sql_colz (res, "partialdn");
             const char *alid = sql_colz (res, "alid");
             const char *ontref = sql_colz (res, "ontref");
             const char *ontport = sql_colz (res, "ontport");
@@ -222,7 +221,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                j_store_string (j, "identifierType", tag);
                j_store_string (j, "identifier", val);
             }
-            if (ias && (*alid || *ontref || *iasno || atoi (ontport)))
+            if (ias && (*alid || *ontref || atoi (ontport)))
             {                   // IAS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "IAS");
@@ -235,15 +234,21 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                add (j, "ServiceInformation", sn);
                add (j, "NetworkOperator", iasno);
             }
-            if (nbics && (*dn || *partialdn || *cupid || *nbicsno))
+            if (nbics && (*dn || *cupid))
             {                   // NBICS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "NBICS");
                j_store_string (j, "switchAction", alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceFound");
                j = j_store_array (j, "serviceIdentifiers");
                add (j, "CUPID", cupid);
-               add (j, "DN", dn);
-               add (j, "PartialDN", partialdn);
+               if (*dn)
+               {
+                  if (!strcmp (nbics, dn))
+                     add (j, "DN", dn); // Matches requested
+                  else if (strlen (dn) >= 2)
+                     add (j, "PartialDN", dn + strlen (dn) - 2);        // Mismatch
+               } else if (*nbics)
+                  add (j, "DN", nbics); // Just say match
                add (j, "NetworkOperator", nbicsno);
             }
          }

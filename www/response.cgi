@@ -40,7 +40,6 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
 <tr><td>DN</td><td><input name=dn size=20 placeholder="Telephone"></td></tr>
-<tr><td>Partial DN</td><td><input name=partialdn size=3 maxlength=2 placeholder="NN"></td></tr>
 <tr><th align=left colspan=2>Order response</th></tr>
 <tr><td>Order/Update/Trigger/Cancel response</td><td><select name=orderresponse>
 <option value=0>No reply</option>
