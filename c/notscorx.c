@@ -143,8 +143,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          if (sid && rcpid && !strncmp (sid, rcpid, 4) && !strcmp (sid + 4, "_1"))
             fprintf (rxe, "Using a fixed source correlationID would not allow you to match responses to requests reliably.\n");
       }
-      char ias = 1;
-      char nbics = 1;
+      char ias = 0;
+      char nbics = 0;
       const char *routing = j_get (rx, "envelope.routingID");
       j_t payload = j_find (rx, routing);
       j_t services = j_find (payload, "services");
@@ -207,7 +207,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_t services = j_store_array (match, "services");
             const char *cupid = sql_colz (res, "cupid");
             const char *iasno = sql_colz (res, "iasnetworkoperator");
-            const char *nbicsno = sql_colz (res, "nbicsiasnetworkoperator");
+            const char *nbicsno = sql_colz (res, "nbicsnetworkoperator");
             const char *sn = sql_colz (res, "servicename");
             const char *dn = sql_colz (res, "dn");
             const char *partialdn = sql_colz (res, "partialdn");

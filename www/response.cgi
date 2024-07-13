@@ -50,6 +50,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </table>
 <input type=submit value="Save">
 </form>
+<p><a href='/control.cgi'>Home</a></p>
 <p>Received match orders.</p>
 <set found>
 <table border=1>
