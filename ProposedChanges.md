@@ -53,6 +53,7 @@ It also seems prudent (given the examples that do this), to say:
 The data type RCPID should be defined. It seems to be :-
 
 - *An RCPID is assigned by TOTSCO, and is 4 (latin) letters, or the fixed string `“TOTSCO”`. RCPIDs will normally start with the letter `R`, but CPs should not assume that is the case.*
+- The explanation (which does not allow `"TOTSCO"`) in 2.2.1, and for various other data types, including RCPID, is no longer needed if properly defined in a definitions section.
 
 ### correlationID
 
