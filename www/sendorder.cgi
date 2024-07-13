@@ -3,6 +3,11 @@ source ../script/loggedin
 
 if(! $?dated) then
 	setenv dated `date +%F -d"14 days"`
+	if($?SEND) then
+		if("$SEND" == residentialSwitchOrderTriggerRequest) thenS
+			setenv dated `date +%F`
+		endif
+	endif
 endif
 
 if($?SEND) then
