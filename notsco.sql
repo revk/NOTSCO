@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=305 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +75,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2218 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2270 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -115,6 +115,7 @@ CREATE TABLE `scorecard` (
   `count` int(10) unsigned DEFAULT NULL,
   UNIQUE KEY `tester` (`tester`,`routing`,`direction`,`status`),
   KEY `scorecard_tester` (`tester`),
+  KEY `last` (`last`),
   CONSTRAINT `scorecard_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -140,7 +141,7 @@ CREATE TABLE `sor` (
   KEY `sor_tester` (`tester`),
   KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -168,13 +169,12 @@ CREATE TABLE `tester` (
   `ontref` tinytext DEFAULT NULL,
   `ontport` int(11) NOT NULL DEFAULT 0,
   `dn` varchar(20) DEFAULT NULL,
-  `partialdn` varchar(2) DEFAULT NULL,
   `alid` varchar(20) DEFAULT NULL,
   `bearer` text DEFAULT NULL,
   `expiry` datetime DEFAULT NULL,
   `delay` int(3) unsigned NOT NULL DEFAULT 5,
   `servicename` tinytext DEFAULT '1GB Broadband',
-  `networkoperator` char(4) NOT NULL DEFAULT 'A001',
+  `iasnetworkoperator` char(4) NOT NULL DEFAULT 'A001',
   `cupid` char(3) DEFAULT NULL,
   `fromrcpid` char(4) DEFAULT 'ZZZZ',
   `brand` tinytext DEFAULT NULL,
@@ -193,6 +193,7 @@ CREATE TABLE `tester` (
   `identifydn` varchar(11) DEFAULT NULL,
   `matchresponse` int(4) NOT NULL DEFAULT 1,
   `orderresponse` int(4) NOT NULL DEFAULT 1,
+  `nbicsnetworkoperator` char(4) NOT NULL DEFAULT 'A000',
   PRIMARY KEY (`ID`),
   KEY `clientid` (`clientid`),
   KEY `email` (`email`(255)),
@@ -210,4 +211,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-12 13:02:07
+-- Dump completed on 2024-07-13 10:01:44
