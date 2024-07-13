@@ -60,7 +60,7 @@ The data type RCPID should be defined. It seems to be :-
 The specification is contradictory and unclear. I would suggest the following. Note the proposed definition having a limited length, which is a clear omission from the current specification.
 
 - All messages sent by a CP/MAP to the hub **must** have an `envelope.source.correlationID`. It is recommended that this is unique for each message sent, such that any reply can be correlation to the original message. Note that any message to the hub can have a reply, even if it is only `messageDeliveryFailure`, hence an `envelope.source.correlationID` is **required** even on a message that is, itself, logical a reply message.
-- Messages ending `Request` shall omit any `envelope.destination.correlationID`, as they are not a reply to a message that was sent.
+- Messages with `routingID` ending `Request` shall omit any `envelope.destination.correlationID`, as they are not a reply to a message that was sent.
 - All other messages must include an `enveope.destination.correlationID` that is the `envelope.source.correlationID` to which this message is a reply.
 - Note that this means all messages sent by the hub will have an `envelope.source.correlationID` provided by the original CP, except for `messageDeliveryFailure` where it is omitted.
 - A *correlationID* is any JSON string, but **must not** be more than 255 characters in length (this is to allow for use in SQL tables as a `tinytext` type). It is recommended that a UUID is used, but this is not a requirement.
