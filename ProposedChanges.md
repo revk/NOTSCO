@@ -123,7 +123,7 @@ The `plannedSwitchDate`
 The `plannedSwitchDate`
 
 - shall not be before the current date.
-- shall not be more than 31 days beyond the previously advised plannedSwitchDate.
+- shall not be more than 31 days beyond the previously advised `plannedSwitchDate`.
 - shall not be more than 6 months beyond the date the switch order was issued (i.e. when the `residentialSwitchMatchConfirmation` was received).
 
 In addition, a residentialSwitchOrderUpdateRequest cannot be sent more than 31 days beyond the previously advised `plannedSwitchDate` regardless of `plannedSwitchDate`.
