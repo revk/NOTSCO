@@ -3,6 +3,8 @@
 The TOTSCO specifications seem to be very poorly written, including notable omissions, and contradictions, and ambiguities.
 The specifications come in several layers: the API specification; The OTS message specification; and Industry Processes. There are also examples. These do not always align. Some aspects from Industry process would be suitable for inclusion in the OTS message specification, notably things like acceptable ranges for dates.
 
+Notably "address matching" needs to be in one place and really clearly defined.
+
 I have outlined a number of proposed changes for consideration.
 
 MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
