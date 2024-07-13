@@ -171,7 +171,7 @@ The *declaration* to confirm testing complete has a section worded:
 
 Sorry, but that is daft, as "at the point of making the declaration" that is always true.
 
-Wes it meant to be
+Was it meant to be
 
 - "I confirm we have made no internal system changes since testing was completed"
 
