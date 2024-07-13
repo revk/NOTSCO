@@ -155,7 +155,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             continue;
          if (!strcmp (type, "IAS"))
             ias = j_get (a, "serviceIdentifier") ? : "";
-         if (!strcmp (type, "NBICS"))
+         else if (!strcmp (type, "NBICS"))
             nbics = j_get (a, "serviceIdentifier") ? : "";
       }
       int reply = atoi (sql_colz (res, "matchresponse"));
@@ -221,7 +221,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                j_store_string (j, "identifierType", tag);
                j_store_string (j, "identifier", val);
             }
-            if (ias && (*alid || *ontref || atoi (ontport)))
+            if (ias)
             {                   // IAS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "IAS");
@@ -233,8 +233,21 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                add (j, "AccessLineId", alid);
                add (j, "ServiceInformation", sn);
                add (j, "NetworkOperator", iasno);
+               if (!nbics && *dn)
+               {                // NBICS linked to IAS
+                  j_t j = j_append_object (services);
+                  j_store_string (j, "serviceType", "NBICS");
+                  j_store_string (j, "switchAction", alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceFound");
+                  j = j_store_array (j, "serviceIdentifiers");
+                  add (j, "CUPID", cupid);
+                  if (!strcmp (ias, dn))
+                     add (j, "DN", dn); // Matches requested
+                  else if (strlen (dn) >= 2)
+                     add (j, "PartialDN", dn + strlen (dn) - 2);        // Mismatch
+                  add (j, "NetworkOperator", nbicsno);
+               }
             }
-            if (nbics && (*dn || *cupid))
+            if (nbics)
             {                   // NBICS
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "NBICS");
