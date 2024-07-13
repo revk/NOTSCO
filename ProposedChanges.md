@@ -109,7 +109,7 @@ I specifically propose:
 
 - A maximum time limit for switch orders of 6 months. This is something for Industry process to agree, but at present there is no limit - a switch order could set for 10 years and block all other switch orders for that time as losing CP has no way to cancel. Picking up this as an error would be prudent. A new error code may be prudent for this, if accepted as a rule. If any order is likely to exceed the time, a new order could be created, indeed that may be a reason to limit to a short time such as 3 months.
 - A limit on how back dated an activation can be, this is likely to be important for CPs billing processes. At present it is not clear that a gaining provider cannot back date before the original match request, even, which would clearly be wrong.
-- Clear rules on planned being today or future and activation being today or past. Additional error codes would help resolve any issues, such as Date is in the past, and Date is in the future.
+- Clear rules on planned being *today or future* and activation being *today or past*. Additional error codes would help resolve any issues, such as Date is in the past, and Date is in the future.
 
 #### residentialSwitchOrderRequest:
 
