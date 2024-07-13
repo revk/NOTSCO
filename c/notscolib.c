@@ -585,7 +585,7 @@ notscofailure (SQL * sqlp, int tester, j_t rx, int code, const char *sor)
 // Tools for syntax checking
 
 static void
-locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
+locate (FILE * e, const char *tag, j_t p, j_t v)
 {
    char *location = NULL;
    // Top layer is manual as it has to allow for missing
@@ -593,13 +593,13 @@ locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
       location = strdup (tag);
    else if (p)
       asprintf (&location, "[%d]", j_pos (v));
-   v = p;
-   while (v)
+   j_t u = p;
+   while (u)
    {
-      const char *name = j_name (v);
+      const char *name = j_name (u);
       if (name && !strcmp (name, "formdata"))
          break;
-      j_t p = j_parent (v);
+      j_t p = j_parent (u);
       if (!strcmp (j_name (p) ? : "", "formdata"))
          p = NULL;
       char *next = NULL;
@@ -614,23 +614,36 @@ locate (FILE * e, const char *tag, j_t p, j_t v, const char *is)
       } else if (p)
       {
          if (!location)
-            asprintf (&next, "[%d]", j_pos (v));
+            asprintf (&next, "[%d]", j_pos (u));
          else if (*location == '[')
-            asprintf (&next, "[%d]%s", j_pos (v), location);
+            asprintf (&next, "[%d]%s", j_pos (u), location);
          else
-            asprintf (&next, "[%d].%s", j_pos (v), location);
+            asprintf (&next, "[%d].%s", j_pos (u), location);
       }
       if (next)
       {
          free (location);
          location = next;
       }
-      v = p;
+      u = p;
    }
    if (location)
       fprintf (e, "%s", location);
-   if (is)
-      fprintf (e, " %s", is);   // Expects to be quoted and escaped already
+   if (v)
+   {                            // Value
+      if (j_isarray (v))
+         fprintf (e, " (array)");
+      else if (j_isobject (v))
+         fprintf (e, " (objkect)");
+      else
+      {
+         char *jis = NULL;
+         if (!j_isarray (v) && !j_isobject (v))
+            jis = j_write_str (v);
+         fprintf (e, " %s", jis);
+         free (jis);
+      }
+   }
    free (location);
 }
 
@@ -639,7 +652,7 @@ unexpected (FILE * e, j_t v)
 {
    if (!j_tagged (v))
    {
-      locate (e, j_name (v), j_parent (v), v, NULL);
+      locate (e, j_name (v), j_parent (v), v);
       fprintf (e, " is not expected\n");
       return;
    }
@@ -656,11 +669,7 @@ expected (FILE * e, const char *ref, j_t parent, j_t v, const char *tag, const c
    if (ref)
       fprintf (e, "%s: ", ref);
    const char *is = j_val (v);
-   char *jis = NULL;
-   if (!j_isarray (v) && !j_isobject (v))
-      jis = j_write_str (v);
-   locate (e, tag, parent, v, jis);
-   free (jis);
+   locate (e, tag, parent, v);
    if (!v)
       fprintf (e, " is missing");
    if (is && val && *val && strcmp (is, val))
@@ -705,13 +714,19 @@ check_string (const char *s)
    const char *p;
    for (p = s; *p && ((unsigned char) (*p)) >= ' '; p++);
    if (*p)
-      return "a string without control characters";
+      return "contains control characters";
    if (strstr (s, "&amp;") || strstr (s, "&lt;") || strstr (s, "&gt;") || strstr (s, "&apos;") || strstr (s, "&quot;"))
-      return "a string without XML";
+      return "seems to contain XML";
    if (strcasestr (s, "<br") || strcasestr (s, "</br"))
-      return "a string without HTML";
+      return "seems to contain HTML";
    if (strcasestr (s, "<script") || strcasestr (s, "</script"))
-      return "a string without script tags";
+      return "seems to contain a script tag";
+   if (isspace (*s))
+      return "Has leading space";
+   if (*s && isspace (s[strlen (s) - 1]))
+      return "Has trailing space";
+   if (*s && s[strlen (s) - 1]==',')
+      return "Has trailing comma";
    return NULL;
 }
 
@@ -725,7 +740,10 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
       return expected (e, ref, parent, v, tag, val, "a JSON string", NULL);
    const char *er = check_string (s);
    if (er)
-      return expected (e, ref, parent, v, tag, val, er, NULL);
+   {
+      locate (e, NULL, parent, v);
+      fprintf (e, " %s\n", er);
+   }
    return j_val (v);
 }
 
@@ -970,7 +988,10 @@ syntaxcheck (j_t j, FILE * e)
                      expected (e, "OTS§2.2", lines, l, NULL, NULL, "not include post code", NULL);
                   const char *er = check_string (s);
                   if (er)
-                     expected (e, "OTS§2.2", lines, l, NULL, NULL, er, NULL);
+                  {
+                     locate (e, NULL, lines, l);
+                     fprintf (e, " %s\n", er);
+                  }
                }
             }
             j_t services = expect_array (e, "OTS§2.2", payload, "services");
