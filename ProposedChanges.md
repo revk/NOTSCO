@@ -20,8 +20,7 @@ The strict URI format is defined for use by TOTSCO, RCPs and MAPs, but it is not
 
 ### 2.1.8
 
-- This defines `errorCode`, `errorText`, `code`, `message`, and `Description`.
-- The fields include `Description` but the examples all use `description` (lower case).
+- This defines `errorCode`, `errorText`, `code`, `message`, and `Description`. The fields include `Description` but the examples all use `description` (lower case).
 - The examples include an undefined field `nextAccessTime`, which appears to use an insane message format for a date/time (should be RFC 3339 please).
 - The examples include an undefined field `type`. This should be defined.
 - The fields define `errorCode` and `code` as *Integer*, but the examples are all strings.
