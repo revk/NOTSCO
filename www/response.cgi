@@ -34,7 +34,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><th align=left colspan=2>IAS response</th></tr>
 <tr><td>IAS Network Operator</td><td><input name=iasnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>Access Line ID</td><td><input name=alid size=12 placeholder="ALID"></td></tr>
-/tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
+<tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
 <tr><td>ONT port</td><td><input name=ontport size=2 placeholder="N"></td></tr>
 <tr><th align=left colspan=2>NBICS response</th></tr>
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
