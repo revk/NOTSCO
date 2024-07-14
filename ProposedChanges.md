@@ -81,6 +81,8 @@ A clear definitions for data types should be included, covering all data types, 
 - Partial DN
 - AccessLineID
 - dates and times (see below)
+- Postcode (is it case insensitive, does it need the space?)
+- UUID (reference RFC), and highlight that it is **case insensitive**. This is especially important if stored in SQL as it may be retrieved in differene case to how stored.
 - and any others…
 
 They should say the format, and maximum size of such fields. I would suggest clear consideration as you how such types might be defined in SQL.
@@ -142,6 +144,10 @@ The `activationDate`
 
 In addition, a `residentialSwitchOrderTriggerRequest` cannot be sent more than 31 days beyond the previously advised `plannedSwitchDate` regardless of `activationDate`.
 
+#### Billing
+
+The `activationDate` is the date the gaining provider starts billing, and as such the losing provide should bill up to the end of the day before.
+
 # Test platform
 
 TOTSCO need a proper test platform. This is especially an issue now, but an issue ongoing for new CPs.
@@ -158,7 +164,7 @@ Operating in the same way as the pre-production platform - indeed, it could be c
 - It should allow response to be pre-set for messages, both match requests and the various switch order requests. This is to include the data in the response, and a choice of response failure messages.
 - It should allow requests to be initiated to the CP, both match requests and the switch order messages.
 - It should include a comprehensive set of test messages for valid, invalid, and unusual data in various ways, a set of tests to be completed by an ISP to confirm their error checking and data sanitation. E.g. tests to confirm matching with accented characters, and so on.
-- All messages should be syntax and semantically checked and all errors reported with reference to specifications so that even subtle errors can be identified and reported. This would provide a lot m"I confirm we have made not intore detail than simply sending an error code.
+- All messages should be syntax and semantically checked and all errors reported with reference to specifications so that even subtle errors can be identified and reported. This would provide a lot more detail than simply sending an error code.
 - It should provide statistics on tests done, and create a suitable report for completion of testing.
 
 A free open source platform exists, it took only a few days to create, so why have TOTSCO not made such a platform.
