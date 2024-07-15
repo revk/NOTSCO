@@ -11,4 +11,4 @@ This service is provided free of charge, and sponsored by <a href="https://fireb
 
 Give the state of the specification, I have started a document to send to TOTSCO. Please do give me feedback or MRs.
 
-<a href='https://github.com/revk/NOTSCO/blob/main/ProposedChanges.md>ProposedChanges.md</a>
+<a href='https://github.com/revk/NOTSCO/blob/main/ProposedChanges.md'>ProposedChanges.md</a>
