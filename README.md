@@ -7,3 +7,8 @@ One Touch Switching is managed by <a href='https://totsco.org.uk'>TOTSCO Ltd</a>
 
 This service is provided free of charge, and sponsored by <a href="https://firebrick.co.uk">FireBrick</a>. It is not affiliated with or endorsed by TOTSCO Ltd.
 
+# Get involved
+
+Give the state of the specification, I have started a document to send to TOTSCO. Please do give me feedback or MRs.
+
+<a href='https://github.com/revk/NOTSCO/blob/main/ProposedChanges.md>ProposedChanges.md</a>
