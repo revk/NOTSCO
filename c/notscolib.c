@@ -634,7 +634,7 @@ locate (FILE * e, const char *tag, j_t p, j_t v)
       if (j_isarray (v))
          fprintf (e, " (array)");
       else if (j_isobject (v))
-         fprintf (e, " (objkect)");
+         fprintf (e, " (object)");
       else
       {
          char *jis = NULL;

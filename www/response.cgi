@@ -20,8 +20,14 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <sql table=tester where="ID=$TESTER">
 <form method=post>
 <table border=1>
+<tr><td>Response delay</td><td><input name=delay size=4 maxlength=3 placeholder=N>seconds</td></tr>
+<tr><th align=left colspan=2>Order response</th></tr>
+<tr><td>Order/Update/Trigger/Cancel response</td><td><select name=orderresponse>
+<option value=0>No reply</option>
+<option value=1>Normal reply</option>
+<include src=notscoerrors.html>
+</select></td></tr>
 <tr><th align=left colspan=2>Match response</th></tr>
-<tr><td>Response delay</td><td><input name=delay size=4 maxlength=3 placeholder=secs></td></tr>
 <tr><td>Response</td><td><select name=matchresponse>
 <option value=0>No reply</option>
 <option value=1>Match Response</option>
@@ -31,21 +37,15 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </select></td></tr>
 <tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"></td><td rowspan=2>(1st class post if both blank)</td></tr>
 <tr><td>Sent to (email/sms)</td><td><input name=sentto2 placeholder="Email/Telephone"></td></tr>
-<tr><th align=left colspan=2>IAS response</th></tr>
+<tr><th align=left colspan=2>Match IAS response</th></tr>
 <tr><td>IAS Network Operator</td><td><input name=iasnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>Access Line ID</td><td><input name=alid size=12 placeholder="ALID"></td></tr>
 <tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
 <tr><td>ONT port</td><td><input name=ontport size=2 placeholder="N"></td></tr>
-<tr><th align=left colspan=2>NBICS response</th></tr>
+<tr><th align=left colspan=2>Match NBICS response</th></tr>
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
 <tr><td>DN</td><td><input name=dn size=20 placeholder="Telephone"></td></tr>
-<tr><th align=left colspan=2>Order response</th></tr>
-<tr><td>Order/Update/Trigger/Cancel response</td><td><select name=orderresponse>
-<option value=0>No reply</option>
-<option value=1>Normal reply</option>
-<include src=notscoerrors.html>
-</select></td></tr>
 </table>
 <input type=submit value="Save">
 </form>
