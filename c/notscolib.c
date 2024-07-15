@@ -725,7 +725,7 @@ check_string (const char *s)
       return "Has leading space";
    if (*s && isspace (s[strlen (s) - 1]))
       return "Has trailing space";
-   if (*s && s[strlen (s) - 1]==',')
+   if (*s && s[strlen (s) - 1] == ',')
       return "Has trailing comma";
    return NULL;
 }
@@ -809,6 +809,8 @@ syntaxcheck (j_t j, FILE * e)
    const char *val = NULL;
    const char *routing = NULL;
    int df = 0;
+   if (!j_isobject (j))
+      fprintf (e, "API§2.1.5: Top level is not a JSON object\n");
    // Envelope (and audit data)
    j_tag (j);
    j_t envelope = expect_object (e, "API§2.1.5", j, "envelope");
