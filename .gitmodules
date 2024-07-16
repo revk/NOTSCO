@@ -10,3 +10,6 @@
 [submodule "xmlsql"]
 	path = xmlsql
 	url = https://github.com/revk/xmlsql
+[submodule "toot"]
+	path = toot
+	url = https://github.com/revk/toot.git
