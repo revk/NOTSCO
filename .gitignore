@@ -3,4 +3,4 @@ lib/*
 *~
 *.old
 login.conf
-toot/toot
+toot
