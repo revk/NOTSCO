@@ -25,4 +25,5 @@ xmlsql head.html - tail.html << 'END'
 <input name=email autofocus placeholder="Business email address" size=80 type=email><input type=submit value="Send link">
 </form>
 <p>For suggestions and support, raise issues on <a href="https://github.com/revk/NOTSCO">GitHub</a></p>
+<p>The NOTSCO bot is tooting stats mesages every day at <a href='https://social.aa.net.uk/@notsco'>https://social.aa.net.uk/@notsco</a>.</p>
 'END'

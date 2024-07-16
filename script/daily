@@ -4,13 +4,15 @@ set path=(../xmlsql ../SQLlib $path)
 setenv N `sql notsco 'SELECT COUNT(*) FROM tester'`
 setenv M `sql notsco 'SELECT COUNT(*) FROM log WHERE ts<curdate()'`
 setenv T `sql notsco 'SELECT COUNT(DISTINCT tester) FROM log WHERE ts<curdate()'`
+setenv S `sql notsco 'SELECT SUM(count) FROM scorecard'`
 
 if("$M" != 0) then
 ../toot/toot - << END
 The NOTSCO test server for One Touch Switching currently has $N registered CPs.
-Yesterday there were $T active CPs testings, passing $T messages.
-The NOTSCO server is located at https://notsco.uk/ and is free to use.
-#TOTSCO
+Yesterday there were $T active CPs testings, passing $M messages.
+Active test messages total $S messages for testers in the last month.
+-- 
+The NOTSCO server is located at https://notsco.uk/ and is free to use for #TOTSCO development testing.
 END
 endif
 
