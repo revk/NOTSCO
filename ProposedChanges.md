@@ -34,6 +34,10 @@ The strict URI format is defined for use by TOTSCO, RCPs and MAPs, but it is not
 
 The directory (at least on pre-production) does not follow the specification as it requires `identity=all`, even though the specification says it is *optional*.
 
+### 3.2.1.1.1
+
+Makle the specification actually reference the RFC (6749) and explain the options for using `Authorization header`, and for `client_id`/`client_secret` as per §2.3.1 of that RFC. It needs to say which TOTSCO use to authenticate with the CP (which I believe is `Authorization` header).
+
 ### JSON
 
 It seems to me that it would help to have a proper definition of message content, not just saying JSON, e.g. 
