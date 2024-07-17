@@ -667,38 +667,46 @@ main (int argc, const char *argv[])
       else if (!strncmp (host, "otshub-token.", 13))
       {
          description = script;
-         if (!auth || !*auth)
+         const char *user = j_get (cgi, "formdata.client_id");
+         const char *pass = j_get (cgi, "formdata.client_secret");
+         if (((!auth || !*auth) && (!user || !pass || !*user || !*pass)) || (auth && *auth && (user || pass)))
             status =
                notscoerror (tx, 401, 0, 900902, NULL, "Missing Credentials",
                             "Invalid Credentials. Make sure your API invocation call has a header: 'Authorization : Bearer ACCESS_TOKEN' or 'Authorization : Basic ACCESS_TOKEN'");
-         else if (strncasecmp (auth, "Basic ", 6))
+         else if (auth && *auth && strncasecmp (auth, "Basic ", 6))
             status = notscoerror (tx, 401, 0, 401, NULL, "Expecting Basic auth", NULL);
          else
          {
-            unsigned char *user = NULL,
-               *c = NULL;
-            ssize_t len = j_base64d (auth + 6, &user);
-            if (len > 0)
+            char *temp = NULL;
+            ssize_t len = 0;
+            if (auth && *auth)
             {
+               len = j_base64d (auth + 6, (unsigned char **) &temp);
                int p = 0;
-               for (p = 0; p < len && user[p] && user[p] != ':'; p++);
-               if (p < len && user[p] == ':')
+               for (p = 0; p < len && temp[p] != ':'; p++);
+               if (p < len)
                {
-                  c = user + p;
-                  *c++ = 0;
-                  SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `clientid`=%#s", user);
-                  if (sql_fetch_row (res))
-                  {
-                     tester = atoi (sql_colz (res, "ID"));
-                     if (strncmp (sql_colz (res, "clientsecret"), (char *) c, len - p - 1))
-                        c = 0;  // Not matched
-                  } else
-                     c = 0;
-                  sql_free_result (res);
+                  user = temp;
+                  temp[p++] = 0;
+                  pass = temp + p;
+                  len -= p;
                }
+            } else
+               len = strlen (pass);
+            if (user && pass)
+            {
+               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `clientid`=%#s", user);
+               if (sql_fetch_row (res))
+               {
+                  tester = atoi (sql_colz (res, "ID"));
+                  char *secret = sql_colz (res, "clientsecret");
+                  if (strlen (secret) != len || strncmp (secret, pass, len))
+                     tester = 0;        // Not matched
+               }
+               sql_free_result (res);
             }
-            free (user);
-            if (!c)
+            free (temp);
+            if (!tester)
                status = notscoerror (tx, 401, 0, 900901, NULL, "Invalid Credentials", "Access failure");
             if (!strcmp (script, "/oauth2/token"))
             {
@@ -715,8 +723,8 @@ main (int argc, const char *argv[])
          description = script;
          if (apikey && *apikey)
          {
-            SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `farclientid`='' AND `farclientsecret`=%#s",
-                                                   apikey);
+            SQL_RES *res =
+               sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `farclientid`='' AND `farclientsecret`=%#s", apikey);
             if (sql_fetch_row (res))
             {
                tester = atoi (sql_colz (res, "ID"));
