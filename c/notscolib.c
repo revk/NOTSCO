@@ -769,14 +769,15 @@ responsecheck (int status, j_t j, FILE * e)
    }
    if (j_isnull (j))
       return;
+   if (status / 100 == 2)
+      fprintf (e, "API§2.1.8: An completely empty response is expected for a %d status\n", status);
    if (!j_isobject (j))
    {
-      fprintf (e, "API§2.1.8: Response is not a JSON object\n");
+      if (status / 100 != 2)
+         fprintf (e, "API§2.1.8: Response is not a JSON object\n");
       return;
    }
    j_tag (j);
-   if (status / 100 == 2)
-      fprintf (e, "API§2.1.8: No JSON response is expected for a 2XX response\n");
    // Check for error
    const char *val = NULL;
    if ((val = expect_number (e, "API§2.1.8", j, "errorCode", "")))
