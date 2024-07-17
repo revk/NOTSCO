@@ -141,7 +141,6 @@ In addition, a `residentialSwitchOrderUpdateRequest` cannot be sent more than 31
 The `activationDate`
 
 - shall not be after the current date.
-- shall not be more than 31 days beyond the previously advised `plannedSwitchDate`.
 - shall not be before the date the switch order was issued (i.e. when the `residentialSwitchMatchConfirmation` was received).
 - shall not be more than 6 months beyond date the switch order was issued (i.e. when the `residentialSwitchMatchConfirmation` was received).
 - shall not be more than 31 days before the current date.
