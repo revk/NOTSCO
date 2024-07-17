@@ -42,7 +42,7 @@ Make the specification actually reference the RFC (6749) and explain the options
 
 It seems to me that it would help to have a proper definition of message content, not just saying JSON, e.g. 
 
-- As documented, OAUTH2 token requests shall use `Contrent-Type: application/x-www-form-urlencoded` POST, and directory API uses a URL encoded GET query string. Both provide a JSON response (`Content-Type: application/json`).
+- As documented, OAUTH2 token requests shall use `Content-Type: application/x-www-form-urlencoded` POST, and directory API uses a URL encoded GET query string. Both provide a JSON response (`Content-Type: application/json`).
 - Successful post messages must return a status `202` and an empty response, (`Content-Length:0`) which can be `Content-Type: application/json`.
 - All other messages (request and response at an HTTP level) shall be `Content-Type: application/json`, and shall be a single JSON object (as per RFC 8259).
 
