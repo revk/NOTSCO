@@ -36,7 +36,7 @@ The directory (at least on pre-production) does not follow the specification as 
 
 ### 3.2.1.1.1
 
-Make the specification actually reference the RFC (6749) and explain the options for using `Authorization header`, and for `client_id`/`client_secret` as per §2.3.1 of that RFC. It needs to say which TOTSCO use to authenticate with the CP (which I believe is `Authorization` header). At present it only mentions using `Authorization header`.
+Make the specification actually reference the RFC (6749) and explain the options for using `Authorization` header, and for `client_id`/`client_secret` as per §2.3.1 of that RFC. It needs to say which TOTSCO use to authenticate with the CP (which I believe is `Authorization` header). At present it only mentions using `Authorization` header.
 
 ### JSON
 
