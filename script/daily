@@ -14,7 +14,7 @@ Yesterday there were $T active CPs testings, passing $M messages.
 
 Active test messages total $S messages for testers in the last month.
 -- 
-The NOTSCO server is located at https://notsco.uk/ and is free to use for #TOTSCO development testing.
+The NOTSCO server is located at https://notsco.uk and is free to use for #TOTSCO development testing.
 END
 endif
 
