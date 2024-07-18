@@ -1,11 +1,11 @@
 #!/bin/csh -f
 set path=(../xmlsql ../SQLlib $path)
 
-setenv N `sql notsco 'SELECT COUNT(*) FROM tester'`
-setenv M `sql notsco 'SELECT COUNT(*) FROM log WHERE ts<curdate()'`
-setenv T `sql notsco 'SELECT COUNT(DISTINCT tester) FROM log WHERE tester IS NOT NULL AND ts<curdate()'`
-setenv S `sql notsco 'SELECT SUM(count) FROM scorecard'`
-setenv A `sql notsco 'SELECT COUNT(DISTINCT tester) FROM scorecard'`
+setenv N `/var/www/NOTSCO/SQLlib/sql notsco 'SELECT COUNT(*) FROM tester'`
+setenv M `/var/www/NOTSCO/SQLlib/sql notsco 'SELECT COUNT(*) FROM log WHERE ts<curdate()'`
+setenv T `/var/www/NOTSCO/SQLlib/sql notsco 'SELECT COUNT(DISTINCT tester) FROM log WHERE tester IS NOT NULL AND ts<curdate()'`
+setenv S `/var/www/NOTSCO/SQLlib/sql notsco 'SELECT SUM(count) FROM scorecard'`
+setenv A `/var/www/NOTSCO/SQLlib/sql notsco 'SELECT COUNT(DISTINCT tester) FROM scorecard'`
 
 if("$M" != 0) then
 /var/www/NOTSCO/toot/toot --quiet - << END
