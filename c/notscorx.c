@@ -295,7 +295,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             {
                j_t j = j_append_object (services);
                j_store_string (j, "serviceType", "NBICS");
-               j_store_string (j, "switchAction",alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceFound");
+               j_store_string (j, "switchAction",alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceWithAnotherCust");
                j = j_store_array (j, "serviceIdentifiers");
                addi (j, "PartialDN", dn + strlen (dn) - 2);      // Mismatch
                addi (j, "NetworkOperator", nbicsno);
