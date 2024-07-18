@@ -1,4 +1,4 @@
-all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql ../SQLlib/sqlwrite ../bin/notsco ../toot/toot
+all:	../bin/notscotx ../bin/notscorx ../login/envcgi ../xmlsql/xmlsql ../SQLlib/sql ../SQLlib/sqlwrite ../bin/notsco ../toot/toot ../Dataformat/dataformat
 
 SQLINC=$(shell mariadb_config --include)
 SQLLIB=$(shell mariadb_config --libs)
@@ -31,6 +31,9 @@ update:
 
 ../lib/notscolib.o:	notscolib.c notscolib.h
 	cc -fPIC -O -DLIB -c -o $@ $< ${CCOPTS}
+
+../Dataformat/dataformat: ../toot/toot.c
+	make -C ../Dataformat dataformat
 
 ../toot/toot: ../toot/toot.c
 	make -C ../toot toot

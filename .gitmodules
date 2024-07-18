@@ -13,3 +13,6 @@
 [submodule "toot"]
 	path = toot
 	url = https://github.com/revk/toot.git
+[submodule "Dataformat"]
+	path = Dataformat
+	url = https://github.com/revk/Dataformat.git

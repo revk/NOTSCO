@@ -1,6 +1,6 @@
 #!../login/envcgi /bin/csh -f
 set path=(../xmlsql ../SQLlib $path)
-if(! $?email) setenv email ""
+setenv email `../Dataformat/dataformat -e -x email`
 if("$email" == "") then
 	echo "Location: /"
 	echo ""
