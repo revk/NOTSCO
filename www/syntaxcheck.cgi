@@ -1,5 +1,6 @@
-#!../login/envcgi /bin/csh -f
+#!../login/envcgi /bin/csh -fx
 source ../script/loggedin
+set noglob
 
 if($?JSON) then
         setenv CHECK `printenv JSON | ../bin/notsco`
