@@ -143,8 +143,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          if (sid && rcpid && !strncmp (sid, rcpid, 4) && !strcmp (sid + 4, "_1"))
             fprintf (rxe, "Using a fixed source correlationID would not allow you to match responses to requests reliably.\n");
       }
-      const char *identify = NULL;      // NBICS identify id
-      const char *iasaction = NULL;
+      char ias = 0;             // Is IAS
+      const char *port = NULL;  // Port at same time as IAS
       const char *routing = j_get (rx, "envelope.routingID");
       j_t payload = j_find (rx, routing);
       j_t rxservices = j_find (payload, "services");
@@ -154,13 +154,13 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          if (!type)
             continue;
          if (!strcmp (type, "IAS"))
-            iasaction = j_get (a, "action");
-         else if (!strcmp (type, "NBICS"))
          {
-            const char *action = j_get (a, "action");
-            if (action && !strcmp (action, "identify"))
-               identify = j_get (a, "serviceIdentifier");
+            ias = 1;
+            continue;
          }
+         const char *action = j_get (a, "action");
+         if (action && !strcmp (action, "port"))
+            port = j_get (a, "serviceIdentifier");
       }
       int reply = atoi (sql_colz (res, "matchresponse"));
       if (reply >= 1000)
@@ -196,9 +196,32 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_store_string (j, "sentMethod", "1st class post");
             j_store_datetime (j, "sentBy", time (0));
          }
-         void add (j_t j, int alt)
-         {
-            j_t match = j_store_object (j, "matchResult");
+         const char *cupid = sql_colz (res, "cupid");
+         const char *iasno = sql_colz (res, "iasnetworkoperator");
+         const char *nbicsno = sql_colz (res, "nbicsnetworkoperator");
+         const char *sn = sql_colz (res, "servicename");
+         const char *iasaction = sql_colz (res, "iasaction");
+         const char *iasdn = sql_colz (res, "iasdn");
+         const char *dn1 = sql_colz (res, "dn1");
+         const char *dn2 = sql_colz (res, "dn2");
+         const char *dn3 = sql_colz (res, "dn3");
+         const char *alid = sql_colz (res, "alid");
+         const char *ontref = sql_colz (res, "ontref");
+         const char *ontport = sql_colz (res, "ontport");
+
+         int count = 0;
+
+         j_t mr (void)
+         {                      // Add matchResult
+            j_t match = payload;
+            if (count)
+            {
+               if (count == 1)
+                  payload = j_store_array (payload, "alternativeSwitchOrders");
+               match = j_append_object (payload);
+            }
+            match = j_store_object (match, "matchResult");
+            count++;
             char *sor = NULL;
             u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
             if (sql_fetch_row (u))
@@ -208,106 +231,129 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             sql_safe_query_f (sqlp,
                               "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='US',`rcpid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
                               tester, sor, j_get (tx, "envelope.source.identity"));
-            j_t services = j_store_array (match, "services");
-            const char *cupid = sql_colz (res, "cupid");
-            const char *iasno = sql_colz (res, "iasnetworkoperator");
-            const char *nbicsno = sql_colz (res, "nbicsnetworkoperator");
-            const char *sn = sql_colz (res, "servicename");
-            const char *dn = sql_colz (res, "dn");
-            const char *alid = sql_colz (res, "alid");
-            const char *ontref = sql_colz (res, "ontref");
-            const char *ontport = sql_colz (res, "ontport");
-            void addi (j_t j, const char *tag, const char *val)
-            {
-               if (!val || !*val)
-                  return;
-               j = j_append_object (j);
-               j_store_string (j, "identifierType", tag);
-               j_store_string (j, "identifier", val);
-            }
-            if (iasaction)
-            {                   // IAS - can be cease action only
-               j_t j = j_append_object (services);
-               j_store_string (j, "serviceType", "IAS");
-               j_store_string (j, "switchAction", "ServiceFound");
-               j = j_store_array (j, "serviceIdentifiers");
-               addi (j, "ONTReference", ontref);
-               if (atoi (ontport))
-                  addi (j, "PortNumber", ontport);
-               addi (j, "AccessLineId", alid);
-               addi (j, "ServiceInformation", sn);
-               addi (j, "NetworkOperator", iasno);
-               if (identify && *dn)
-               {                // NBICS linked to IAS
-                  j_t j = j_append_object (services);
-                  j_store_string (j, "serviceType", "NBICS");
-                  j_store_string (j, "switchAction", alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceFound");
-                  j = j_store_array (j, "serviceIdentifiers");
-                  addi (j, "CUPID", cupid);
-                  if (identify && !strcmp (identify, dn))
-                     addi (j, "DN", dn); // Matches requested
-                  else if (strlen (dn) >= 2)
-                     addi (j, "PartialDN", dn + strlen (dn) - 2);        // Mismatch
-                  addi (j, "NetworkOperator", nbicsno);
-               }
-            }
-            // NBICS responses
-            int nbics = 0,
-               found = 0;
-            for (j_t a = j_first (rxservices); a; a = j_next (a))
+            return j_store_array (match, "services");
+         }
+         j_t services (j_t j, const char *st, const char *sa)
+         {
+            j = j_append_object (j);
+            j_store_string (j, "serviceType", st);
+            j_store_string (j, "switchAction", sa);
+            return j_store_array (j, "serviceIdentifiers");
+         }
+         void addi (j_t j, const char *tag, const char *val)
+         {                      // Add identifier
+            if (!val || !*val)
+               return;
+            j = j_append_object (j);
+            j_store_string (j, "identifierType", tag);
+            j_store_string (j, "identifier", val);
+         }
+         j_t mrias (void)
+         {                      // Make IAS match result
+            j_t j = mr ();
+            j_t s = services (j, "IAS", "ServiceFound");
+            addi (s, "ONTReference", ontref);
+            addi (s, "PortNumber", ontport);
+            addi (s, "NetworkOperator", iasno);
+            addi (s, "ServiceInformation", sn);
+            addi (s, "AccessLineId", alid);
+            return j;
+         }
+         void addnbics (j_t j, const char *action, const char *number)
+         {                      // Add NBICS to match result
+            if (!number || strlen (number) < 2)
+               return;
+            j_t s = services (j, "NBICS", action);
+            char found = 0;
+            for (j_t a = j_first (rxservices); !found && a; a = j_next (a))
             {
                const char *type = j_get (a, "serviceType");
-               if (!type)
+               if (!type || strcmp (type, "NBICS"))
                   continue;
-               if (strcmp (type, "NBICS"))
-                  continue;     // Not NBICS
-               const char *action = j_get (a, "action");
-               if (!action || strcmp (action, "identify"))
-                  continue;     // IAS only
-               nbics++;
                const char *id = j_get (a, "serviceIdentifier");
-               if (!id || !*id)
-                  continue;
-               if (dn && *dn && strcmp (id, dn))
-                  continue;
-               j_t j = j_append_object (services);
-               j_store_string (j, "serviceType", "NBICS");
-               if (dn && *dn)
-               {
-                  if (!strcmp (id, dn))
-                  {
-                     found++;
-                     if (!strcmp (action, "cease"))
-                        j_store_string (j, "switchAction", "OptionToCease");
-                     else
-                        j_store_string (j, "switchAction", alt ? "OptionToCease" : "ServiceFound");
-                     addi (j, "DN", dn); // Matches requested
-                  }
-               } else if (id && *id && !alt)
-               {
+               if (id && !strcmp (id, number))
                   found = 1;
-                  j_store_string (j, "switchAction", "ServiceNotFound");
-                  addi (j, "DN", id);    // What they sent
-               }
-               addi (j, "NetworkOperator", nbicsno);
             }
-            if (!found && *dn)
+            if (found)
             {
-               j_t j = j_append_object (services);
-               j_store_string (j, "serviceType", "NBICS");
-               j_store_string (j, "switchAction",alt > 1 ? "OptionToCease" : alt ? "OptionToRetain" : "ServiceWithAnotherCust");
-               j = j_store_array (j, "serviceIdentifiers");
-               addi (j, "PartialDN", dn + strlen (dn) - 2);      // Mismatch
-               addi (j, "NetworkOperator", nbicsno);
-            }
+               addi (s, "DN", number);
+               if (strcmp (action, "ServiceWithAnotherCust") && strcmp (action, "ServiceNotFound"))
+               {
+                  addi (s, "NetworkOperator", nbicsno);
+                  addi (s, "CUPID", cupid);
+               }
+            } else
+               addi (s, "PartialDN", number + strlen (number) - 2);
          }
-         add (payload, 0);
-         if (reply > 1)
-         {
-            j_t alt = j_store_array (payload, "alternativeSwitchOrders");
-            add (j_append_object (alt), 1);
-            if (reply > 2)
-               add (j_append_object (alt), 2);
+
+         if (ias)
+         {                      // an IAS request
+            j_t j = mrias ();
+            if (*iasdn)
+            {
+               if (!strcmp (iasaction, "ForcedCease"))
+                  addnbics (j, "ForcedCease", iasdn);
+               else
+               {
+                  if (port && strcmp (port, iasdn))
+                  {
+                     addnbics (j, "ServiceFound", iasdn);
+                     j = mrias ();
+                  }
+                  addnbics (j, "OptionToRetain", iasdn);
+                  j = mrias ();
+                  addnbics (j, "OptionToCease", iasdn);
+               }
+            }
+         } else
+         {                      // NBICS
+            int addmr (void)
+            {
+               int matched = 0;
+               if (!*dn1)
+                  matched |= (1 << 1);
+               if (!*dn2)
+                  matched |= (1 << 2);
+               if (!*dn3)
+                  matched |= (1 << 3);
+               j_t j = mr ();
+               for (j_t a = j_first (rxservices); a; a = j_next (a))
+               {
+                  const char *type = j_get (a, "serviceType");
+                  if (!type)
+                     continue;
+                  if (strcmp (type, "NBICS"))
+                     continue;  // Not NBICS
+                  const char *action = j_get (a, "action");
+                  if (!action || !strcmp (action, "identify"))
+                     continue;  // identify is for IAS only
+                  const char *id = j_get (a, "serviceIdentifier");
+                  if (!id || !*id)
+                     continue;
+                  int found = 0;
+                  if (!strcmp (id, dn1))
+                     found |= (1 << 1);
+                  if (!strcmp (id, dn2))
+                     found |= (1 << 2);
+                  if (!strcmp (id, dn3))
+                     found |= (1 << 3);
+                  if (found)
+                  {
+                     matched |= found;
+                     addnbics (j, "ServiceFound", id);
+                  } else if (count == 1)
+                     addnbics (j, "ServiceNotFound", id);
+               }
+               if (!(matched & (1 << 1)))
+                  addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn1);
+               if (!(matched & (1 << 2)))
+                  addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn2);
+               if (!(matched & (1 << 3)))
+                  addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn3);
+               return matched;
+            }
+            if (addmr () != ((1 << 1) | (1 << 2) | (1 << 3)))
+               addmr ();        // Second option
          }
          notscotx (sqlp, tester, tx);
       }

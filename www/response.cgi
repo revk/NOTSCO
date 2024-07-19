@@ -27,12 +27,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <option value=1>Normal reply</option>
 <include src=notscoerrors.html>
 </select></td></tr>
-<tr><th align=left colspan=2>Match response</th></tr>
+<tr><th align=left colspan=2>Match response (where IAS in request, and possible NBICS for identify or port)</th></tr>
 <tr><td>Response</td><td><select name=matchresponse>
 <option value=0>No reply</option>
-<option value=1>Match Response</option>
-<option value=2>Match Response + alternative</option>
-<option value=3>Match Response + two alternatives</option>
+<option value=1>Normal (non error)</option>
 <include src=notscoerrors.html>
 </select></td></tr>
 <tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"></td><td rowspan=2>(1st class post if both blank)</td></tr>
@@ -42,10 +40,17 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Access Line ID</td><td><input name=alid size=12 placeholder="ALID"></td></tr>
 <tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
 <tr><td>ONT port</td><td><input name=ontport size=2 placeholder="N"></td></tr>
-<tr><th align=left colspan=2>Match NBICS response</th></tr>
+<tr><td>Linked NBICS action</td><td><select name=iasaction>
+<option value=Normal>Normal</option>
+<option value=ForcedCease>ForcedCease</option>
+</select></td>
+<tr><td>Linked DN</td><td><input name=iasdn size=20 placeholder="Telephone"> Number linked to IAS service</td></tr>
+<tr><th align=left colspan=2>Match NBICS responsek (where no IAS in request)</th></tr>
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
-<tr><td>DN</td><td><input name=dn size=20 placeholder="Telephone"></td></tr>
+<tr><td>DN</td><td><input name=dn1 size=20 placeholder="Telephone"> This is <i>ServiceFound</i> number</td></tr>
+<tr><td>DN</td><td><input name=dn2 size=20 placeholder="Telephone"> Extra to <i>cease</i>/<i>retain</i></td></tr>
+<tr><td>DN</td><td><input name=dn3 size=20 placeholder="Telephone"> Extra to <i>cease</i>/<i>retain</i></td></tr>
 </table>
 <input type=submit value="Save">
 </form>
