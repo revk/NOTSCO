@@ -7,6 +7,7 @@ echo ""
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Log message</h1>
 <p>
+<a href="control.cgi">Home</a>
 <sql select="max(ID) AS I" table=log WHERE="tester=$TESTER AND ID<$ID"><if I><a href="log.cgi?ID=$I">Previous</a></if></sql>
 <sql select="min(ID) AS I" table=log WHERE="tester=$TESTER AND ID>$ID"><if I><a href="log.cgi?ID=$I">Next</a></if></sql>
 </p>
