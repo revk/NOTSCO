@@ -6,7 +6,7 @@ echo ""
 
 xmlsql head.html - tail.html << 'END'
 <h1>One Touch Switching test platform</h1>
-<p>This site provides an unofficial, independant, free, test environment for One Touch Switching development.</p>
+<p>This site provides an unofficial, independent, free, test environment for One Touch Switching development.</p>
 <ul>
 <li>Send customised match requests, and receive responses.</li>
 <li>Set up customised match request responses, including error responses.</li>
