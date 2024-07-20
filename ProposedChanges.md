@@ -112,7 +112,7 @@ I suggest:
 
 ### Planned/activation dates
 
-The specification and industry process do defined some rules on dates. I think extending these and making them very clear within the OTS specification as well as Industry Process would be in order. This will allow range checking on message receipt for simple error response.
+The specification and industry process do define some rules regarding dates. I think extending these and making them very clear within the OTS specification as well as Industry Process would be in order. This will allow range checking on message receipt for simple error response.
 
 I specifically propose:
 
