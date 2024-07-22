@@ -11,10 +11,10 @@ MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
 
 ## API
 
-The API specification should ensure all examples match the specification and align with the separate examples documentation. At present they do not, notably:
+The API specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not, notably:
 
 - Example request messages incorrectly included a `envelope.destination.correlationID`, leading to the confusion that they might be considered a reply to a previous reply (e.g. `residentialSwitchMatchConfirmation`) in some way. This could lead to extra unnecessary work by CPs.
-- Many examples do not match the defined field list - one or other needs correcting.
+- Many examples / test cases do not match the defined field list - one or other needs correcting.
 
 ### 2.1.2
 
@@ -81,7 +81,7 @@ TOTSCO bulletin 66 means the API specification should clarify. As the very least
 
 ## OTS
 
-The OTS specification should ensure all examples match the specification and align with the separate examples documentation. At present they do not.
+The OTS specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not.
 
 ### Definitions
 
