@@ -72,6 +72,13 @@ The specification is contradictory and unclear. I would suggest the following. N
 - Note that this means all messages sent by the hub will have an `envelope.source.correlationID` provided by the original CP, except for `messageDeliveryFailure` where it is omitted.
 - A *correlationID* is any JSON string, but **must not** be more than 255 characters in length (this is to allow for use in SQL tables as a `tinytext` type). It is recommended that a UUID is used, but this is not a requirement.
 
+### Processing received mesages
+
+TOTSCO bulletin 66 means the API specification should clarify. As the very least :-
+
+- Letterbox post messages received by the CP can include based syntax checks for the message, and can use the `envelope.source.correlationID` (per source RCPID) to identify duplicate received messages (and ignore, or resend a previous reply as appropriate).
+- Whilst the SLA 3 seconds, it is recommended that messages be queued for processing and an HTTP level response within 200ms where possible. Delayed responses can lead to duplicate messages and/or message delivery failures.
+
 ## OTS
 
 The OTS specification should ensure all examples match the specification and align with the separate examples documentation. At present they do not.
