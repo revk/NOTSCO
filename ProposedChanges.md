@@ -48,7 +48,7 @@ It seems to me that it would help to have a proper definition of message content
 
 It also seems prudent (after correcting 2.1.8 *Integer* definitions) to state:
 
-- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used.
+- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used. JSON strings are expected to exclude control characters (unicode characters below 0x20).
 
 It also seems prudent (given the examples that do this), to say:
 
@@ -107,8 +107,10 @@ It seems to me that it would help to have a proper definition of message content
 
 It also seems prudent to state:
 
-- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used.
+- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used. JSON strings are expected to exclude control characters (unicode characters below 0x20).
+
 It also seems prudent (given the examples that do this), to say:
+
 - Where a field is defined as being optional, it should be omitted. However, the recipient of a message should consider such a field that contains an empty string (`””`) is the same as being omitted.
 
 ### Dates and times
