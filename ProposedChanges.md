@@ -76,7 +76,7 @@ The specification is contradictory and unclear. I would suggest the following. N
 
 TOTSCO bulletin 66 means the API specification should clarify. As the very least :-
 
-- Letterbox post messages received by the CP can include based syntax checks for the message, and can use the `envelope.source.correlationID` (per source RCPID) to identify duplicate received messages (and ignore, or resend a previous reply as appropriate).
+- Letterbox post messages received by the CP can include basic syntax and structure checks for the message, and can use the `envelope.source.correlationID` (per source RCPID) to identify duplicate received messages (and ignore, or resend a previous reply as appropriate). However, further processing of the sematics of the message are expected to be done after confirming receipt at an HTTP level.
 - Whilst the SLA 3 seconds, it is recommended that messages be queued for processing and an HTTP level response within 200ms where possible. Delayed responses can lead to duplicate messages and/or message delivery failures.
 
 ## OTS
