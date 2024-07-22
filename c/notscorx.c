@@ -568,6 +568,15 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    int delay = atoi (sql_colz (res, "delay"));
    sql_free_result (res);
    j_t rx = j_find (cgi, "formdata");
+   const char *rxcorrelation = j_get (rx, "envelope.source.correlationID");
+   if (rxcorrelation && tester)
+   {
+      SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `log` WHERE `tester`=%d AND `rxcorrelation`=%#s LIMIT 1", tester, rxcorrelation);
+      if (sql_fetch_row (res))
+         fprintf (rxe,
+                  "envelope.source.correlationID duplicate - TOTSCO Bulletin 66 suggests it should be unique to allow de-duplication of messages.\n");
+      sql_free_result (res);
+   }
    syntaxcheck (rx, rxe);
    j_t envelope = j_find (rx, "envelope");
    if (!envelope)
@@ -870,6 +879,7 @@ main (int argc, const char *argv[])
       fail ("Not processed", 500);
    if (!j_isnull (tx) && status / 100 != 2)
       responsecheck (status, tx, txe);
+
    // Log
    fclose (txe);
    fclose (rxe);
@@ -885,8 +895,10 @@ main (int argc, const char *argv[])
          if (!sql_fetch_row (res))
             tester = t;
       }
+      sql_free_result (res);
    }
    j_t rx = j_find (cgi, "formdata");
+   const char *rxcorrelation = j_get (rx, "envelope.source.correlationID");
    char *rxt = NULL;
    if (!strcmp (j_get (cgi, "info.request_method") ? : "", "GET") ||
        !strncmp (j_get (cgi, "header.Content-Type") ? : "", "application/x-www-form-urlencoded", 33))
@@ -895,9 +907,10 @@ main (int argc, const char *argv[])
       rxt = j_write_pretty_str (rx);
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
-                     "INSERT INTO `log` SET `ID`=0,`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s",
+                     "INSERT INTO `log` SET `ID`=0,`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s,`rxcorrelation`=%#s",
                      status, ip, description, j_isnull (rx) ? *rxerror ? "" : NULL : rxt,
-                     *rxerror ? rxerror : NULL, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL);
+                     *rxerror ? rxerror : NULL, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL,
+                     rxcorrelation);
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    if (routing && tester)
