@@ -11,10 +11,10 @@ MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
 
 ## API
 
-The API specification should ensure all examples match the specification and align with the separate examples documentation. At present they do not, notably:
+The API specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not, notably:
 
 - Example request messages incorrectly included a `envelope.destination.correlationID`, leading to the confusion that they might be considered a reply to a previous reply (e.g. `residentialSwitchMatchConfirmation`) in some way. This could lead to extra unnecessary work by CPs.
-- Many examples do not match the defined field list - one or other needs correcting.
+- Many examples / test cases do not match the defined field list - one or other needs correcting.
 
 ### 2.1.2
 
@@ -48,7 +48,7 @@ It seems to me that it would help to have a proper definition of message content
 
 It also seems prudent (after correcting 2.1.8 *Integer* definitions) to state:
 
-- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used.
+- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used. JSON strings are expected to exclude control characters (unicode characters below 0x20).
 
 It also seems prudent (given the examples that do this), to say:
 
@@ -66,15 +66,22 @@ The explanation (which does not allow `"TOTSCO"`) in 2.2.1, and for various othe
 
 The specification is contradictory and unclear. I would suggest the following. Note the proposed definition having a limited length, which is a clear omission from the current specification.
 
-- All messages sent by a CP/MAP to the hub **must** have an `envelope.source.correlationID`. This should be unique for each message sent, such that any reply can be correlation to the original message, and that duplicates can be recognised (see TOTSCO bulletin 66). Note that any message to the hub can have a reply, even if it is only `messageDeliveryFailure`, hence an `envelope.source.correlationID` is **required** even on a message that is, itself, logical a reply message.
+- All messages sent by a CP/MAP to the hub **must** have an `envelope.source.correlationID`. This **must** be unique for each message sent (we recommend using a UUID), such that any reply can be correlation to the original message, and that duplicates can be recognised (see TOTSCO bulletin 66). Note that any message to the hub can have a reply, even if it is only `messageDeliveryFailure`, hence an `envelope.source.correlationID` is **required** even on a message that is, itself, logically a reply message.
 - Messages with `routingID` ending `Request` shall omit any `envelope.destination.correlationID`, as they are not a reply to a message that was sent.
 - All other messages must include an `envelope.destination.correlationID` that is the `envelope.source.correlationID` to which this message is a reply.
 - Note that this means all messages sent by the hub will have an `envelope.source.correlationID` provided by the original CP, except for `messageDeliveryFailure` where it is omitted.
 - A *correlationID* is any JSON string, but **must not** be more than 255 characters in length (this is to allow for use in SQL tables as a `tinytext` type). It is recommended that a UUID is used, but this is not a requirement.
 
+### Processing received mesages
+
+TOTSCO bulletin 66 means the API specification should clarify. As the very least :-
+
+- Letterbox post messages received by the CP can include basic syntax and structure checks for the message, and can use the `envelope.source.correlationID` (per source RCPID) to identify duplicate received messages (and ignore, or resend a previous reply as appropriate). However, further processing of the sematics of the message are expected to be done after confirming receipt at an HTTP level - generating an appropriate `Failure` response message if appropriate.
+- Whilst the SLA is 3 seconds, it is recommended that messages be queued for processing and an HTTP level response within 200ms where possible. Delayed responses can lead to duplicate messages and/or message delivery failures.
+
 ## OTS
 
-The OTS specification should ensure all examples match the specification and align with the separate examples documentation. At present they do not.
+The OTS specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not.
 
 ### Definitions
 
@@ -100,8 +107,10 @@ It seems to me that it would help to have a proper definition of message content
 
 It also seems prudent to state:
 
-- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used.
+- All simple values in the JSON object shall be a JSON string type. Other JSON types (numeric, null, boolean) shall not be used. JSON strings are expected to exclude control characters (unicode characters below 0x20).
+
 It also seems prudent (given the examples that do this), to say:
+
 - Where a field is defined as being optional, it should be omitted. However, the recipient of a message should consider such a field that contains an empty string (`””`) is the same as being omitted.
 
 ### Dates and times
