@@ -220,6 +220,9 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
          j_store_string (payload, "account", "\\1234");
       if (test == 14)
          j_store_string (payload, "account", "1234\n");
+      // 16 is long address
+      if (test == 17)
+         j_store_string (j_find(tx,"envelope.source"), "correlationID", "00000000-0000-0000-0000-000000000000");
       j_t services = j_store_array (payload, "services");
       j_t s = j_append_object (services);
       j_store_string (s, "serviceType", "IAS");
