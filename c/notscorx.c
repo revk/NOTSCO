@@ -693,7 +693,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                else
                {
                   if (sql_col (res, "recd"))
-                     fprintf (rxe, "Duplicate response to %s.\n", routing);
+                     fprintf (rxe, "Duplicate response to %.*sRequest\n", (int) (suffix - routing), routing);
                   checkdelay (rxe, routing, sql_time (sql_colz (res, "sent")));
                   sql_safe_query_f (sqlp,
                                     "UPDATE `pending` SET `recd`=NOW() WHERE `tester`=%d AND `correlation`=%#s AND `request`=%#.*s",
