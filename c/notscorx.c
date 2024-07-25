@@ -454,7 +454,7 @@ progressRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t payload, const 
       j_store_string (payload, "status", newstatus);
       notscotx (sqlp, tester, tx);
       sql_safe_query_f (sqlp,
-                        "UPDATE `sor` SET `dated`=%#.10T,`status`=%#s WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
+                        "UPDATE `sor` SET `dated`=%#10T,`status`=%#s WHERE `tester`=%d AND `issuedby`='US' AND `sor`=%#s AND `rcpid`=%#s",
                         date, newstatus, tester, sor, rcpid);
    } else
       notscofailure (sqlp, tester, rx, code, sor);
