@@ -280,7 +280,7 @@ ispastdate (const char *u)
       return "Not a valid date/time";
    time_t now = time (0);
    if (t < now - 86400*40)
-      return "Very old date";
+      return "Date is far in past";
    if (t > now + 86400)
       return "Date is in future";
    return NULL;
@@ -300,7 +300,7 @@ isfuturedate (const char *u)
    if (t < now - 86400)
       return "Date is in past";
    if (t > now + 86400 * 40)
-      return "Far in future";
+      return "Date is far in future";
    return NULL;
 }
 
