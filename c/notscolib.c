@@ -270,7 +270,7 @@ isdatetime (const char *u)
 }
 
 static const char *
-isdate (const char *u)
+ispastdate (const char *u)
 {
    const char *e = ispattern (u, "NNNN-NN-NN");
    if (e)
@@ -279,10 +279,28 @@ isdate (const char *u)
    if (!t)
       return "Not a valid date/time";
    time_t now = time (0);
-   if (t < now - 86400 * 40)
-      return "Too far in past";
+   if (t < now - 86400*40)
+      return "Very old date";
+   if (t > now + 86400)
+      return "Date is in future";
+   return NULL;
+}
+
+static const char *
+isfuturedate (const char *u)
+{
+	warnx("future");
+   const char *e = ispattern (u, "NNNN-NN-NN");
+   if (e)
+      return e;
+   time_t t = j_time (u);
+   if (!t)
+      return "Not a valid date/time";
+   time_t now = time (0);
+   if (t < now - 86400)
+      return "Date is in past";
    if (t > now + 86400 * 40)
-      return "Too far in future";
+      return "Far in future";
    return NULL;
 }
 
@@ -1114,10 +1132,10 @@ syntaxcheck (j_t j, FILE * e)
             if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             if (strstr (routing, "Trigger") && (val = expect_string (e, ref, payload, "activationDate", NULL))
-                && (info = isdate (val)))
+                && (info = ispastdate (val)))
                expected (e, ref, payload, NULL, "activationDate", NULL, "a valid date", info);
             else if (!strstr (routing, "Trigger") && !strstr (routing, "Cancellation")
-                     && (val = expect_string (e, ref, payload, "plannedSwitchDate", NULL)) && (info = isdate (val)))
+                     && (val = expect_string (e, ref, payload, "plannedSwitchDate", NULL)) && (info = isfuturedate (val)))
                expected (e, ref, payload, NULL, "plannedSwitchDate", NULL, "a valid date", info);
          } else if (strstr (routing, "Confirmation"))
          {                      // Other Confirmations
