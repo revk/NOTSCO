@@ -160,6 +160,17 @@ In addition, a `residentialSwitchOrderTriggerRequest` cannot be sent more than 3
 
 The `activationDate` is the date the gaining provider starts billing, and as such the losing provide should bill up to the end of the day before.
 
+### Response codes
+
+It seems sensible to have error response codes for a match request that cover cases where OTS is not applicable, indicating there is a match, but the service cannot be switched using OTS.
+
+- This is a business service
+- This is not a fixed location service
+
+### RCP status
+
+As there are RCPs that don't do broadband and RCPs that don't do telephony, it would seem sensible for the directory to have a flag indicating an RCP handles IAS and/or handles NBICS requests. This would avoid even inclding such in a list of RCPs for cases where they do not ofdfer services.
+
 # Test platform
 
 TOTSCO need a proper test platform. This is especially an issue now, but an issue ongoing for new CPs.
