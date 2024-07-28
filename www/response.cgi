@@ -41,7 +41,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
 <tr><td>ONT port</td><td><input name=ontport size=2 placeholder="N"></td></tr>
 <tr><td>Linked NBICS action</td><td><select name=iasaction>
-<option value=Normal>Normal (OptionToCease/OptionToRetain)</option>
+<option value=Normal>Normal (OptionToCease/OptionToRetain or ServiceFound)</option>
 <option value=ForcedCease>ForcedCease</option>
 <option value=ServiceWithAnotherRCP>ServiceWithAnotherRCP</option>
 <option value=ServiceWithAnotherCust>ServiceWithAnotherCust</option>
