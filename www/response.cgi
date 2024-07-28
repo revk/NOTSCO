@@ -41,16 +41,18 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>ONT Reference</td><td><input name=ontref size=12 placeholder="ONT Ref"></td></tr>
 <tr><td>ONT port</td><td><input name=ontport size=2 placeholder="N"></td></tr>
 <tr><td>Linked NBICS action</td><td><select name=iasaction>
-<option value=Normal>Normal</option>
+<option value=Normal>Normal (OptionToCease/OptionToRetain)</option>
 <option value=ForcedCease>ForcedCease</option>
+<option value=ServiceWithAnotherRCP>ServiceWithAnotherRCP</option>
+<option value=ServiceWithAnotherCust>ServiceWithAnotherCust</option>
 </select></td>
 <tr><td>Linked DN</td><td><input name=iasdn size=20 placeholder="Telephone"> Number linked to IAS service</td></tr>
 <tr><th align=left colspan=2>Match NBICS responsek (where no IAS in request)</th></tr>
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
 <tr><td>DN</td><td><input name=dn1 size=20 placeholder="Telephone"> This is <i>ServiceFound</i> number</td></tr>
-<tr><td>DN</td><td><input name=dn2 size=20 placeholder="Telephone"> Extra to <i>cease</i>/<i>retain</i></td></tr>
-<tr><td>DN</td><td><input name=dn3 size=20 placeholder="Telephone"> Extra to <i>cease</i>/<i>retain</i></td></tr>
+<tr><td>DN</td><td><input name=dn2 size=20 placeholder="Telephone"> Cease/Retain</td></tr>
+<tr><td>DN</td><td><input name=dn3 size=20 placeholder="Telephone"> Cease/Retain</td></tr>
 </table>
 <input type=submit value="Save">
 </form>

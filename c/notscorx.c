@@ -291,8 +291,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_t j = mrias ();
             if (*iasdn)
             {
-               if (!strcmp (iasaction, "ForcedCease"))
-                  addnbics (j, "ForcedCease", iasdn);
+               if (strcmp (iasaction, "Normal"))
+                  addnbics (j, iasaction, iasdn);
                else
                {
                   if (port && strcmp (port, iasdn))

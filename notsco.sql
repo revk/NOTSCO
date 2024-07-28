@@ -32,7 +32,7 @@ CREATE TABLE `auth` (
   KEY `auth_tester` (`tester`),
   KEY `expiry` (`expiry`),
   CONSTRAINT `auth_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=305 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=327 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,6 +67,7 @@ CREATE TABLE `log` (
   `status` int(3) unsigned DEFAULT NULL,
   `ip` varchar(39) DEFAULT NULL,
   `ms` int(11) DEFAULT NULL,
+  `rxcorrelation` tinytext DEFAULT NULL,
   `rx` text DEFAULT NULL,
   `rxerror` text DEFAULT NULL,
   `tx` text DEFAULT NULL,
@@ -75,7 +76,7 @@ CREATE TABLE `log` (
   KEY `log_tester` (`tester`),
   KEY `ts` (`ts`),
   CONSTRAINT `log_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2270 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2621 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -141,7 +142,7 @@ CREATE TABLE `sor` (
   KEY `sor_tester` (`tester`),
   KEY `created` (`created`),
   CONSTRAINT `sor_tester` FOREIGN KEY (`tester`) REFERENCES `tester` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=302 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=439 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -168,7 +169,11 @@ CREATE TABLE `tester` (
   `sentto2` tinytext DEFAULT NULL,
   `ontref` tinytext DEFAULT NULL,
   `ontport` int(11) NOT NULL DEFAULT 0,
-  `dn` varchar(20) DEFAULT NULL,
+  `dn1` varchar(20) DEFAULT NULL,
+  `dn3` varchar(20) DEFAULT NULL,
+  `dn2` varchar(20) DEFAULT NULL,
+  `iasdn` varchar(20) DEFAULT NULL,
+  `iasaction` enum('Normal','ForcedCease','ServiceWithAnotherRCP','ServiceWithAnotherCust') DEFAULT 'Normal',
   `alid` varchar(20) DEFAULT NULL,
   `bearer` text DEFAULT NULL,
   `expiry` datetime DEFAULT NULL,
@@ -199,7 +204,7 @@ CREATE TABLE `tester` (
   KEY `email` (`email`(255)),
   KEY `emailed` (`emailed`),
   KEY `lastlogin` (`lastlogin`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=694 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -211,4 +216,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-07-13 10:01:44
+-- Dump completed on 2024-07-28  9:30:05
