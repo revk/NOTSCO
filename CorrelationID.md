@@ -58,7 +58,7 @@ For that reason, the following clarification of usage of `correlationID` and rec
 
 # Recommended usage of correlationID
 
-Whilst the current API specification simply says that the `source.correlationID` is used simply to *support then sender's messaging process*,
+Whilst the current API specification simply says that the `source.correlationID` is used simply to *support the sender's messaging process*,
 and simply *should* be *sufficiently* unique to match a request to a response, the actual usage needs to be clarified.
 
 There are three main uses for the `correlationID`.
