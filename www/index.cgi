@@ -5,7 +5,7 @@ echo "Content-Type: text/html"
 echo ""
 
 xmlsql head.html - tail.html << 'END'
-<h1>One Touch Switching test platform</h1>
+<h1>NOTSCO: One Touch Switching test platform</h1>
 <p>This site provides an unofficial, independent, free, test environment for One Touch Switching development.</p>
 <ul>
 <li>Send customised match requests, and receive responses.</li>
