@@ -253,7 +253,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_t j = mr ();
             j_t s = services (j, "IAS", "ServiceFound");
             addi (s, "ONTReference", ontref);
-            addi (s, "PortNumber", ontport);
+            if (ontport && atoi (ontport))
+               addi (s, "PortNumber", ontport);
             addi (s, "NetworkOperator", iasno);
             addi (s, "ServiceInformation", sn);
             addi (s, "AccessLineId", alid);
@@ -571,7 +572,9 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    const char *rxcorrelation = j_get (rx, "envelope.source.correlationID");
    if (rxcorrelation && tester)
    {
-      SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `log` WHERE `tester`=%d AND `rxcorrelation`=%#s LIMIT 1", tester, rxcorrelation);
+      SQL_RES *res =
+         sql_safe_query_store_f (sqlp, "SELECT * FROM `log` WHERE `tester`=%d AND `rxcorrelation`=%#s LIMIT 1", tester,
+                                 rxcorrelation);
       if (sql_fetch_row (res))
          fprintf (rxe,
                   "envelope.source.correlationID duplicate - TOTSCO Bulletin 66 suggests it should be unique to allow de-duplication of messages.\n");
