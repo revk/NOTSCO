@@ -308,15 +308,16 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             }
          } else
          {                      // NBICS
+            int numbers = 0;
+            if (*dn1)
+               numbers |= (1 << 1);
+            if (*dn2)
+               numbers |= (1 << 2);
+            if (*dn3)
+               numbers |= (1 << 3);
             int addmr (void)
             {
                int matched = 0;
-               if (!*dn1)
-                  matched |= (1 << 1);
-               if (!*dn2)
-                  matched |= (1 << 2);
-               if (!*dn3)
-                  matched |= (1 << 3);
                j_t j = mr ();
                for (j_t a = j_first (rxservices); a; a = j_next (a))
                {
@@ -345,15 +346,21 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                   } else if (count == 1)
                      addnbics (j, "ServiceNotFound", id);
                }
-               if (!(matched & (1 << 1)))
+               if (*dn1 && !(matched & (1 << 1)))
                   addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn1);
-               if (!(matched & (1 << 2)))
+               if (*dn2 && !(matched & (1 << 2)))
                   addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn2);
-               if (!(matched & (1 << 3)))
+               if (*dn3 && !(matched & (1 << 3)))
                   addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn3);
                return matched;
             }
-            if (addmr () != ((1 << 1) | (1 << 2) | (1 << 3)))
+            int m = addmr ();
+            if (!m)
+            {                   // Number not found
+               j_delete (&tx);
+               return notscofailure (sqlp, tester, rx, 1116, NULL);
+            }
+            if (m != numbers)
                addmr ();        // Second option
          }
          notscotx (sqlp, tester, tx);
@@ -572,9 +579,8 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    const char *rxcorrelation = j_get (rx, "envelope.source.correlationID");
    if (rxcorrelation && tester)
    {
-      SQL_RES *res =
-         sql_safe_query_store_f (sqlp, "SELECT * FROM `log` WHERE `tester`=%d AND `rxcorrelation`=%#s LIMIT 1", tester,
-                                 rxcorrelation);
+      SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `log` WHERE `tester`=%d AND `rxcorrelation`=%#s LIMIT 1", tester,
+                                             rxcorrelation);
       if (sql_fetch_row (res))
          fprintf (rxe,
                   "envelope.source.correlationID duplicate - TOTSCO Bulletin 66 suggests it should be unique to allow de-duplication of messages.\n");
