@@ -46,7 +46,7 @@ Messages exchanged between CPs fall in to two categories.
 One of the problems with the current API specification is that it suggests the `source.correlationID` is entirely at the whim of, and for the benefit of the sender.
 This means some possible uses are :-
 
-- Allocating an ID for an order flow, and using it for multiple `residentialSwitchMatchRequest`, e.g. if address is  changed or an account number added. Then even using for the `residentialSwitchOrderRequest`. This allows the sender to match replies to they ordering flow, i.e. using a simple ID is *sufficiently unique* for the sender's message flow.
+- Allocating an ID for an order flow, and using it for multiple `residentialSwitchMatchRequest`, e.g. if address is  changed or an account number added. Then even using for the `residentialSwitchOrderRequest`. This allows the sender to match replies to their ordering flow, i.e. using a simple ID is *sufficiently unique* for the sender's message flow.
 - Using the Switch Order Reference on all switch action messages, so replies can be tied to the specific switch order.
 - Using the Switch Order Reference on replies to switch action messages so a `messageDeliveryFailure` can be tied to a specific switch order.
 - Using a fixed value on Switch Order action messages or responses as all such messages, including failures, carry the `switchOrderReference` so the `correlationID` does not matter (assuming the sender does not care about `messageDeliveryFailure`)
@@ -58,7 +58,7 @@ For that reason, the following clarification of usage of `correlationID` and rec
 
 # Recommended usage of correlationID
 
-Whilst the current API specification simply says that the `source.correlationID` is used simply to *support then sender's messaging process*,
+Whilst the current API specification simply says that the `source.correlationID` is used simply to *support the sender's messaging process*,
 and simply *should* be *sufficiently* unique to match a request to a response, the actual usage needs to be clarified.
 
 There are three main uses for the `correlationID`.
