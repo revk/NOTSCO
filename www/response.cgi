@@ -50,9 +50,9 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><th align=left colspan=2>Match NBICS responsek (where no IAS in request)</th></tr>
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
-<tr><td>DN</td><td><input name=dn1 size=20 placeholder="Telephone"> This is <i>ServiceFound</i> number</td></tr>
-<tr><td>DN</td><td><input name=dn2 size=20 placeholder="Telephone"> Cease/Retain</td></tr>
-<tr><td>DN</td><td><input name=dn3 size=20 placeholder="Telephone"> Cease/Retain</td></tr>
+<tr><td>DN</td><td><input name=dn1 size=20 placeholder="Telephone"></td></tr>
+<tr><td>DN</td><td><input name=dn2 size=20 placeholder="Telephone"></td></tr>
+<tr><td>DN</td><td><input name=dn3 size=20 placeholder="Telephone"></td></tr>
 </table>
 <input type=submit value="Save">
 </form>
