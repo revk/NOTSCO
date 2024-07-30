@@ -47,7 +47,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <option value=ServiceWithAnotherCust>ServiceWithAnotherCust</option>
 </select></td>
 <tr><td>Linked DN</td><td><input name=iasdn size=20 placeholder="Telephone"> Number linked to IAS service</td></tr>
-<tr><th align=left colspan=2>Match NBICS responsek (where no IAS in request)</th></tr>
+<tr><th align=left colspan=2>Match NBICS response (where no IAS in request)</th></tr>
 <tr><td>NBICS Network Operator</td><td><input name=nbicsnetworkoperator size=4 maxlength=5 placeholder="ANNN"></td></tr>
 <tr><td>NBICS CUPID</td><td><input name=cupid size=3 maxlength=4 placeholder="NNN"></td></tr>
 <tr><td>DN</td><td><input name=dn1 size=20 placeholder="Telephone"></td></tr>
