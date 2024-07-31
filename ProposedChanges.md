@@ -181,7 +181,7 @@ It seems sensible to have error response codes for a match request that cover ca
 
 ### RCP status
 
-As there are RCPs that don't do broadband and RCPs that don't do telephony, it would seem sensible for the directory to have a flag indicating an RCP handles IAS and/or handles NBICS requests. This would avoid even inclding such in a list of RCPs for cases where they do not ofdfer services.
+As there are RCPs that don't do broadband and RCPs that don't do telephony, it would seem sensible for the directory to have a flag indicating an RCP handles IAS and/or handles NBICS requests. This would avoid even inclding such in a list of RCPs for cases where they do not offer services.
 
 # Test platform
 
