@@ -9,6 +9,14 @@ I have outlined a number of proposed changes for consideration.
 
 MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
 
+## Structure of specifications
+
+The current set of specifications, best practive, policy, list of network operators, list of error codes, list of test cases, and examples and a mess. They are not all in one place or even in a consistent format, and they are not well structured, and contradicty each other.
+
+I appreciate that some things like address matching have evolved, but in doing so, they previous guidance is left in the switching specification which is now different to the industry process. It should have been removed from one and a clear reference to the other.
+
+I feel the whole structure of the full set of documents needs careful consideration.
+
 ## API
 
 The API specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not, notably:
@@ -71,6 +79,8 @@ The specification is contradictory and unclear. I would suggest the following. N
 - All other messages must include an `envelope.destination.correlationID` that is the `envelope.source.correlationID` to which this message is a reply.
 - Note that this means all messages sent by the hub will have an `envelope.source.correlationID` provided by the original CP, except for `messageDeliveryFailure` where it is omitted.
 - A *correlationID* is any JSON string, but **must not** be more than 255 characters in length (this is to allow for use in SQL tables as a `tinytext` type). It is recommended that a UUID is used, but this is not a requirement.
+
+In the mean time I have suggsted a [bulletin](https://github.com/revk/NOTSCO/blob/main/CorrelationID.md) to address the problem urgently whilst people are still developing.
 
 ### Processing received mesages
 
