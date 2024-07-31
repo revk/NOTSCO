@@ -106,7 +106,7 @@ A clear definitions for data types should be included, covering all data types, 
 - AccessLineID
 - dates and times (see below)
 - Postcode (is it case insensitive, does it need the space?)
-- UUID (reference RFC), and highlight that it is **case insensitive**. This is especially important if stored in SQL as it may be retrieved in differene case to how stored.
+- UUID (reference RFC), and highlight that it is **case insensitive**. This is especially important if stored in SQL as it may be retrieved in different case to how stored.
 - and any others…
 
 They should say the format, and maximum size of such fields. I would suggest clear consideration as you how such types might be defined in SQL.
