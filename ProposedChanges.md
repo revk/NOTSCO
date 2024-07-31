@@ -28,7 +28,7 @@ The API specification should ensure all examples and test cases match the specif
 
 ### 2.1.2
 
-The strict URI format is defined for use by TOTSCO, RCPs and MAPs, but it is not in fact required by TOSTCO for RCPs/MAPs. TOTSCO allow any URI for CP/MAP to be specified. TOTSCO do follow this URI scheme for the hub, but not for the simulator. This should be clarified as more flexibility over the URI format will help some CPs.
+The strict URI format is defined for use by TOTSCO, RCPs and MAPs, but it is not in fact required by TOSTCO for RCPs/MAPs. TOTSCO allow any URI for CP/MAP to be specified. TOTSCO do follow this URI scheme for the hub, but not for the simulator. This should be clarified and explained, as this flexibility URI format will help some CPs.
 
 ### 2.1.8
 
