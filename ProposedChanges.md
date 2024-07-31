@@ -7,7 +7,7 @@ Notably "address matching" needs to be in one place and really clearly defined.
 
 I have outlined a number of proposed changes for consideration.
 
-MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
+CPs are welcome to propose changes and additions, start a discussion or raise a merge request. Thanks.
 
 ## Structure of specifications
 
