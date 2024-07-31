@@ -11,7 +11,7 @@ CPs are welcome to propose changes and additions, start a discussion or raise a 
 
 ## Structure of specifications
 
-The current set of specifications, best practive, policy, list of network operators, list of error codes, list of test cases, and examples and a mess. They are not all in one place or even in a consistent format, and they are not well structured, and contradicty each other.
+The current set of specifications, best practive, policy, list of network operators, list of error codes, list of test cases, and examples and a mess. They are not all in one place or even in a consistent format, and they are not well structured, and contradict each other. I am not along in finding this confusing.
 
 I appreciate that some things like address matching have evolved, but in doing so, they previous guidance is left in the switching specification which is now different to the industry process. It should have been removed from one and a clear reference to the other.
 
