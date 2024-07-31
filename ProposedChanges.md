@@ -19,6 +19,8 @@ I feel the whole structure of the full set of documents needs careful considerat
 
 ## API
 
+There is, apparently, some feeling that the overall high level message logic is more of an evolving industry process and so should not be too proscribed. And whilst there is some merit in this, the API specification should be very clearly pinned down in my view, as it needs to be very clear for those implementing it. The issues around bulletin 66 show how much of a problem the current *woolly* specification is.
+
 The API specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not, notably:
 
 - Example request messages incorrectly included a `envelope.destination.correlationID`, leading to the confusion that they might be considered a reply to a previous reply (e.g. `residentialSwitchMatchConfirmation`) in some way. This could lead to extra unnecessary work by CPs.
