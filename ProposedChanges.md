@@ -1,15 +1,25 @@
 # Suggestions for updates to TOTSCO specifications.
 
 The TOTSCO specifications seem to be very poorly written, including notable omissions, and contradictions, and ambiguities.
-The specifications come in several layers: the API specification; The OTS message specification; and Industry Processes. There are also examples. These do not always align. Some aspects from Industry process would be suitable for inclusion in the OTS message specification, notably things like acceptable ranges for dates.
+The specifications come in several layers: the API specification; The OTS message specification; and Industry Processes. There are also examples. These do not always align. Some aspects from Industry process would be suitable for inclusion in the OTS message specification, notably things like acceptable ranges for dates as this comes in with basic message validity checking.
 
 Notably "address matching" needs to be in one place and really clearly defined.
 
 I have outlined a number of proposed changes for consideration.
 
-MRs welcome, let's colaborate on this before sending to TOTSCO shall we?
+CPs are welcome to propose changes and additions, start a discussion or raise a merge request. Thanks.
+
+## Structure of specifications
+
+The current set of specifications, best practive, policy, list of network operators, list of error codes, list of test cases, and examples and a mess. They are not all in one place or even in a consistent format, and they are not well structured, and contradict each other. I am not along in finding this confusing.
+
+I appreciate that some things like address matching have evolved, but in doing so, they previous guidance is left in the switching specification which is now different to the industry process. It should have been removed from one and a clear reference to the other.
+
+I feel the whole structure of the full set of documents needs careful consideration.
 
 ## API
+
+There is, apparently, some feeling that the overall high level message logic is more of an evolving industry process and so should not be too proscribed. And whilst there is some merit in this, the API specification should be very clearly pinned down in my view, as it needs to be very clear for those implementing it. The issues around bulletin 66 show how much of a problem the current *woolly* specification is.
 
 The API specification should ensure all examples and test cases match the specification and align with the separate examples documentation. At present they do not, notably:
 
@@ -18,7 +28,7 @@ The API specification should ensure all examples and test cases match the specif
 
 ### 2.1.2
 
-The strict URI format is defined for use by TOTSCO, RCPs and MAPs, but it is not in fact required by TOSTCO for RCPs/MAPs. TOTSCO allow any URI for CP/MAP to be specified. TOTSCO do follow this URI scheme for the hub, but not for the simulator. This should be clarified as more flexibility over the URI format will help some CPs.
+The strict URI format is defined for use by TOTSCO, RCPs and MAPs, but it is not in fact required by TOSTCO for RCPs/MAPs. TOTSCO allow any URI for CP/MAP to be specified. TOTSCO do follow this URI scheme for the hub, but not for the simulator. This should be clarified and explained, as this flexibility URI format will help some CPs.
 
 ### 2.1.8
 
@@ -66,11 +76,13 @@ The explanation (which does not allow `"TOTSCO"`) in 2.2.1, and for various othe
 
 The specification is contradictory and unclear. I would suggest the following. Note the proposed definition having a limited length, which is a clear omission from the current specification.
 
-- All messages sent by a CP/MAP to the hub **must** have an `envelope.source.correlationID`. This **must** be unique for each message sent (we recommend using a UUID), such that any reply can be correlated to the original message, and so that duplicates can be recognised by teh recipient (see TOTSCO bulletin 66). Note that any message to the hub can have a reply, even if it is only `messageDeliveryFailure`, hence an `envelope.source.correlationID` is **required** even on a message that is, itself, logically a reply message.
+- All messages sent by a CP/MAP to the hub **must** have an `envelope.source.correlationID`. This **must** be unique for each message sent (we recommend using a new UUID for each message sent), such that any reply can be correlated to the original message, and so that duplicates can be recognised by teh recipient (see TOTSCO bulletin 66). Note that any message to the hub can have a reply, even if it is only `messageDeliveryFailure`, hence an `envelope.source.correlationID` is **required** even on a message that is, itself, logically a reply message.
 - Messages with `routingID` ending `Request` shall omit any `envelope.destination.correlationID`, as they are not a reply to a message that was sent.
 - All other messages must include an `envelope.destination.correlationID` that is the `envelope.source.correlationID` to which this message is a reply.
 - Note that this means all messages sent by the hub will have an `envelope.source.correlationID` provided by the original CP, except for `messageDeliveryFailure` where it is omitted.
 - A *correlationID* is any JSON string, but **must not** be more than 255 characters in length (this is to allow for use in SQL tables as a `tinytext` type). It is recommended that a UUID is used, but this is not a requirement.
+
+In the mean time I have suggsted a [bulletin](https://github.com/revk/NOTSCO/blob/main/CorrelationID.md) to address the problem urgently whilst people are still developing.
 
 ### Processing received mesages
 
@@ -94,7 +106,7 @@ A clear definitions for data types should be included, covering all data types, 
 - AccessLineID
 - dates and times (see below)
 - Postcode (is it case insensitive, does it need the space?)
-- UUID (reference RFC), and highlight that it is **case insensitive**. This is especially important if stored in SQL as it may be retrieved in differene case to how stored.
+- UUID (reference RFC), and highlight that it is **case insensitive**. This is especially important if stored in SQL as it may be retrieved in different case to how stored.
 - and any others…
 
 They should say the format, and maximum size of such fields. I would suggest clear consideration as you how such types might be defined in SQL.
@@ -169,7 +181,7 @@ It seems sensible to have error response codes for a match request that cover ca
 
 ### RCP status
 
-As there are RCPs that don't do broadband and RCPs that don't do telephony, it would seem sensible for the directory to have a flag indicating an RCP handles IAS and/or handles NBICS requests. This would avoid even inclding such in a list of RCPs for cases where they do not ofdfer services.
+As there are RCPs that don't do broadband and RCPs that don't do telephony, it would seem sensible for the directory to have a flag indicating an RCP handles IAS and/or handles NBICS requests. This would avoid even inclding such in a list of RCPs for cases where they do not offer services.
 
 # Test platform
 
