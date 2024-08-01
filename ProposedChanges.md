@@ -48,6 +48,8 @@ The directory (at least on pre-production) does not follow the specification as 
 
 Make the specification actually reference the RFC (6749) and explain the options for using `Authorization` header, and for `client_id`/`client_secret` as per §2.3.1 of that RFC. It needs to say which TOTSCO use to authenticate with the CP (which I believe is `Authorization` header). At present it only mentions using `Authorization` header.
 
+It also appears TOTSCO have an undocumented option to send `scope=full` for OAUTH2, this should be documented!
+
 ### JSON
 
 It seems to me that it would help to have a proper definition of message content, not just saying JSON, e.g. 
