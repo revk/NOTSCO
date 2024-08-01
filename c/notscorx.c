@@ -281,7 +281,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                if (strcmp (action, "ServiceWithAnotherCust") && strcmp (action, "ServiceNotFound"))
                {
                   addi (s, "NetworkOperator", nbicsno);
-                  addi (s, "CUPID", cupid);
+                  if (cupid && atoi (cupid))
+                     addi (s, "CUPID", cupid);
                }
             } else
                addi (s, "PartialDN", number + strlen (number) - 2);
