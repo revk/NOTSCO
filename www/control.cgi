@@ -10,12 +10,24 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if company not company=''><h2><output name=company></h2></if>
 <p>This is your main control page, allowing you to configure settings and responses, send messages, and see logs.</p>
 <ul>
-<if not apiurl or apiurl='' or not rcpid or rcpid='' or not tokenurl or tokenurl='' or not farclientid or farclientid='' or not farclientsecret or farclientsecret=''>
+<if not apiurl or apiurl='' or
+    not rcpid or rcpid='' or
+    not tokenurl or tokenurl='' or
+    not auth=APIKEY not farclientid or
+    not auth=APIKEY farclientid='' or
+    not auth=APIKEY not farclientsecret or
+    not auth=APIKEY farclientsecret='' or 
+    not auth=APIKEY not tokenurl or
+    not auth=APIKEY tokenurl='' or 
+    auth=APIKEY not apikey or
+    auth=APIKEY apikey=''>
 <li><a href="/gettingstarted.cgi">Getting Started</a></li>
 <if not apiurl or apiurl=''><li>You need to set up your connection/authentication details before you can send messages.</li></if>
 <if not rcpid or rcpid=''><li>You have not set an RCPID yet.</li></if>
-<if not tokenurl or tokenurl=''><if farclientid not farclientid=''><li>You have not set a token API yet.</li></if></if>
-<if not farclientsecret or farclientsecret=''><li>You have not set a Client Secret yet.</li></if>
+<if not auth=APIKEY not tokenurl or not auth=APIKEY tokenurl=''><li>You have not set a token API yet.</li></if>
+<if not auth=APIKEY not farclientid or not auth=APIKEY farclientid=''><li>You have not set a Client ID yet.</li></if>
+<if not auth=APIKEY not farclientsecret or not auth=APIKEY farclientsecret=''><li>You have not set a Client Secret yet.</li></if>
+<if auth=APIKEY not apikey or auth=APIKEY apikey=''><li>You have not set an APIKEY yet.</li></if>
 </if>
 <li><a href="/connection.cgi">Connection and authentication</a><if rcpid not rcpid=''> (<output name=rcpid>)</if><if not apiurl or apiurl=''> <b>NOT SET UP</b></if></li>
 <li><a href="/response.cgi">Set up responses</a></li>
