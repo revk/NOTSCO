@@ -279,7 +279,7 @@ ispastdate (const char *u)
    if (!t)
       return "Not a valid date/time";
    time_t now = time (0);
-   if (t < now - 86400*40)
+   if (t < now - 86400 * 40)
       return "Date is far in past";
    if (t > now + 86400)
       return "Date is in future";
@@ -289,7 +289,7 @@ ispastdate (const char *u)
 static const char *
 isfuturedate (const char *u)
 {
-	warnx("future");
+   warnx ("future");
    const char *e = ispattern (u, "NNNN-NN-NN");
    if (e)
       return e;
@@ -344,102 +344,109 @@ notscotx (SQL * sqlp, int tester, j_t tx)
    SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
    if (sql_fetch_row (res))
    {
-      CURL *curl = curl_easy_init ();
-      curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
-      curl_easy_setopt (curl, CURLOPT_USERAGENT, "Synapse-PT-HttpComponents-NIO");      // As per TOTSCO
-      int secs = 0;
+         CURL *curl = curl_easy_init ();
       const char *bearer = NULL;
-      if (j_time (sql_colz (res, "expiry")) > time (0))
-         bearer = sql_col (res, "bearer");
-      if (!bearer)
-      {                         // New token
-         int try = 0;
-         while (!bearer && try < 5)
-         {
-            if (try++)
-               sleep (5);
-            long status = 0;
-            long long t = 0;
-            char *txerror = NULL;
-            size_t txlen = 0;
-            FILE *txe = open_memstream (&txerror, &txlen);
-            char *rxerror = NULL;
-            size_t rxlen = 0;
-            FILE *rxe = open_memstream (&rxerror, &rxlen);
-            j_t rx = j_create ();
-            j_t tx = j_create ();
-            char *er = NULL;
-            const char *url = sql_col (res, "tokenurl");
-            const char *clientid = sql_colz (res, "farclientid");
-            const char *clientsecret = sql_colz (res, "farclientsecret");
-            sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0");      // Get ID in advance to ensure correct order if other end sends reply before completing
-            long id = sql_insert_id (sqlp);
-            if (!url || !*url)
-               fprintf (txe, "No token URL defined");
-            else if (!*clientsecret)
-               fprintf (txe, "No client secret defined");
-            else if (*clientid)
-            {                   // Get bearer
-               j_store_string (tx, "grant_type", "client_credentials");
-               char *valid = NULL;
-               asprintf (&valid, "%s:%s", clientid, clientsecret);
-               t = ms ();
-               er = j_curl (J_CURL_POST | J_CURL_BASIC, curl, tx, rx, valid, "https://%s", url);
-               t = ms () - t;
-               free (valid);
-               curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
-               if (er)
-                  fprintf (rxe, "%s\n", er);
-               else
-               {
-                  const char *tokentype = j_get (rx, "token_type");
-                  if (!tokentype)
-                     fprintf (rxe, "Missing token_type\n");
-                  if (strcasecmp (tokentype, "Bearer"))
-                     fprintf (rxe, "Expected \"token_type\":\"Bearer\" (is \"%s\")", tokentype);
-                  const char *expiresin = j_get (rx, "expires_in");
-                  if (!expiresin)
-                     fprintf (rxe, "No expires_in\n");
-                  else if ((secs = atoi (expiresin)) < 10)
-                     fprintf (rxe, "Really short expiry (%d)\n", secs);
-                  else if (secs > 86400)
-                     fprintf (rxe, "Really long expiry (%d)\n", secs);
-                  const char *token = j_get (rx, "access_token");
-                  if (!token)
-                     fprintf (rxe, "Missing access_token");
-                  else
-                     bearer = strdupa (token);
-               }
-            }
-            if (t > 3000)
-               fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n", t);
-            fclose (txe);
-            fclose (rxe);
-            if (*clientid)
+      const char *auth = sql_colz (res, "auth");
+      if (strcmp (auth, "APIKEY"))
+      {
+         curl_easy_setopt (curl, CURLOPT_VERBOSE, 1L);
+         curl_easy_setopt (curl, CURLOPT_USERAGENT, "Synapse-PT-HttpComponents-NIO");   // As per TOTSCO
+         int secs = 0;
+         if (j_time (sql_colz (res, "expiry")) > time (0))
+            bearer = sql_col (res, "bearer");
+         if (!bearer)
+         {                      // New token
+            int try = 0;
+            while (!bearer && try < 5)
             {
-               char *txt = j_formdata (tx);
-               char *rxt = NULL;
-               if (j_isstring (rx))
-                  rxt = strdup (j_val (rx));
-               else
-                  rxt = j_write_pretty_str (rx);
-               sql_safe_query_f (sqlp,
-                                 "UPDATE `log` SET `ms`=%lld,`tester`=%d,`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
-                                 t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
-               free (rxt);
-               free (txt);
+               if (try++)
+                  sleep (5);
+               long status = 0;
+               long long t = 0;
+               char *txerror = NULL;
+               size_t txlen = 0;
+               FILE *txe = open_memstream (&txerror, &txlen);
+               char *rxerror = NULL;
+               size_t rxlen = 0;
+               FILE *rxe = open_memstream (&rxerror, &rxlen);
+               j_t rx = j_create ();
+               j_t tx = j_create ();
+               char *er = NULL;
+               const char *url = sql_col (res, "tokenurl");
+               const char *clientsecret = sql_colz (res, "farclientsecret");
+               const char *clientid = sql_colz (res, "farclientid");
+               sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0");   // Get ID in advance to ensure correct order if other end sends reply before completing
+               long id = sql_insert_id (sqlp);
+               if (!url || !*url)
+                  fprintf (txe, "No token URL defined");
+               else if (!*clientsecret)
+                  fprintf (txe, "No client secret defined");
+               else if (*clientid)
+               {                // Get bearer
+                  j_store_string (tx, "grant_type", "client_credentials");
+                  if (!strcmp (auth, "OAUTH2Scope"))
+                     j_store_string (tx, "scope", "full");
+                  char *valid = NULL;
+                  asprintf (&valid, "%s:%s", clientid, clientsecret);
+                  t = ms ();
+                  er = j_curl (J_CURL_POST | J_CURL_BASIC, curl, tx, rx, valid, "https://%s", url);
+                  t = ms () - t;
+                  free (valid);
+                  curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
+                  if (er)
+                     fprintf (rxe, "%s\n", er);
+                  else
+                  {
+                     const char *tokentype = j_get (rx, "token_type");
+                     if (!tokentype)
+                        fprintf (rxe, "Missing token_type\n");
+                     if (strcasecmp (tokentype, "Bearer"))
+                        fprintf (rxe, "Expected \"token_type\":\"Bearer\" (is \"%s\")", tokentype);
+                     const char *expiresin = j_get (rx, "expires_in");
+                     if (!expiresin)
+                        fprintf (rxe, "No expires_in\n");
+                     else if ((secs = atoi (expiresin)) < 10)
+                        fprintf (rxe, "Really short expiry (%d)\n", secs);
+                     else if (secs > 86400)
+                        fprintf (rxe, "Really long expiry (%d)\n", secs);
+                     const char *token = j_get (rx, "access_token");
+                     if (!token)
+                        fprintf (rxe, "Missing access_token");
+                     else
+                        bearer = strdupa (token);
+                  }
+               }
+               if (t > 3000)
+                  fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n",
+                           t);
+               fclose (txe);
+               fclose (rxe);
+               if (*clientid)
+               {
+                  char *txt = j_formdata (tx);
+                  char *rxt = NULL;
+                  if (j_isstring (rx))
+                     rxt = strdup (j_val (rx));
+                  else
+                     rxt = j_write_pretty_str (rx);
+                  sql_safe_query_f (sqlp,
+                                    "UPDATE `log` SET `ms`=%lld,`tester`=%d,`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
+                                    t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
+                  free (rxt);
+                  free (txt);
+               }
+               if (!j_isnull (rx))
+                  er = NULL;    // Give up
+               j_delete (&rx);
+               j_delete (&tx);
+               free (er);
+               if (!er)
+                  break;
             }
-            if (!j_isnull (rx))
-               er = NULL;       // Give up
-            j_delete (&rx);
-            j_delete (&tx);
-            free (er);
-            if (!er)
-               break;
+            if (bearer)
+               sql_safe_query_f (sqlp, "UPDATE `tester` SET `bearer`=%#s,`expiry`=%#T WHERE `ID`=%d", bearer, time (0) + secs - 10,
+                                 tester);
          }
-         if (bearer)
-            sql_safe_query_f (sqlp, "UPDATE `tester` SET `bearer`=%#s,`expiry`=%#T WHERE `ID`=%d", bearer, time (0) + secs - 10,
-                              tester);
       }
       const char *routing = j_get (tx, "envelope.routingID");
       const char *description = j_get (tx, "envelope.test");
@@ -463,25 +470,24 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          size_t rxlen = 0;
          FILE *rxe = open_memstream (&rxerror, &rxlen);
          char *er = NULL;
-         const char *clientid = sql_colz (res, "farclientid");
-         const char *clientsecret = sql_colz (res, "farclientsecret");
+         const char *apikey = sql_colz (res, "apikey");
          const char *url = sql_col (res, "apiurl");
          syntaxcheck (tx, txe);
          if (!url || !*url)
             fprintf (txe, "No API URL defined. Not sending request.\n");
-         if (*clientid && (!bearer || !*bearer))
+         if (!(!strcmp (auth, "APIKEY") ? *apikey : *bearer))
             fprintf (txe, "We have no authorisation to send this request. Not sending.\n");
          j_t rx = j_create ();
          sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0"); // Get ID in advance to ensure correct order if other end sends reply before completing
          long id = sql_insert_id (sqlp);
-         if (url && *url && (!*clientid || (bearer && *bearer)))
+         if (url && *url && (!strcmp (auth, "APIKEY") ? *apikey : *bearer))
          {
             // Send message
             t = ms ();
-            if (*clientid)
-               er = j_curl (J_CURL_SEND, curl, tx, rx, bearer, "https://%s", url);
+            if (!strcmp (auth, "APIKEY"))
+               er = j_curl (J_CURL_SEND | J_CURL_APIKEY, curl, tx, rx, apikey, "https://%s", url);
             else
-               er = j_curl (J_CURL_SEND | J_CURL_APIKEY, curl, tx, rx, clientsecret, "https://%s", url);
+               er = j_curl (J_CURL_SEND, curl, tx, rx, bearer, "https://%s", url);
             t = ms () - t;
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)

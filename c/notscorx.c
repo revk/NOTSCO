@@ -796,7 +796,7 @@ main (int argc, const char *argv[])
                len = strlen (pass);
             if (user && pass)
             {
-               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `clientid`=%#s", user);
+               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `auth`<>'APIKEY' AND `clientid`=%#s", user);
                if (sql_fetch_row (res))
                {
                   tester = atoi (sql_colz (res, "ID"));
@@ -824,8 +824,7 @@ main (int argc, const char *argv[])
          description = script;
          if (apikey && *apikey)
          {
-            SQL_RES *res =
-               sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `farclientid`='' AND `farclientsecret`=%#s", apikey);
+            SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `auth`='APIKEY' AND `apikey`=%#s", apikey);
             if (sql_fetch_row (res))
             {
                tester = atoi (sql_colz (res, "ID"));
