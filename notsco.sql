@@ -185,7 +185,7 @@ CREATE TABLE `tester` (
   `brand` tinytext DEFAULT NULL,
   `surname` tinytext DEFAULT NULL,
   `account` tinytext DEFAULT NULL,
-  `uprn` varchar(12) DEFAULT NULL,
+  `uprn` bigint(12) unsigned zerofill DEFAULT 000000000000,
   `address1` tinytext DEFAULT NULL,
   `address2` tinytext DEFAULT NULL,
   `address3` tinytext DEFAULT NULL,
@@ -216,4 +216,4 @@ CREATE TABLE `tester` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-01  8:40:30
+-- Dump completed on 2024-08-01  8:42:14

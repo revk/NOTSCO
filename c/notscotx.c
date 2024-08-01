@@ -54,7 +54,7 @@ residentialSwitchMatchRequest (SQL * sqlp, SQL_RES * res, j_t tx)
    if (*(val = sql_colz (res, "account")))
       j_store_string (payload, "account", val);
    j_t address = j_store_object (payload, "address");
-   if (*(val = sql_colz (res, "uprn")))
+   if (strtoull (val = sql_colz (res, "uprn"), NULL, 10))
       j_store_string (address, "uprn", val);
    j_t lines = j_store_array (address, "addressLines");
    if (*(val = sql_colz (res, "address1")))
@@ -222,7 +222,7 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
          j_store_string (payload, "account", "1234\n");
       // 16 is long address
       if (test == 17)
-         j_store_string (j_find(tx,"envelope.source"), "correlationID", "00000000-0000-0000-0000-000000000000");
+         j_store_string (j_find (tx, "envelope.source"), "correlationID", "00000000-0000-0000-0000-000000000000");
       j_t services = j_store_array (payload, "services");
       j_t s = j_append_object (services);
       j_store_string (s, "serviceType", "IAS");
