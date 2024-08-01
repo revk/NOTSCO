@@ -86,9 +86,15 @@ directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
    list = j_append_object (list);
    j_store_string (list, "listType", lt);
    list = j_store_array (list, "identity");
+   const char *skip = NULL,
+      *skip2 = NULL;
    void add (const char *rcpid, const char *company, const char *support, const char *sales, int active)
    {
       if (identity && !strstr (identity, rcpid))
+         return;
+      if (skip && !strcmp (skip, rcpid))
+         return;
+      if (skip2 && !strcmp (skip2, rcpid))
          return;
       j_t e = j_append_object (list);
       j_store_string (e, "id", rcpid);
@@ -117,14 +123,29 @@ directory (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
          }
       }
    }
-   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory`");
+   SQL_RES *res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
+   if (sql_fetch_row (res))
+   {
+      const char *rcpid = sql_col (res, "rcpid");
+      const char *brand = sql_col (res, "company");
+      if (rcpid && *rcpid && brand && *brand)
+      {                         // Testing CP
+         add (rcpid, brand, NULL, NULL, 1);
+         skip = strdupa (rcpid);
+      }
+      rcpid = sql_col (res, "fromrcpid");
+      brand = sql_col (res, "fromrcpid");
+      if (rcpid && *rcpid && brand && *brand)
+      {                         // What they have for sending, so us
+         add (rcpid, brand, NULL, NULL, 1);
+         skip2 = strdupa (rcpid);
+      }
+   }
+   sql_free_result (res);
+   res = sql_safe_query_store_f (sqlp, "SELECT * FROM `directory`");
    while (sql_fetch_row (res))
       add (sql_col (res, "rcpid"), sql_col (res, "company"), sql_col (res, "support"), sql_col (res, "sales"),
            *sql_colz (res, "active") == 'Y');
-   sql_free_result (res);
-   res = sql_safe_query_store_f (sqlp, "SELECT * FROM `tester` WHERE `ID`=%d", tester);
-   if (sql_fetch_row (res))
-      add (sql_col (res, "rcpid"), sql_col (res, "company"), NULL, NULL, 1);
    sql_free_result (res);
    return 200;
 }
@@ -796,7 +817,8 @@ main (int argc, const char *argv[])
                len = strlen (pass);
             if (user && pass)
             {
-               SQL_RES *res = sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `auth`<>'APIKEY' AND `clientid`=%#s", user);
+               SQL_RES *res =
+                  sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `auth`<>'APIKEY' AND `clientid`=%#s", user);
                if (sql_fetch_row (res))
                {
                   tester = atoi (sql_colz (res, "ID"));
