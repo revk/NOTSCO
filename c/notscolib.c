@@ -432,7 +432,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                   sql_safe_query_f (sqlp,
                                     "UPDATE `log` SET `ms`=%lld,`tester`=%d,`status`=%ld,`description`='Sent OAUTH2 token request',`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
                                     t, tester, status, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
-                  if (sql_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", rxt, id))
+                  if (sql_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", j_isnull (rx) ? NULL : rxt, id))
                      sql_safe_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld",
                                        "Unable to store in database, may be too long or bad UTF-8", id);
                   free (rxt);
@@ -511,7 +511,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                            "UPDATE `log` SET `tester`=%d,`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rxerror`=%#s WHERE `ID`=%ld",
                            tester, description, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL, status, t,
                            j_isnull (rx) ? *rxerror ? "" : NULL : *rxerror ? rxerror : NULL, id);
-         if (sql_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", rxt, id))
+         if (sql_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", j_isnull (rx) ? NULL : rxt, id))
             sql_safe_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld",
                               "Unable to store in database, may be too long or bad UTF-8", id);
          if (routing && tester)
