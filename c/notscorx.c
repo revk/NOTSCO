@@ -938,10 +938,14 @@ main (int argc, const char *argv[])
       rxt = j_write_pretty_str (rx);
    char *txt = j_write_pretty_str (tx);
    sql_safe_query_f (&sql,
-                     "INSERT INTO `log` SET `ID`=0,`status`=%d,`ip`=%#s,`description`='Received %#S',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s,`rxcorrelation`=%#s",
-                     status, ip, description, j_isnull (rx) ? *rxerror ? "" : NULL : rxt,
-                     *rxerror ? rxerror : NULL, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL,
-                     rxcorrelation);
+                     "INSERT INTO `log` SET `ID`=0,`status`=%d,`ip`=%#s,`description`='Received %#S',`rxerror`=%#s,`tx`=%#s,`txerror`=%#s,`rxcorrelation`=%#s",
+                     status, ip, description, *rxerror ? rxerror : NULL, j_isnull (tx) ? *txerror ? "" : NULL : txt,
+                     *txerror ? txerror : NULL, rxcorrelation);
+   long id = sql_insert_id (&sql);
+   if (sql_query_f (&sql, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", j_isnull (rx) ? *rxerror ? "" : NULL : rxt, id))
+      sql_safe_query_f (&sql, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld",
+                        "Unable to store in database, may be too long or bad UTF-8", id);
+
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
    if (routing && tester)

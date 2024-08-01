@@ -430,8 +430,11 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                   else
                      rxt = j_write_pretty_str (rx);
                   sql_safe_query_f (sqlp,
-                                    "UPDATE `log` SET `ms`=%lld,`tester`=%d,`status`=%ld,`description`='Sent OAUTH2 token request',`rx`=%#s,`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
-                                    t, tester, status, rxt, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
+                                    "UPDATE `log` SET `ms`=%lld,`tester`=%d,`status`=%ld,`description`='Sent OAUTH2 token request',`rxerror`=%#s,`tx`=%#s,`txerror`=%#s WHERE `ID`=%ld",
+                                    t, tester, status, *rxerror ? rxerror : NULL, txt, *txerror ? txerror : NULL, id);
+                  if (sql_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", rxt, id))
+                     sql_safe_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld",
+                                       "Unable to store in database, may be too long or bad UTF-8", id);
                   free (rxt);
                   free (txt);
                }
@@ -477,9 +480,8 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             fprintf (txe, "No API URL defined. Not sending request.\n");
          if (!(!strcmp (auth, "APIKEY") ? *apikey : *bearer))
             fprintf (txe, "We have no authorisation to send this request. Not sending.\n");
-         char *txt = j_write_pretty_str (tx);
          j_t rx = j_create ();
-         sql_safe_query_f (sqlp, "INSERT INTO `log` SET `ID`=0,`tester`=%d,`description`='Sent %#S',`tx`=%#s", tester, description, j_isnull (tx) ? *txerror ? "" : NULL : txt);  // Get ID in advance to ensure correct order if other end sends reply before completing
+         sql_safe_query (sqlp, "INSERT INTO `log` SET `ID`=0"); // Get ID in advance to ensure correct order if other end sends reply before completing
          long id = sql_insert_id (sqlp);
          if (url && *url && (!strcmp (auth, "APIKEY") ? *apikey : *bearer))
          {
@@ -499,17 +501,19 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n", t);
          fclose (rxe);
          fclose (txe);
+         char *txt = j_write_pretty_str (tx);
          char *rxt = NULL;
          if (j_isstring (rx))
             rxt = strdup (j_val (rx));
          else
             rxt = j_write_pretty_str (rx);
-         if (sql_query_f
-             (sqlp, "UPDATE `log` SET `txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%ld",
-              *txerror ? txerror : NULL, status,t, j_isnull (rx) ? *rxerror ? "" : NULL : rxt, *rxerror ? rxerror : NULL, id))
-            sql_safe_query_f (sqlp, "UPDATE `log` SET `txerror`=%#s,`status`=%ld,`ms`=%lld,`rx`=%#s,`rxerror`=%#s WHERE `ID`=%ld",
-                              *txerror ? txerror : NULL,status, t, "We could not store response, may be too long or not valid UTF-8",
-                              *rxerror ? rxerror : NULL, id);
+         sql_safe_query_f (sqlp,
+                           "UPDATE `log` SET `tester`=%d,`description`='Sent %#S',`tx`=%#s,`txerror`=%#s,`status`=%ld,`ms`=%lld,`rxerror`=%#s WHERE `ID`=%ld",
+                           tester, description, j_isnull (tx) ? *txerror ? "" : NULL : txt, *txerror ? txerror : NULL, status, t,
+                           j_isnull (rx) ? *rxerror ? "" : NULL : *rxerror ? rxerror : NULL, id);
+         if (sql_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", rxt, id))
+            sql_safe_query_f (sqlp, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld",
+                              "Unable to store in database, may be too long or bad UTF-8", id);
          if (routing && tester)
             sql_safe_query_f (sqlp,
                               "INSERT INTO `scorecard` SET `tester`=%d,`routing`=%#s,`status`=%#s,`direction`='Tx',`first`=NOW(),`last`=NOW(),`count`=1 ON DUPLICATE KEY UPDATE `count`=`count`+1,`last`=NOW()",
