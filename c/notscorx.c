@@ -947,7 +947,7 @@ main (int argc, const char *argv[])
                         "Unable to store in database, may be too long or bad UTF-8", id);
 
    if (tester)
-      sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, sql_insert_id (&sql));
+      sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, id);
    if (routing && tester)
       sql_safe_query_f (&sql,
                         "INSERT INTO `scorecard` SET `tester`=%d,`routing`=%#s,`status`=%#s,`direction`='Rx',`first`=NOW(),`last`=NOW(),`count`=1 ON DUPLICATE KEY UPDATE `count`=`count`+1,`last`=NOW()",
