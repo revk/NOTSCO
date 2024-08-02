@@ -605,7 +605,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                                              rxcorrelation);
       if (sql_fetch_row (res))
          fprintf (rxe,
-                  "envelope.source.correlationID duplicate - TOTSCO Bulletin 66 suggests it should be unique to allow de-duplication of messages.\n");
+                  "envelope.source.correlationID duplicate - TOTSCO Bulletin 66 suggests it should be unique to allow de-duplication of messages. Though TOTSCO Bulletin 67 backpedals on that it is a good idea to make unique.\n");
       sql_free_result (res);
    }
    syntaxcheck (rx, rxe);
@@ -945,7 +945,6 @@ main (int argc, const char *argv[])
    if (sql_query_f (&sql, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld", j_isnull (rx) ? *rxerror ? "" : NULL : rxt, id))
       sql_safe_query_f (&sql, "UPDATE `log` SET `rx`=%#s WHERE `ID`=%ld",
                         "Unable to store in database, may be too long or bad UTF-8", id);
-
    if (tester)
       sql_safe_query_f (&sql, "UPDATE `log` SET `tester`=%d WHERE `ID`=%d", tester, id);
    if (routing && tester)
