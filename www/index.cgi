@@ -9,10 +9,12 @@ xmlsql head.html - tail.html << 'END'
 <p>This site provides an unofficial, independent, free, test environment for One Touch Switching development.</p>
 <ul>
 <li>Send customised match requests, and receive responses.</li>
-<li>Set up customised match request responses, including error responses.</li>
+<li>Set up customised match responses, including error responses.</li>
 <li>Send and receive switching order messages.</li>
-<li>Send deliberately bad messages for error checking.</li>
-<li>See logs, and detailed syntax checking report, of messages sent and received.</li>
+<li>Send deliberately bad, adversarial, or edge case, messages for error checking.</li>
+<li>See logs (for the day), with detailed syntax checking report, of messages sent and received, with over 150 separate tests for message syntax and content.</li>
+<li>Paste JSON to this site to check individual messages, e.g. those received or sent elsewhere which you wish to check.</li>
+<li>Updated with new tests and checks and new message/response options as they come to light, and when totsco issue bulletins or clarify matters.</li>
 </ul>
 <p>If you are not a UK communications provider with consumers as customers, this site is not for you.</p>
 <h2>Why would someone use this?</h2>
