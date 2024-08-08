@@ -51,8 +51,8 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <if not auth=APIKEY>
 <tr><td>Token</td><td align=right><tt>https://</tt></td><td><tt>otshub-token.<output name=HTTP_HOST></tt></td><td><tt>/oauth2/token</tt></td></tr>
 </if>
-<tr><td>API</td><td align=right><tt>https://</tt></td><td><tt>otshub.<output name=HTTP_HOST></tt></td><td><tt>/directory/v1/entry</tt></td></tr>
-<tr><td>API</td><td align=right><tt>https://</tt></td><td><tt>otshub.<output name=HTTP_HOST></tt></td><td><tt>/letterbox/v1/post</tt></td></tr>
+<tr><td>Directory API</td><td align=right><tt>https://</tt></td><td><tt>otshub.<output name=HTTP_HOST></tt></td><td><tt>/directory/v1/entry</tt></td></tr>
+<tr><td>Post API</td><td align=right><tt>https://</tt></td><td><tt>otshub.<output name=HTTP_HOST></tt></td><td><tt>/letterbox/v1/post</tt></td></tr>
 <if not auth=APIKEY>
 <tr><td>Client ID</td><td colspan=3><tt><output name=clientid></tt></td></tr>
 <tr><td>Client Secret</td><td colspan=3><tt><output name=clientsecret></tt></td></tr>
