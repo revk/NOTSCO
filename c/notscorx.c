@@ -680,15 +680,12 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
       if (strstr (routing, "Request"))
       {                         // Request handling, send reply
          if (!fork ())
-         {
-            if (!sqldebug)
-            {
-               close (0);
-               close (1);
-            }
+         {                      // We are child
+            close (0);
+            close (1);
             setpgid (0, 0);
             if (fork ())
-               exit (0);        // Force apache to actually give up
+               exit (0);        // Force apache to actually give up - or does it?
             if (delay)
             {                   // Delay and SLA warning
                time_t ref = time (0);
