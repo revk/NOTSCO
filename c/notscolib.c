@@ -1082,37 +1082,40 @@ syntaxcheck (j_t j, FILE * e)
                       && strcmp (sa, "ServiceWithAnotherCust") && strcmp (sa, "ServiceNotFound")
                       && strcmp (sa, "ForcedCease") && strcmp (sa, "OptionToCease") && strcmp (sa, "OptionToRetain"))
                      expected (e, "OTS§2.2.1", s, NULL, "switchAction", NULL, "valid value", NULL);
-                  j_t si = expect_array (e, "OTS§2.2.1", s, "serviceIdentifiers");
-                  if (si && st)
-                     for (j_t i = j_first (si); i; i = j_next (i))
-                     {
-                        j_tag (i);
-                        const char *it = expect_string (e, "OTS§2.2.1", i, "identifierType", NULL);
-                        if (it && !strcmp (st, "NBICS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN")
-                            && strcmp (it, "PartialDN") && strcmp (it, "CUPID"))
-                           expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for NBICS", NULL);
-                        if (it && !strcmp (st, "IAS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN")
-                            && strcmp (it, "PartialDN") && strcmp (it, "ServiceInformation") && strcmp (it, "AccessLineId")
-                            && strcmp (it, "ONTReference") && strcmp (it, "PortNumber"))
-                           expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for IAS", NULL);
-                        const char *id = expect_string (e, "OTS§2.2.1", i, "identifier", NULL);
-                        if (it && id)
+                  if (j_find (s, "serviceIdentifiers"))
+                  {             // Actually optional
+                     j_t si = expect_array (e, "OTS§2.2.1", s, "serviceIdentifiers");
+                     if (si && st)
+                        for (j_t i = j_first (si); i; i = j_next (i))
                         {
-                           if (!strcmp (it, "NetworkOperator") && (info = ispattern (id, "ANNN")))
-                              expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Letter and three digits", info);
-                           if (!strcmp (it, "NetworkOperator") && !strcmp (id, "VOIP"))
-                              fprintf (e,
-                                       "OTS§2.2.1 is a tad vague, but ticket TOTSCO-34207 confirms it should be A000 that is used for VOIP.\n");
-                           if (!strcmp (it, "DN") && (info = istelephone (id)))
-                              expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Telephone number", info);
-                           if (!strcmp (it, "PartialDN") && (info = ispattern (id, "NN")))
-                              expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Two digits", info);
-                           if (!strcmp (it, "CUPID") && (info = ispattern (id, "NNN")))
-                              expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Three digits", info);
-                           if (!strcmp (it, "PortNumber") && (info = ispattern (id, "N")))
-                              expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "One digit", info);
+                           j_tag (i);
+                           const char *it = expect_string (e, "OTS§2.2.1", i, "identifierType", NULL);
+                           if (it && !strcmp (st, "NBICS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN")
+                               && strcmp (it, "PartialDN") && strcmp (it, "CUPID"))
+                              expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for NBICS", NULL);
+                           if (it && !strcmp (st, "IAS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN")
+                               && strcmp (it, "PartialDN") && strcmp (it, "ServiceInformation") && strcmp (it, "AccessLineId")
+                               && strcmp (it, "ONTReference") && strcmp (it, "PortNumber"))
+                              expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for IAS", NULL);
+                           const char *id = expect_string (e, "OTS§2.2.1", i, "identifier", NULL);
+                           if (it && id)
+                           {
+                              if (!strcmp (it, "NetworkOperator") && (info = ispattern (id, "ANNN")))
+                                 expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Letter and three digits", info);
+                              if (!strcmp (it, "NetworkOperator") && !strcmp (id, "VOIP"))
+                                 fprintf (e,
+                                          "OTS§2.2.1 is a tad vague, but ticket TOTSCO-34207 confirms it should be A000 that is used for VOIP.\n");
+                              if (!strcmp (it, "DN") && (info = istelephone (id)))
+                                 expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Telephone number", info);
+                              if (!strcmp (it, "PartialDN") && (info = ispattern (id, "NN")))
+                                 expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Two digits", info);
+                              if (!strcmp (it, "CUPID") && (info = ispattern (id, "NNN")))
+                                 expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "Three digits", info);
+                              if (!strcmp (it, "PortNumber") && (info = ispattern (id, "N")))
+                                 expected (e, "OTS§2.2.1", i, NULL, "identifier", NULL, "One digit", info);
+                           }
                         }
-                     }
+                  }
                }
             }
             j_t mr = expect_object (e, "OTS§2.2.1", payload, "matchResult");
