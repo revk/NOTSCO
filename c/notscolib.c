@@ -1091,7 +1091,7 @@ syntaxcheck (j_t j, FILE * e)
                            j_tag (i);
                            const char *it = expect_string (e, "OTS§2.2.1", i, "identifierType", NULL);
                            if (it && !strcmp (st, "NBICS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN")
-                               && strcmp (it, "PartialDN") && strcmp (it, "CUPID"))
+                               && strcmp (it, "PartialDN") && strcmp (it, "CUPID") && strcmp (it, "AccessLineId"))
                               expected (e, "OTS§2.2.1", i, NULL, "identifierType", NULL, "valid value for NBICS", NULL);
                            if (it && !strcmp (st, "IAS") && strcmp (it, "NetworkOperator") && strcmp (it, "DN")
                                && strcmp (it, "PartialDN") && strcmp (it, "ServiceInformation") && strcmp (it, "AccessLineId")

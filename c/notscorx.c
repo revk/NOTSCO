@@ -222,6 +222,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          const char *nbicsno = sql_colz (res, "nbicsnetworkoperator");
          const char *sn = sql_colz (res, "servicename");
          const char *iasaction = sql_colz (res, "iasaction");
+         const char *nbicsaction = sql_colz (res, "nbicsaction");
          const char *iasdn = sql_colz (res, "iasdn");
          const char *dn1 = sql_colz (res, "dn1");
          const char *dn2 = sql_colz (res, "dn2");
@@ -269,16 +270,20 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             j_store_string (j, "identifierType", tag);
             j_store_string (j, "identifier", val);
          }
-         j_t mrias (void)
-         {                      // Make IAS match result
-            j_t j = mr ();
-            j_t s = services (j, "IAS", "ServiceFound");
+         void addias (j_t j, const char *action)
+         {
+            j_t s = services (j, "IAS", action);
             addi (s, "ONTReference", ontref);
             if (ontport && atoi (ontport))
                addi (s, "PortNumber", ontport);
             addi (s, "NetworkOperator", iasno);
             addi (s, "ServiceInformation", sn);
             addi (s, "AccessLineId", alid);
+         }
+         j_t mrias (void)
+         {                      // Make IAS match result
+            j_t j = mr ();
+            addias (j, "ServiceFound");
             return j;
          }
          void addnbics (j_t j, const char *action, const char *number)
@@ -374,6 +379,8 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                   addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn2);
                if (*dn3 && !(matched & (1 << 3)))
                   addnbics (j, count > 1 ? "OptionToCease" : "OptionToRetain", dn3);
+               if (strcmp (nbicsaction, "Normal"))
+                  addias (j, nbicsaction);
                return matched;
             }
             int m = addmr ();

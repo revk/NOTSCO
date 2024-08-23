@@ -53,6 +53,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>DN</td><td><input name=dn1 size=20 placeholder="Telephone"></td></tr>
 <tr><td>DN</td><td><input name=dn2 size=20 placeholder="Telephone"></td></tr>
 <tr><td>DN</td><td><input name=dn3 size=20 placeholder="Telephone"></td></tr>
+<tr><td>Linked IAS action</td><td><select name=nbicsaction>
+<option value=Normal>Normal (no linked IAS)</option>
+<option value=ForcedCease>ForcedCease</option>
+</select></td>
 </table>
 <input type=submit value="Save">
 </form>
