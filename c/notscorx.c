@@ -250,9 +250,10 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                sor = strdupa (sql_col (u, "U"));
             sql_free_result (u);
             j_store_string (match, "switchOrderReference", sor);
-            sql_safe_query_f (sqlp,
-                              "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='US',`rcpid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
-                              tester, sor, j_get (tx, "envelope.source.identity"));
+            if (sql_query_f (sqlp,
+                             "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='US',`rcpid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
+                             tester, sor, j_get (tx, "envelope.source.identity")))
+               warnx ("SOR issue");
             return j_store_array (match, "services");
          }
          j_t services (j_t j, const char *st, const char *sa)
@@ -528,10 +529,11 @@ residentialSwitchMatchConfirmation (SQL * sqlp, int tester, j_t rx, FILE * rxe, 
       if (!j)
          return;
       const char *sor = j_get (j, "switchOrderReference");
-      if (sor)
-         sql_safe_query_f (sqlp,
-                           "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='THEM',`rcpid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
-                           tester, sor, j_get (rx, "envelope.destination.identity"));
+      if (sor &&
+          sql_query_f (sqlp,
+                       "INSERT INTO `sor` SET `ID`=0,`tester`=%d,`sor`=%#s,`issuedby`='THEM',`rcpid`=%#s ON DUPLICATE KEY UPDATE `created`=NOW()",
+                       tester, sor, j_get (rx, "envelope.destination.identity")))
+         warnx ("SOR issue");
    }
    check (payload);
    for (j_t a = j_first (j_find (payload, "alternativeSwitchOrders")); a; a = j_next (a))
