@@ -1000,7 +1000,9 @@ syntaxcheck (j_t j, FILE * e)
             j_t address = expect_object (e, "OTS§2.2", payload, "address");
             if (address)
             {
-               if ((val = expect_string (e, "OTS§2.2", address, "uprn", "")) && ((info = isdigits (val)) || strlen (val) > 12))
+               if ((val = expect_string (e, "OTS§2.2", address, "uprn", ""))
+                   && ((info = isdigits (val)) || strlen (val) > 12
+                       || (*val == '0' && (info = "OTS§2.2 UPRN should not have leading zeros"))))
                   expected (e, "OTS§2.2", address, NULL, "uprn", NULL, "up to 12 digits", info);
                const char *posttown = expect_string (e, "OTS§2.2", address, "postTown", NULL);
                const char *postcode = expect_string (e, "OTS§2.2", address, "postCode", NULL);
