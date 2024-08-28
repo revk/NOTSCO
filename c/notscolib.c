@@ -1203,19 +1203,22 @@ main (int argc, const char *argv[])
    else
       syntaxcheck (j, o);
    fclose (o);
-   for (char *b = buf; *b; b++)
-   {
-      if (*b == '<')
-         printf ("&lt;");
-      else if (*b == '>')
-         printf ("&gt;");
-      else if (*b == '&')
-         printf ("&amp;");
-      else if (*b == '\n')
-         printf ("<br>");
-      else
-         putchar (*b);
-   }
+   if (!*buf)
+      printf ("No issues reported");
+   else
+      for (char *b = buf; *b; b++)
+      {
+         if (*b == '<')
+            printf ("&lt;");
+         else if (*b == '>')
+            printf ("&gt;");
+         else if (*b == '&')
+            printf ("&amp;");
+         else if (*b == '\n')
+            printf ("<br>");
+         else
+            putchar (*b);
+      }
    free (buf);
    j_delete (&j);
    return 0;
