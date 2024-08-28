@@ -1038,8 +1038,8 @@ syntaxcheck (j_t j, FILE * e)
                   expected (e, "OTS§2.2", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"", NULL);
                if ((val = expect_string (e, "OTS§2.2", s, "action", NULL)) && strcmp (val, "cease")
                    && (!strcmp (st, "IAS") || (strcmp (val, "port") && strcmp (val, "identify"))))
-                  expected (e, "OTS§2.2", s, NULL, "action", NULL, NULL,
-                            !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"idenitfy\"");
+                  expected (e, "OTS§2.2", s, NULL, "action", NULL,
+                            !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"idenitfy\"", NULL);
                const char *id = expect_string (e, "OTS§2.2", s, "serviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
                if (id && !strcmp (st, "NBICS") && (info = istelephone (id)))
                   expected (e, "OTS§2.2", s, NULL, "serviceIdentifier", NULL, "valid telephone number", info);
