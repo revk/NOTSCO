@@ -741,6 +741,7 @@ check_string (const char *s)
 {
    if (!s)
       return NULL;
+   if(!*s)return "Empty strings are not really defined well in the OTS spec, but probably an error.";
    const char *p;
    for (p = s; *p && ((unsigned char) (*p)) >= ' '; p++);
    if (*p)
@@ -771,7 +772,7 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
    const char *er = check_string (s);
    if (er)
    {
-      locate (e, NULL, parent, v);
+      locate (e, tag, parent, v);
       fprintf (e, " %s\n", er);
    }
    return j_val (v);
