@@ -741,7 +741,6 @@ check_string (const char *s)
 {
    if (!s)
       return NULL;
-   if(!*s)return "Empty strings are not really defined well in the OTS spec, but probably an error.";
    const char *p;
    for (p = s; *p && ((unsigned char) (*p)) >= ' '; p++);
    if (*p)
@@ -770,6 +769,10 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
    if ((!v && (!val || *val)) || (v && !j_isstring (v)) || (v && val && *val && strcmp (s, val)))
       return expected (e, ref, parent, v, tag, val, "a JSON string", NULL);
    const char *er = check_string (s);
+   if (!er && s && !*s)
+      er = (val && !*val) ?     //
+         "Empty strings are not well defined in OTS, but probably a mistake, and in this case you probably meant to omit this optional field."
+         : "Empty strings are not well defined in OTS, but probably a mistake in this required field.";
    if (er)
    {
       locate (e, tag, parent, v);
@@ -1040,7 +1043,7 @@ syntaxcheck (j_t j, FILE * e)
                if ((val = expect_string (e, "OTS§2.2", s, "action", NULL)) && strcmp (val, "cease")
                    && (!strcmp (st, "IAS") || (strcmp (val, "port") && strcmp (val, "identify"))))
                   expected (e, "OTS§2.2", s, NULL, "action", NULL,
-                            !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"idenitfy\"", NULL);
+                            !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"identify\"", NULL);
                const char *id = expect_string (e, "OTS§2.2", s, "serviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
                if (id && !strcmp (st, "NBICS") && (info = istelephone (id)))
                   expected (e, "OTS§2.2", s, NULL, "serviceIdentifier", NULL, "valid telephone number", info);
