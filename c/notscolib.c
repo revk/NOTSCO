@@ -999,7 +999,9 @@ syntaxcheck (j_t j, FILE * e)
          if (!strcmp (routing, "residentialSwitchMatchRequest"))
          {
             expect_string (e, "OTS§2.2", payload, "grcpBrandName", "");
-            expect_string (e, "OTS§2.2", payload, "name", NULL);
+            const char *name = expect_string (e, "OTS§2.2", payload, "name", NULL);
+            if (name && strchr (name, ' '))
+               fprintf (e, "residentialSwitchMatchRequest.name is meant to be surname, so not expecting spaces.\n");
             expect_string (e, "OTS§2.2", payload, "account", "");
             j_t address = expect_object (e, "OTS§2.2", payload, "address");
             if (address)
