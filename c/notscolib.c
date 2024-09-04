@@ -775,6 +775,8 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
          : "Empty strings are not well defined in OTS, but probably a mistake in this required field.";
    if (er)
    {
+      if (ref)
+         fprintf (e, "%s: ", ref);
       locate (e, tag, parent, v);
       fprintf (e, " %s\n", er);
    }
@@ -1001,7 +1003,7 @@ syntaxcheck (j_t j, FILE * e)
             expect_string (e, "OTS§2.2", payload, "grcpBrandName", "");
             const char *name = expect_string (e, "OTS§2.2", payload, "name", NULL);
             if (name && strchr (name, ' '))
-               fprintf (e, "residentialSwitchMatchRequest.name is meant to be surname, so not expecting spaces.\n");
+               expected (e, "OTS§2.2", payload, NULL, "name", NULL, "surname, so spaces are unexpected", NULL);
             expect_string (e, "OTS§2.2", payload, "account", "");
             j_t address = expect_object (e, "OTS§2.2", payload, "address");
             if (address)
