@@ -15,7 +15,7 @@ if($?SEND) then
 		setenv MSG "Set switch order reference"
 			goto show
 	endif
-        ../bin/notscotx --tester="$TESTER" "$SEND" --sor="$sor" --dated="$dated" --rcpid="$rcpid"
+        ../bin/notscotx --tester="$TESTER" "$SEND" --sor="$sor" --dated="$dated" --rcpid="$rcpid" --cid="$cid"
 	sleep 1
         echo "Status: 303"
         echo "Location: https://$HTTP_HOST/control.cgi"
@@ -35,13 +35,22 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>RCPID</td><td><input name=rcpid size=5 maxlength=4 placeholder="XXXX"></td></tr>
 <tr><td>Switch order reference</td><td><input name=sor size=37 maxlength=36 placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"></td></tr>
 <tr><td>Dated</td><td><input name=dated size=11 maxlength=10 placeholder="YYYY-MM-DD"></td></tr>
-</table>
-<p>
+<tr><td colspan=2>
 <input type=submit name=SEND value="residentialSwitchOrderRequest">
 <input type=submit name=SEND value="residentialSwitchOrderUpdateRequest">
+<br>
 <input type=submit name=SEND value="residentialSwitchOrderTriggerRequest">
 <input type=submit name=SEND value="residentialSwitchOrderCancellationRequest">
-</p>
+</td></tr>
+<tr><td>Correlatiopn</td><td><input name=cid size=37 placeholder="Destination Correlation ID"></td></tr>
+<tr><td colspan=2>
+<input type=submit name=SEND value="residentialSwitchOrderConfirmation">
+<input type=submit name=SEND value="residentialSwitchOrderUpdateConfirmation">
+<br>
+<input type=submit name=SEND value="residentialSwitchOrderTriggerConfirmation">
+<input type=submit name=SEND value="residentialSwitchOrderCancellationConfirmation">
+</td></tr>
+</table>
 </form>
 <p>Sent match orders, select to fill in the above details.</p>
 <table border=1>

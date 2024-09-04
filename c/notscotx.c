@@ -123,6 +123,32 @@ residentialSwitchOrderRequests (SQL * sqlp, SQL_RES * res, j_t tx, const char *r
 }
 
 void
+residentialSwitchOrderConfirmations (SQL * sqlp, SQL_RES * res, j_t tx, const char *routing, const char *rcpid, const char *sor,
+                                     const char *dated, const char *cid)
+{
+   char *sid = NULL;
+   SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS `U`");
+   if (sql_fetch_row (u))
+      sid = strdupa (sql_colz (u, "U"));
+   sql_free_result (u);
+   j_t payload = makemessage (res, tx, routing, sid, cid);
+   j_store_string (j_find (tx, "envelope.source"), "identity", rcpid);
+   if (sor && *sor)
+      j_store_string (payload, "switchOrderReference", sor);
+   const char *status = NULL;
+   if (strstr (routing, "Cancellation"))
+      status = "cancelled";
+   else if (strstr (routing, "Trigger"))
+      status = "triggered";
+   else if (strstr (routing, "Update"))
+      status = "updated";
+   else
+      status = "confirmed";
+   j_store_string (payload, "status", status);
+}
+
+
+void
 makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
 {
    const char *routing = "residentialSwitchMatchRequest";
@@ -244,11 +270,13 @@ main (int argc, const char *argv[])
    const char *sor = NULL;
    const char *dated = NULL;
    const char *rcpid = NULL;
+   const char *cid = NULL;
    poptContext optCon;          // context for parsing command-line options
    {                            // POPT
       const struct poptOption optionsTable[] = {
          {"send", 's', POPT_ARG_STRING, &send, 0, "Send", "MessageType"},
          {"sor", 0, POPT_ARG_STRING, &sor, 0, "Switch Order Reference", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"},
+         {"cid", 0, POPT_ARG_STRING, &cid, 0, "CorrelationID", "DestinationCID"},
          {"dated", 0, POPT_ARG_STRING, &dated, 0, "Dated", "YYYY-MM-DD"},
          {"rcpid", 0, POPT_ARG_STRING, &rcpid, 0, "RCPID", "XXXX"},
          {"tester", 't', POPT_ARG_INT, &tester, 0, "Tester", "N"},
@@ -290,6 +318,10 @@ main (int argc, const char *argv[])
                || !strcmp (send, "residentialSwitchOrderTriggerRequest")
                || !strcmp (send, "residentialSwitchOrderCancellationRequest"))
          residentialSwitchOrderRequests (&sql, res, tx, send, rcpid, sor, dated);
+      else if (!strcmp (send, "residentialSwitchOrderConfirmation") || !strcmp (send, "residentialSwitchOrderUpdateConfirmation")
+               || !strcmp (send, "residentialSwitchOrderTriggerConfirmation")
+               || !strcmp (send, "residentialSwitchOrderCancellationConfirmation"))
+         residentialSwitchOrderConfirmations (&sql, res, tx, send, rcpid, sor, dated, cid);
       else
          makebad (&sql, res, tx, send);
       notscotx (&sql, tester, tx);
