@@ -28,6 +28,7 @@ endif
 
 echo Content-Type: text/html
 echo ""
+setenv IP `nslookup "$HTTP_HOST" |grep Address: | tail +2 | sed 's/Address://'`
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Connection and authentication</h1>
 <p>The simulator uses OAUTH2 or APIKEY, and https. If you need other authentication please raise an issue, and we will look in to that.</p>
@@ -58,6 +59,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Client Secret</td><td colspan=3><tt><output name=clientsecret></tt></td></tr>
 </if>
 <tr><td colspan=4><b>Messages from the simulator</b></td></tr>
+<tr><td>IPs</td><td colspan=3><tt><output name=IP></tt></td></tr>
 <if not auth=APIKEY>
 <tr><td>OAUTH2 Token</td><td align=right><tt>https://</tt></td><td colspan=2><tt><input name=tokenurl size=50 placeholder="URL (usually end /oauth2/token), blank for APIKEY use"></tt></td></tr>
 </if>
