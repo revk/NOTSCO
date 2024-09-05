@@ -42,7 +42,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <input type=submit name=SEND value="residentialSwitchOrderTriggerRequest">
 <input type=submit name=SEND value="residentialSwitchOrderCancellationRequest">
 </td></tr>
-<tr><td>Correlatiopn</td><td><input name=cid size=37 placeholder="Destination Correlation ID"></td></tr>
+<tr><td>Correlation</td><td><input name=cid size=37 placeholder="Destination Correlation ID"></td></tr>
 <tr><td colspan=2>
 <input type=submit name=SEND value="residentialSwitchOrderConfirmation">
 <input type=submit name=SEND value="residentialSwitchOrderUpdateConfirmation">
@@ -63,10 +63,10 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <td><tt><output name=sor></tt></td>
 <td><output name=dated></td>
 <td><output name=status></td>
-<if status=new><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderRequest">Order</a></td></if>
-<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderUpdateRequest">Update</a></td></if>
-<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderTriggerRequest">Trigger</a></td></if>
-<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&SEND=residentialSwitchOrderCancellationRequest">Cancel</a></td></if>
+<if status=new><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&cid=&SEND=residentialSwitchOrderRequest">Order</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&cid=&SEND=residentialSwitchOrderUpdateRequest">Update</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&cid=&SEND=residentialSwitchOrderTriggerRequest">Trigger</a></td></if>
+<if status=confirmed or status=updated><td><a href="/sendorder.cgi?sor=$+sor&rcpid=$+rcpid&cid=&SEND=residentialSwitchOrderCancellationRequest">Cancel</a></td></if>
 </tr>
 </sql>
 </table>
