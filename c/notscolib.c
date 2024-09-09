@@ -420,7 +420,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                      ct = NULL;
                   if (!ct)
                      fprintf (rxe, "No Content-Type on response, expecting application/json\n");
-                  else if (strcasecmp (ct, "application/json"))
+                  else if (strncasecmp (ct, "application/json", 16) || (ct[16] && ct[16] != ';'))
                      fprintf (rxe, "Content-Type is %s, expected application/json\n", ct);
                }
                if (t > 3000)
@@ -507,7 +507,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                ct = NULL;
             if (!ct)
                fprintf (rxe, "No Content-Type on response, expecting application/json\n");
-            else if (strcasecmp (ct, "application/json"))
+            else if (strncasecmp (ct, "application/json", 16) || (ct[16] && ct[16] != ';'))
                fprintf (rxe, "Content-Type is %s, expected application/json\n", ct);
             responsecheck (status, rx, rxe);
          }
