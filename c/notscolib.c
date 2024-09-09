@@ -415,6 +415,13 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                      else
                         bearer = strdupa (token);
                   }
+                  char *ct = NULL;
+                  if (curl_easy_getinfo (curl, CURLINFO_CONTENT_TYPE, &ct))
+                     ct = NULL;
+                  if (!ct)
+                     fprintf (rxe, "No Content-Type on response, expecting application/json\n");
+                  else if (strcasecmp (ct, "application/json"))
+                     fprintf (rxe, "Content-Type is %s, expected application/json\n", ct);
                }
                if (t > 3000)
                   fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n",
@@ -495,6 +502,13 @@ notscotx (SQL * sqlp, int tester, j_t tx)
             curl_easy_getinfo (curl, CURLINFO_RESPONSE_CODE, &status);
             if (er)
                fprintf (rxe, "%s\n", er);
+            char *ct = NULL;
+            if (curl_easy_getinfo (curl, CURLINFO_CONTENT_TYPE, &ct))
+               ct = NULL;
+            if (!ct)
+               fprintf (rxe, "No Content-Type on response, expecting application/json\n");
+            else if (strcasecmp (ct, "application/json"))
+               fprintf (rxe, "Content-Type is %s, expected application/json\n", ct);
             responsecheck (status, rx, rxe);
          }
          if (t > 3000)
