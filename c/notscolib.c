@@ -787,7 +787,8 @@ expect_string (FILE * e, const char *ref, j_t parent, const char *tag, const cha
       er = (val && !*val) ?     //
          "Empty strings are not well defined in OTS, but probably a mistake, and in this case you probably meant to omit this optional field."
          : "Empty strings are not well defined in OTS, but probably a mistake in this required field.";
-   if(!er&&s&&strlen(s)>256)er="A string of more than 256 bytes is probably going to break something.";
+   if (!er && s && strlen (s) > 256)
+      er = "A string of more than 256 bytes is probably going to break something.";
    if (er)
    {
       if (ref)

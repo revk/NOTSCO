@@ -31,6 +31,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td>Response</td><td><select name=matchresponse>
 <option value=0>No reply</option>
 <option value=1>Normal reply</option>
+<option value=2>ServiceNotFound</option>
 <include src=notscoerrors.html>
 </select></td></tr>
 <tr><td>Sent to (email/sms)</td><td><input name=sentto placeholder="Email/Telephone"></td><td rowspan=2>(1st class post if both blank)</td></tr>

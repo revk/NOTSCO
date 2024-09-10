@@ -274,6 +274,11 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          void addias (j_t j, const char *action)
          {
             j_t s = services (j, "IAS", action);
+            if (strcmp (action, "ServiceFound"))
+            {
+               j_delete (&s);
+               return;
+            }
             addi (s, "ONTReference", ontref);
             if (ontport && atoi (ontport))
                addi (s, "PortNumber", ontport);
@@ -284,7 +289,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
          j_t mrias (void)
          {                      // Make IAS match result
             j_t j = mr ();
-            addias (j, "ServiceFound");
+            addias (j, reply == 2 ? "ServiceNotFound" : "ServiceFound");
             return j;
          }
          void addnbics (j_t j, const char *action, const char *number)
@@ -321,11 +326,11 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             if (*iasdn)
             {
                if (strcmp (iasaction, "Normal"))
-                  addnbics (j, iasaction, iasdn); // Not Normal - do what it says
+                  addnbics (j, iasaction, iasdn);       // Not Normal - do what it says
                else
-               { // Normal
+               {                // Normal
                   if (port && !strcmp (port, iasdn))
-                  {	// Port matched
+                  {             // Port matched
                      addnbics (j, "ServiceFound", iasdn);
                   } else
                   {
