@@ -334,7 +334,6 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                      addnbics (j, "ServiceFound", iasdn);
                   } else if (reply == 1)
                   {
-                     j = mrias ();
                      addnbics (j, "OptionToRetain", iasdn);
                      j = mrias ();
                      addnbics (j, "OptionToCease", iasdn);
