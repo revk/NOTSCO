@@ -332,7 +332,7 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
                   if (port && !strcmp (port, iasdn))
                   {             // Port matched
                      addnbics (j, "ServiceFound", iasdn);
-                  } else
+                  } else if (reply == 1)
                   {
                      j = mrias ();
                      addnbics (j, "OptionToRetain", iasdn);
