@@ -251,12 +251,20 @@ makebad (SQL * sqlp, SQL_RES * res, j_t tx, const char *send)
          j_store_string (j_find (tx, "envelope.source"), "correlationID", "00000000-0000-0000-0000-000000000000");
       if (test == 18)
          j_store_string (payload, "grcpBrandName", "Andrews & Arnold Ltd");
+      if (test == 19)
+         j_store_string (j_find (tx, "envelope.source"), "correlationID",
+                         "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF");
+      if (test == 20)
+         j_store_string (j_find (tx, "envelope.source"), "correlationID",
+                         "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0");
       j_t services = j_store_array (payload, "services");
       j_t s = j_append_object (services);
       j_store_string (s, "serviceType", "IAS");
       j_store_string (s, "action", "cease");
-      sql_safe_query_f (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`='residentialSwitchMatch'",
-                        j_get (tx, "envelope.source.correlationID"), sql_colz (res, "ID"));
+      if (sql_query_f
+          (sqlp, "REPLACE INTO `pending` SET `correlation`=%#s,`tester`=%#s,`request`='residentialSwitchMatch'",
+           j_get (tx, "envelope.source.correlationID"), sql_colz (res, "ID")))
+         warnx ("Failed correlation insert");
    }
 }
 

@@ -41,6 +41,8 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <tr><td><input type=submit name=SEND value=TestMatch16></td><td>Send a match with very long address..</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch17></td><td>Send a match with fixed source correlationID to check duplicates..</td></tr>
 <tr><td><input type=submit name=SEND value=TestMatch18></td><td>Send a match with & in brand..</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch19></td><td>Send a match 256 byte correlation ID</td></tr>
+<tr><td><input type=submit name=SEND value=TestMatch20></td><td>Send a match 257 byte correlation ID</td></tr>
 </table>
 </form>
 'END'
