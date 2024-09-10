@@ -321,17 +321,19 @@ residentialSwitchMatchRequest (SQL * sqlp, int tester, j_t rx, FILE * rxe, j_t p
             if (*iasdn)
             {
                if (strcmp (iasaction, "Normal"))
-                  addnbics (j, iasaction, iasdn);
+                  addnbics (j, iasaction, iasdn); // Not Normal - do what it says
                else
-               {
-                  if (port && strcmp (port, iasdn))
-                  {
+               { // Normal
+                  if (port && !strcmp (port, iasdn))
+                  {	// Port matched
                      addnbics (j, "ServiceFound", iasdn);
+                  } else
+                  {
                      j = mrias ();
+                     addnbics (j, "OptionToRetain", iasdn);
+                     j = mrias ();
+                     addnbics (j, "OptionToCease", iasdn);
                   }
-                  addnbics (j, "OptionToRetain", iasdn);
-                  j = mrias ();
-                  addnbics (j, "OptionToCease", iasdn);
                }
             }
          } else
