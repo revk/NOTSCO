@@ -1082,7 +1082,7 @@ syntaxcheck (j_t j, FILE * e)
                      expected (e, "OTS§2.2.1", i, NULL, "sentMethod", NULL, "\"email\" or \"sms\" or \"1st class post\"", NULL);
                   const char *st = expect_string (e, "OTS§2.2.1", i, "sentTo", "");
                   if (st && !strcmp (sm, "email") && (info = ismaskemail (st)))
-                     expected (e, "IP§5.11.2", i, NULL, "sentTo", NULL, "obfuscated email address", info);
+                     expected (e, "OTS§2.2.1", i, NULL, "sentTo", NULL, "obfuscated email address", info);
                   else if (st && !strcmp (sm, "sms") && (info = ismasktelephone (st)))
                      expected (e, "IP§5.11.2", i, NULL, "sentTo", NULL, "obfuscated telephone number", info);
                   else if (st && !strcmp (sm, "sms") && *st == '+' && strstr (st, "(0)"))
