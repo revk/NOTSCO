@@ -1052,6 +1052,21 @@ syntaxcheck (j_t j, FILE * e)
                      fprintf (e, " %s\n", er);
                   }
                }
+               const char *line1 = j_val (j_first (lines));
+               if (line1)
+               {
+                  while (isdigit (*line1))
+                     line1++;
+                  if (isalpha (*line1))
+                     line1++;
+                  if (!*line1)
+                  {
+                     fprintf (e, "OTS§2.2: ");
+                     locate (e, NULL, lines, j_first(lines));
+                     fprintf (e, " This looks like you have not followed PAF rules.\n");
+                  }
+               }
+
             }
             j_t services = expect_array (e, "OTS§2.2", payload, "services");
             for (j_t s = j_first (services); s; s = j_next (s))
