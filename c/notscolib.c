@@ -167,7 +167,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          char *er = NULL;
          const char *apikey = sql_colz (res, "apikey");
          const char *url = sql_col (res, "apiurl");
-         notsco_syntaxcheck (tx, txe);
+         notsco_syntaxcheck (tx, txe, 1);
          if (!url || !*url)
             fprintf (txe, "No API URL defined. Not sending request.\n");
          if (!(!strcmp (auth, "APIKEY") ? *apikey : *bearer))

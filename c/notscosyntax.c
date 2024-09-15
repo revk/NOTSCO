@@ -541,8 +541,8 @@ notsco_responsecheck (int status, j_t j, FILE * e)
 }
 
 void
-notsco_syntaxcheck (j_t j, FILE * e)
-{                               // This is the main syntax checking and reporting for all messages
+notsco_syntaxcheck (j_t j, FILE * e, char failuredetails)
+{                               // This is the main syntax checking and reporting for all messages (failuredetails set to report details of a failure message)
    const char *info = NULL;
    const char *val = NULL;
    const char *routing = NULL;
@@ -692,7 +692,7 @@ notsco_syntaxcheck (j_t j, FILE * e)
                if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                   expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             }
-            if (ec && et)
+            if (ec && et && failuredetails)
                fprintf (e, "This reports error %s: %s\n", ec, et);
          }
       }
@@ -747,7 +747,7 @@ notsco_syntaxcheck (j_t j, FILE * e)
                   if (!*line1)
                   {
                      fprintf (e, "OTS§2.2: ");
-                     locate (e, NULL, lines, j_first(lines));
+                     locate (e, NULL, lines, j_first (lines));
                      fprintf (e, " This looks like you have not followed PAF rules.\n");
                   }
                }
@@ -925,7 +925,7 @@ main (int argc, const char *argv[])
    if (er)
       fprintf (o, "JSON error\n%s", er);
    else
-      notsco_syntaxcheck (j, o);
+      notsco_syntaxcheck (j, o, 1);
    fclose (o);
    if (!*buf)
       printf ("No issues reported");
