@@ -17,19 +17,22 @@ update:
 	-git pull
 	git submodule update --init --recursive --remote
 
-../bin/notscotx:	notscotx.c ../lib/notscolib.o ../AJL/ajlcurl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
-	cc -fPIC -O -o $@.new $< ${OPTS} ${SQLLIB}
+../bin/notscotx:	notscotx.c ../lib/notscolib.o ../lib/notscosyntax.o ../AJL/ajlcurl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
+	cc -fPIC -O -o $@.new $< ${OPTS} ../lib/notscosyntax.o ${SQLLIB}
 	mv -f $@.new $@
 
-../bin/notscorx:	notscorx.c ../lib/notscolib.o ../AJL/ajlcurl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
-	cc -fPIC -O -o $@.new $< ${OPTS} ${SQLLIB}
+../bin/notscorx:	notscorx.c ../lib/notscolib.o ../lib/notscosyntax.o ../AJL/ajlcurl.o ../SQLlib/sqllib.o ../AJL/jcgi.o
+	cc -fPIC -O -o $@.new $< ${OPTS} ../lib/notscosyntax.o ${SQLLIB}
 	mv -f $@.new $@
 
-../bin/notsco:	notscolib.c ../AJL/jcgi.o
+../bin/notsco:	notscosyntax.c ../AJL/jcgi.o
 	cc -fPIC -O -o $@.new $< ${CCOPTS} ../AJL/ajlcurl.o ../AJL/jcgi.o ../SQLlib/sqllib.o -lcurl ${SQLLIB}
 	mv -f $@.new $@
 
-../lib/notscolib.o:	notscolib.c notscolib.h
+../lib/notscolib.o:	notscolib.c notscolib.h notscosyntax.h
+	cc -fPIC -O -DLIB -c -o $@ $< ${CCOPTS}
+
+../lib/notscosyntax.o:	notscosyntax.c notscosyntax.h
 	cc -fPIC -O -DLIB -c -o $@ $< ${CCOPTS}
 
 ../Dataformat/dataformat: ../toot/toot.c

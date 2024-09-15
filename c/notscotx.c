@@ -11,6 +11,7 @@
 #include <sqllib.h>
 #include <ajl.h>
 #include "notscolib.h"
+#include "notscosyntax.h"
 
 int debug = 0;
 
