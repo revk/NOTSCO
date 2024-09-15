@@ -77,22 +77,6 @@ isdigits (const char *u)
    return NULL;
 }
 
-#if 0
-static const char *
-isalphas (const char *u)
-{
-   if (!u)
-      return "NULL";
-   if (!*u)
-      return "Empty string";
-   while (*u && isalpha (*u))
-      u++;
-   if (*u)
-      return "Non numeric";
-   return NULL;
-}
-#endif
-
 static const char *
 ispostcode (const char *u)
 {
@@ -555,7 +539,6 @@ notsco_responsecheck (int status, j_t j, FILE * e)
    }
    unexpected (e, j);
 }
-
 
 void
 notsco_syntaxcheck (j_t j, FILE * e)
