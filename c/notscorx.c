@@ -11,6 +11,7 @@
 #include <jcgi.h>
 #include <sqllib.h>
 #include "notscolib.h"
+#include "notscosyntax.h"
 
 int debug = 0;
 
@@ -623,7 +624,7 @@ letterbox (SQL * sqlp, int tester, j_t cgi, FILE * rxe, j_t tx, FILE * txe)
                   "envelope.source.correlationID duplicate - TOTSCO Bulletin 66 suggests it should be unique to allow de-duplication of messages. Though TOTSCO Bulletin 67 backpedals on that it is a good idea to make unique.\n");
       sql_free_result (res);
    }
-   syntaxcheck (rx, rxe);
+   notsco_syntaxcheck (rx, rxe);
    j_t envelope = j_find (rx, "envelope");
    if (!envelope)
       return notscoerror (tx, 400, 0, 400, NULL, "Bad Request", "Missing envelope");
@@ -921,7 +922,7 @@ main (int argc, const char *argv[])
    if (!status)
       fail ("Not processed", 500);
    if (!j_isnull (tx) && status / 100 != 2)
-      responsecheck (status, tx, txe);
+      notsco_responsecheck (status, tx, txe);
 
    // Log
    fclose (txe);

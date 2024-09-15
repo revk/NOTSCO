@@ -512,7 +512,7 @@ expect_number (FILE * e, const char *ref, j_t parent, const char *tag, const cha
 }
 
 void
-responsecheck (int status, j_t j, FILE * e)
+notsco_responsecheck (int status, j_t j, FILE * e)
 {                               // This is the reporting for a response at http level
    if (status)
    {
@@ -558,7 +558,7 @@ responsecheck (int status, j_t j, FILE * e)
 
 
 void
-syntaxcheck (j_t j, FILE * e)
+notsco_syntaxcheck (j_t j, FILE * e)
 {                               // This is the main syntax checking and reporting for all messages
    const char *info = NULL;
    const char *val = NULL;
@@ -942,7 +942,7 @@ main (int argc, const char *argv[])
    if (er)
       fprintf (o, "JSON error\n%s", er);
    else
-      syntaxcheck (j, o);
+      notsco_syntaxcheck (j, o);
    fclose (o);
    if (!*buf)
       printf ("No issues reported");

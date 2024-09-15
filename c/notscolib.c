@@ -167,7 +167,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
          char *er = NULL;
          const char *apikey = sql_colz (res, "apikey");
          const char *url = sql_col (res, "apiurl");
-         syntaxcheck (tx, txe);
+         notsco_syntaxcheck (tx, txe);
          if (!url || !*url)
             fprintf (txe, "No API URL defined. Not sending request.\n");
          if (!(!strcmp (auth, "APIKEY") ? *apikey : *bearer))
@@ -194,7 +194,7 @@ notscotx (SQL * sqlp, int tester, j_t tx)
                fprintf (rxe, "No Content-Type on response, expecting application/json\n");
             else if (strncasecmp (ct, "application/json", 16) || (ct[16] && ct[16] != ';'))
                fprintf (rxe, "Content-Type is %s, expected application/json\n", ct);
-            responsecheck (status, rx, rxe);
+            notsco_responsecheck (status, rx, rxe);
          }
          if (t > 3000)
             fprintf (txe, "One Touch Switch Message Delivery Policies v1.0: Total response time greater than 3s (%lldms)\n", t);
