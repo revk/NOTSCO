@@ -249,10 +249,8 @@ notscoreply (SQL * sqlp, j_t rx, j_t tx, const char *type)
    j_t source = j_store_object (envelope, "source");
    j_store_string (source, "type", "RCPID");
    j_store_string (source, "identity", !type ? "TOTSCO" : j_get (rx, "envelope.destination.identity")); // Note, example is TOTSCO, but surely it should be original destination identity regardless?
-   if (type && (v = j_get (rx, "envelope.destination.correlationID")) && *v)
-      j_store_string (source, "correlationID", v);
-   else
-   {                            // Make one up...
+   if(type)
+   {
       SQL_RES *u = sql_safe_query_store_f (sqlp, "SELECT UUID() AS U");
       if (sql_fetch_row (u))
          j_store_string (source, "correlationID", sql_col (u, "U"));
