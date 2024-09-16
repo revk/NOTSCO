@@ -692,7 +692,7 @@ notsco_syntaxcheck (j_t j, FILE * e, char failuredetails)
                if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                   expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
             }
-            if (ec && et && failuredetails)
+            if (ec && et && (failuredetails || !routing || !strcmp (routing, "messageDeliveryFailure")))
                fprintf (e, "This reports error %s: %s\n", ec, et);
          }
       }
