@@ -831,7 +831,7 @@ main (int argc, const char *argv[])
             if (user && pass)
             {
                SQL_RES *res =
-                  sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `auth`<>'APIKEY' AND `clientid`=%#s", user);
+                  sql_safe_query_store_f (&sql, "SELECT * FROM `tester` WHERE `clientid`=%#s", user);
                if (sql_fetch_row (res))
                {
                   tester = atoi (sql_colz (res, "ID"));
