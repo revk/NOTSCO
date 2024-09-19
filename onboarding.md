@@ -46,18 +46,18 @@ We can do this in advance and tell TOTSCO it is done, but they may want a call t
 - Send MatchRequest for 10 Downing Street, London, SW1A 2AA, with name Sunak, get match failure
 - Send MatchRequest for 10 Downing Street, London, SW1A 2AA, with name Starmer, get match confirmation
 - Send Switch order, get confirmation
-- Send Switch order again, get failure *
+- Send Switch order again, get failure †
 - Send Switch update, get confirmation
-- Send Switch update (dated last year), get failure *
+- Send Switch update (dated last year), get failure †
 - Send Switch cancel, get confirmation
-- Send Switch cancel again, get failure *
+- Send Switch cancel again, get failure †
 - Send MatchRequest for 10 Downing Street, London, SW1A 2AA, with name Starmer, get match confirmation
 - Send Switch order, get confirmation
 - Send Trigger, get confirmation
-- Send Trigger again, get failues *
-- Send messasge to RCPID XXXX, get MessageDeliveryFailure *
+- Send Trigger again, get failues †
+- Send messasge to RCPID XXXX, get MessageDeliveryFailure †
 
- * Some of these may be a challenge if your system does not allow.
+† Some of these may be a challenge if your system does not allow.
 Provide us with an address and surname to do exactly the same back to you.
 
 As part of that, if TOTSCO ask, we can do 1000 match requests as well.
