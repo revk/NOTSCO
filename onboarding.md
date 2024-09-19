@@ -54,7 +54,7 @@ We can do this in advance and tell TOTSCO it is done, but they may want a call t
 - Send MatchRequest for 10 Downing Street, London, SW1A 2AA, with name Starmer, get match confirmation
 - Send Switch order, get confirmation
 - Send Trigger, get confirmation
-- Send Trigger again, get failues †
+- Send Trigger again, get failure †
 - Send messasge to RCPID XXXX, get MessageDeliveryFailure †
 
 † Some of these may be a challenge if your system does not allow.
