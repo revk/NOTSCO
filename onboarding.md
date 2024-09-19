@@ -35,7 +35,7 @@ This is to be on production / live - one message each way is all that is needed.
 
 A&A is prepared to do some buddy CP testing with CPs, generally. Ask nicely.
 
-We'll expect you to have done NOTSCO tests first please. Do messages both ways cleanly. This should make buddy CP testing a breeze.
+**We'll expect you to have done NOTSCO tests first please.** Do messages both ways cleanly. This should make buddy CP testing a breeze.
 
 As I say, the requirement is every message type each way. So this is the plan.
 We run all the messages through the NOTSCO syntax checker, so we expect all messages to be *clean* through that as well.
