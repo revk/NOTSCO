@@ -1,6 +1,6 @@
 # Onboarding with TOTSCO
 
-The official process have three steps...
+The official process has these steps...
 
 - SIT
 - Buddy CP
