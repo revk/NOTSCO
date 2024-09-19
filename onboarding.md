@@ -15,7 +15,7 @@ However, there is a test specification that involves a lot of different sorts of
 The challenge is that any CP that has a proper working system will not be able to generate or handle the invalid messages involved.
 
 A&A were able to progress with no more testing having shown a message each way.
-The irony is SIT does not test the 3 second SLA so failed to idenbtify a connectivity issue we had, the one thing is is meant to check.
+The irony is SIT does not test the 3 second SLA so failed to identify a connectivity issue we had, the one thing is is meant to check.
 
 So you probably need to argue with TOTSCO to get passed this. If you have done NOTSCO, connectivty should be no problem.
 
