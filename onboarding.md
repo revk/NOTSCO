@@ -58,6 +58,7 @@ We can do this in advance and tell TOTSCO it is done, but they may want a call t
 - Send messasge to RCPID XXXX, get MessageDeliveryFailure †
 
 † Some of these may be a challenge if your system does not allow.
+
 Provide us with an address and surname to do exactly the same back to you.
 
 As part of that, if TOTSCO ask, we can do 1000 match requests as well.
