@@ -17,7 +17,7 @@ The challenge is that any CP that has a proper working system will not be able t
 A&A were able to progress with no more testing having shown a message each way.
 The irony is SIT does not test the 3 second SLA so failed to identify a connectivity issue we had, the one thing is is meant to check.
 
-So you probably need to argue with TOTSCO to get passed this. If you have done NOTSCO, connectivty should be no problem.
+So you probably need to argue with TOTSCO to get passed this. If you have done NOTSCO, connectivty should be no problem. Ask them to confirm that A&A did not have to do these tests.
 
 ## Buddy CP
 
@@ -34,6 +34,8 @@ This is to be on production / live - one message each way is all that is needed.
 # Buddy CP with A&A
 
 A&A is prepared to do some buddy CP testing with CPs, generally. Ask nicely.
+
+We'll expect you to have done NOTSCO tests first please. Do messages both ways cleanly. This should make buddy CP testing a breeze.
 
 As I say, the requirement is every message type each way. So this is the plan.
 We can do this in advance and tell TOTSCO it is done, but they may want a call to go through it, before they move to production.
