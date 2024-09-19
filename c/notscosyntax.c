@@ -760,12 +760,14 @@ notsco_syntaxcheck (j_t j, FILE * e, char failuredetails)
                const char *st = expect_string (e, "OTS§2.2", s, "serviceType", NULL);
                if (st && strcmp (st, "IAS") && strcmp (st, "NBICS"))
                   expected (e, "OTS§2.2", s, NULL, "serviceType", NULL, "\"IAS\" or \"NBICS\"", NULL);
-               if ((val = expect_string (e, "OTS§2.2", s, "action", NULL)) && strcmp (val, "cease")
-                   && (!strcmp (st, "IAS") || (strcmp (val, "port") && strcmp (val, "identify"))))
+               const char *action = expect_string (e, "OTS§2.2", s, "action", NULL);
+               if (action && strcmp (action, "cease")
+                   && (!strcmp (st, "IAS") || (strcmp (action, "port") && strcmp (action, "identify"))))
                   expected (e, "OTS§2.2", s, NULL, "action", NULL,
                             !strcmp (st, "IAS") ? "\"cease\"" : "\"cease\" or \"port\" or \"identify\"", NULL);
-               const char *id = expect_string (e, "OTS§2.2", s, "serviceIdentifier", !strcmp (st, "NBICS") ? NULL : "");
-               if (id && !strcmp (st, "NBICS") && (info = istelephone (id)))
+               const char *id = expect_string (e, "OTS§2.2", s, "serviceIdentifier", !strcmp (st ? : "", "NBICS")
+                                               && !strcmp (action ? : "", "port") ? NULL : "");
+               if (id && !strcmp (st ? : "", "NBICS") && (info = istelephone (id)))
                   expected (e, "OTS§2.2", s, NULL, "serviceIdentifier", NULL, "valid telephone number", info);
             }
          } else if (!strcmp (routing, "residentialSwitchMatchConfirmation"))
