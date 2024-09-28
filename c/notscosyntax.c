@@ -505,7 +505,7 @@ notsco_responsecheck (int status, j_t j, FILE * e)
       else if (status != 202)
          fprintf (e, "API§2.1.8: HTTP response expected is 202, was %d\n", status);
    }
-   if (j_isnull (j))
+   if (!j || j_isnull (j))
       return;
    if (status / 100 == 2)
       fprintf (e, "API§2.1.8: An completely empty response is expected for a %d status\n", status);
@@ -691,6 +691,11 @@ notsco_syntaxcheck (j_t j, FILE * e, char failuredetails)
                   ref = "OTS§2.6.2";
                if ((val = expect_string (e, ref, payload, "switchOrderReference", NULL)) && (info = isuuid (val)))
                   expected (e, ref, payload, NULL, "switchOrderReference", NULL, "a valid UUID", info);
+            }
+            if (et && strstr (et, "<optional"))
+            {
+               locate (e, tag, payload, NULL);
+               fprintf (e, " You have literally included the <optional text...> part!\n");
             }
             if (ec && et && (failuredetails || !routing || !strcmp (routing, "messageDeliveryFailure")))
                fprintf (e, "This reports error %s: %s\n", ec, et);
