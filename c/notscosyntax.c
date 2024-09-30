@@ -782,6 +782,9 @@ notsco_syntaxcheck (j_t j, FILE * e, char failuredetails)
                for (j_t i = j_first (is); i; i = j_next (i))
                {
                   j_tag (i);
+		  // sentBy applies in call cases
+                  if ((val = expect_string (e, "OTS§2.2.1", i, "sentBy", NULL)) && (info = isdatetime (val)))
+                     expected (e, "OTS§2.2.1", i, NULL, "sentBy", NULL, "datetime (YYYY-MM-DD HH:MM:SS)", info);
                   const char *sm = expect_string (e, "OTS§2.2.1", i, "sentMethod", NULL);
                   if (!sm)
                      continue;
@@ -796,8 +799,6 @@ notsco_syntaxcheck (j_t j, FILE * e, char failuredetails)
                      fprintf (e, "E.123 does not allow (0) in an international format number, please follow E.123.\n");
                   else if (st && !strcmp (sm, "1st class post"))
                      expected (e, "IP§5.11.2", i, NULL, "sentTo", NULL, "omitted", NULL);
-                  if ((val = expect_string (e, "OTS§2.2.1", i, "sentBy", NULL)) && (info = isdatetime (val)))
-                     expected (e, "OTS§2.2.1", i, NULL, "sentBy", NULL, "datetime (YYYY-MM-DD HH:MM:SS)", info);
                }
             void check (j_t j, int main)
             {                   // Check matchResult
