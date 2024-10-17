@@ -272,7 +272,6 @@ ispastdate (const char *u)
 static const char *
 isfuturedate (const char *u)
 {
-   warnx ("future");
    const char *e = ispattern (u, "NNNN-NN-NN");
    if (e)
       return e;
