@@ -12,8 +12,6 @@
 #include <sqllib.h>
 #include <ajlcurl.h>
 
-static const char *check_string (const char *s);
-
 static const char *
 ispattern (const char *u, const char *p)
 {
@@ -46,7 +44,7 @@ ispattern (const char *u, const char *p)
       u++;
       p++;
    }
-   return check_string (u);
+   return NULL;
 }
 
 static const char *
