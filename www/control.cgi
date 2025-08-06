@@ -37,6 +37,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <li><a href="/syntaxcheck.cgi">Syntax check JSON</a></li>
 <li><a href="/scorecard.cgi">Testing scorecard</a></li>
 </ul>
+<p>More about <a href="/onboarding.cgi">on-boarding</a> at TOTSCO.</p>
 <p><a href="/notes.cgi">Tips, and notes on TOTSCO specifications.</a></p>
 <hr>
 <h2>Today's messages</h2>
@@ -54,6 +55,6 @@ xmlsql -d notsco head.html - tail.html << 'END'
 
 </sql>
 </table>
-<if not found><p>No mesage logs found. Remember, messages are cleared at the end of each day.</p></if>
+<if not found><p>No message logs found. Remember, messages are cleared at the end of each day.</p></if>
 </sql>
 'END'

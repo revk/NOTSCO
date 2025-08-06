@@ -5,6 +5,7 @@ echo Content-Type: text/html
 echo ""
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Score card</h1>
+<p>The scorecard helps check you are ready for <a href="onboarding.cgi">on-boarding</a>.</p>
 <sql table=tester WHERE="ID=$TESTER">
 <if company not company=''><h2><output name=company></h2></if>
 </sql>

@@ -27,6 +27,7 @@ xmlsql head.html - tail.html << 'END'
 <form method=post action=signup.cgi>
 <input name=email autofocus placeholder="Business email address" size=80 type=email><input type=submit value="Send link">
 </form>
+<p>If you are a CP, we can help with <a href="/onboarding.cgi">on-boarding</a> at TOTSCO.</p>
 <p>For suggestions and support, raise issues on <a href="https://github.com/revk/NOTSCO">GitHub</a></p>
 <p>The NOTSCO bot is tooting stats mesages every day at <a href='https://social.aa.net.uk/@notsco'>https://social.aa.net.uk/@notsco</a>.</p>
 'END'
