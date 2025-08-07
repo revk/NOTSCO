@@ -51,7 +51,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <li>Make sure you are actually ready - as I say above, it is not just about the messages. It is important to have all the processes behind them.</li>
 <li>Once you are ready and have done that testing, then contact us or ask TOTSCO to contact us.</li>
 <li>We'll want to go through some tests on pre-production platform, to/from you, without errors. We want to check you seem to have not just messages, but the underlying processes in place.</li>
-<li>Basically, we're not trying to spend a lot of time hand holding. If you can get through NOSTCO using your opdering processes, the call with TOSTCO should be quick and easy.</li>
+<li>Basically, we're not trying to spend a lot of time hand holding. If you can get through NOSTCO using your odering processes, the call with TOSTCO should be quick and easy.</li>
 <li>Once the call is done, we can do the several hundred messages on a script if TOTSCO insist on it. It just shows your system can handle messages reliably.</li>
 </ul>
 'END'
