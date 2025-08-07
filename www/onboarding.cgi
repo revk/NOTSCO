@@ -18,6 +18,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <p>One trick on your dev/test platform is to direct messages based on the CP identity, a simple trick is to set up NOTSCO to be <tt>TEST</tt>. Then your dev system can have code to route any message to <tt>TEST</tt> to NOTSO and other messages to TOTSCO pre-production platform. It makes testing using pre-production and NOTSCO simple.</tt>
 <h2>NOTSCO can help</h2>
 <p>The NOTSCO system handles and generates all of these message types, and you can do tests. The <a href="scorecard.cgi">Scorecard</a> can confirm what you have managed.</p>
+<p>There are also a lot of ways to test your error checking, sending invalid messages, and sending errors to check how you handle them.</p>
 <h2>Are you ready?</h2>
 <p>You need to be able to send and receive all of the types of message. This means the <tt>SwitchMatch</tt> messages (<tt>Request</tt>, <tt>Confirmation</tt>, and <tt>Failure</tt>), and the same for <tt>SwitchOrder</tt>, <tt>SwitchOrderUpdate</tt>, <tt>SwitchOrderCancellation</tt>, and <tt>SwitchOrderTrigger</tt>. You also need to handle a <tt>messageDeliveryFailure</tt>.</p>
 <p>This is a lot to test on the call, 16 message types, sent and received to your buddy CP, so 30 messages total. If your system is ready it can be done quite quickly.</p>
@@ -26,6 +27,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <p>To handle switching away from you...</p>
 <ul>
 <li>You need to be able to handle a match request. This means finding the service in your cutsomer database, checking the status (valid, already ceased, already switched, etc), checking if any termination charge or minimum term to tell your customer about, and if there are related services (like a phone line) that will also cease. Assuming no problems you need to be able to allocate a switch order reference, and notify your customer. You have to do this quickly and automatically 24/7.</li>
+<li>Do check the matching rules carefully - things like address matching rules, and surname checking with unicode characters for accented letters match against non accented versions, and letters like ß matching ss, etc.</li>
 <li>If not matched, or other errors, you have to report failure. Basically you will need to have tested for every error case and be able to report every error code. We don't try and test all of these, but we'll want to test a confirmation, and failure, and possibly some other error codes. This also has to be done quickly and automaticlly 24/7.</li>
 <li>You need to be able to keep track of the switch order, handle the switch order message, and update, and cancellation messages.</li>
 <li>You need to be able to handle the trigger, ceasing your service and correctly charging your customer to the trigger date.</li>
