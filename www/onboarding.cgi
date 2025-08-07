@@ -45,7 +45,7 @@ xmlsql -d notsco head.html - tail.html << 'END'
 </ul>
 <p>You also need staff trained on the process both ways, and ways to handle exceptions and errors that may crop up.</p>
 <h2>A&amp;A can help.</h2>
-<p>Yes, we can be a buddy CP, but some rules, sorry.</p>
+<p>Yes, we can be a buddy CP, but some steps to it, sorry.</p>
 <ul>
 <li>Use NOTSCO, even if you did not in your development, it will help find issues you may have missed. Fill the score card for all the message types (without errors).</li>
 <li>Make sure you are actually ready - as I say above, it is not just about the messages. It is important to have all the processes behind them.</li>
@@ -54,4 +54,5 @@ xmlsql -d notsco head.html - tail.html << 'END'
 <li>Basically, we're not trying to spend a lot of time hand holding. If you can get through NOSTCO using your ordering processes, the call with TOSTCO should be quick and easy.</li>
 <li>Once the call is done, we can do the several hundred messages on a script if TOTSCO insist on it. It just shows your system can handle messages reliably.</li>
 </ul>
+<p>Obviously for this, you'll need to provide us with a test surname, address, account, circuit for a match, and we'll provide you the same. Ideally this is test data only, but if you do check your real customer database, we'll only use what you provide for these tests.</p>
 'END'
