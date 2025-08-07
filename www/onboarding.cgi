@@ -10,7 +10,7 @@ echo ""
 xmlsql -d notsco head.html - tail.html << 'END'
 <h1>Onboarding</h1>
 <p>The TOTSCO process involves several stages. Once you get on the pre-production platform you can send and receive messsages to other CPs on the pre-production platform. It is usually a good idea to talk to the CP first, but some CPs are happy for you to send mesages at any time (including A&amp;A).</p>
-<p>Once you think you are ready, TOTSCO will pair you with another CP and arrange a call with them and you and go through some simple tests. They actually want you to do a lot of messages as well, but that ccan be a script of a few hundred match requests if necessary.</p>
+<p>Once you think you are ready, TOTSCO will pair you with another CP and arrange a call with them and you and go through some simple tests. They actually want you to do a lot of messages as well, but that can be a script of a few hundred match requests if necessary.</p>
 <p>The idea is that this shows you are ready to go live. It is not a comprehensive test by any means.</p>
 <h2>Platforms</h2>
 <p>You need to either be able to switch your system between platforms or handle more than one platform. Handling more than one platform is a good idea. You can make your dev system talk to the TOTSCO pre-production platform both ways. You can make a system which talks to NOTSCO both ways. And finally you have a live system that talks to/from TOTSCO live platform and your live customer database and interactions. Obviously your test systems will want to avoid sending messages to real customers or ceasing real services.</p>
